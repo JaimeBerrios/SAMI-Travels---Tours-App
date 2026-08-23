@@ -24,6 +24,17 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
 ]
 
+# Caddy termina HTTPS y reenvía la petición a Gunicorn por la red interna.
+# Esta configuración es segura mientras Gunicorn no esté expuesto directamente
+# a Internet y Caddy reemplace (no concatene) X-Forwarded-Proto.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://samitravelsytours.jaimeberrios.com",
+]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
