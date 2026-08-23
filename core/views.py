@@ -6,6 +6,13 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 
+def generate_pdf(html, base_url):
+    """Render HTML as PDF, loading WeasyPrint only for PDF requests."""
+    from weasyprint import HTML
+
+    return HTML(string=html, base_url=base_url).write_pdf()
+
+
 def portal_publico(request):
     """Display the public portal and receive provisional quote requests."""
     if request.method == "POST":
@@ -39,13 +46,9 @@ def panel_interno(request):
     return render(request, "core/panel_interno.html", context)
 
 
-@staff_member_required(login_url="account_login")
+@staff_member_required(login_url="admin:login")
 def cotizacion_pdf(request, cotizacion_id):
     """Genera una cotización PDF; sustituir los datos de ejemplo por un modelo."""
-    # Importación diferida: las bibliotecas nativas de WeasyPrint solo son
-    # necesarias cuando realmente se solicita generar un documento PDF.
-    from weasyprint import HTML
-
     cotizacion = {
         "id": cotizacion_id,
         "cliente": "Cliente de ejemplo",
@@ -61,10 +64,10 @@ def cotizacion_pdf(request, cotizacion_id):
         {"cotizacion": cotizacion, "fecha_emision": timezone.localdate()},
         request=request,
     )
-    pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+    pdf = generate_pdf(html, request.build_absolute_uri("/"))
 
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = (
-        f'inline; filename="cotizacion-{cotizacion_id}.pdf"'
+        f'attachment; filename="cotizacion-{cotizacion_id}.pdf"'
     )
     return response

@@ -1,4 +1,4 @@
-{% load static tailwind_tags %}
+{% load static %}
 <!doctype html>
 <html lang="es" class="scroll-smooth">
 <head>
@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Sami Travels & Tours: vuelos, tours y experiencias inolvidables.">
     <title>{% block title %}Sami Travels & Tours{% endblock %}</title>
-    {% tailwind_css %}
-    <script defer src="{% static 'vendor/fontawesome/js/all.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" referrerpolicy="no-referrer">
+    {% block extra_css %}{% endblock %}
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
     <nav class="relative z-50 bg-sky-950 text-white shadow-lg" aria-label="Navegación principal">
