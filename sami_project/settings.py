@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "tailwind",
-    # Después de ejecutar `python manage.py tailwind init`, agregar: "theme",
+    "theme",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -152,7 +152,10 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-# Habilitar después de generar la aplicación con `python manage.py tailwind init`:
-# TAILWIND_APP_NAME = "theme"
+TAILWIND_APP_NAME = "theme"
+NPM_BIN_PATH = os.environ.get(
+    "NPM_BIN_PATH",
+    r"C:\Program Files\nodejs\npm.cmd" if os.name == "nt" else "npm",
+)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -1,73 +1,30 @@
 {% extends "core/base.html" %}
-
 {% block title %}Panel interno | Sami Travels & Tours{% endblock %}
-
 {% block content %}
-<section class="bg-light py-5 min-vh-75">
-    <div class="container">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-            <div>
-                <span class="text-primary fw-semibold text-uppercase">Área privada</span>
-                <h1 class="h2 fw-bold mb-1">Panel de cotizaciones</h1>
-                <p class="text-secondary mb-0">Bienvenido, {{ request.user.get_full_name|default:request.user.username }}.</p>
-            </div>
-            <a href="{% url 'admin:index' %}" class="btn btn-outline-primary">
-                <i class="bi bi-gear me-2"></i>Administración Django
+<section class="min-h-[70vh] bg-slate-100 py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+            <div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-sky-700">Área privada</span><h1 class="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Panel de cotizaciones</h1><p class="mt-2 text-slate-600">Bienvenido, {{ request.user.get_full_name|default:request.user.username }}.</p></div>
+            <a href="{% url 'admin:index' %}" class="inline-flex items-center justify-center gap-2 self-start rounded-xl border border-sky-700 px-5 py-3 font-bold text-sky-800 transition hover:bg-sky-800 hover:text-white md:self-auto">
+                <i class="fa-solid fa-gear"></i>
+                Administración Django
             </a>
         </div>
-
-        <div class="row g-4 mb-5">
-            <div class="col-md-4">
-                <div class="card dashboard-card border-0 shadow-sm p-4">
-                    <span class="text-secondary">Pendientes</span>
-                    <strong class="display-5 text-warning">{{ resumen.pendientes }}</strong>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card dashboard-card border-0 shadow-sm p-4">
-                    <span class="text-secondary">En proceso</span>
-                    <strong class="display-5 text-primary">{{ resumen.en_proceso }}</strong>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card dashboard-card border-0 shadow-sm p-4">
-                    <span class="text-secondary">Completadas</span>
-                    <strong class="display-5 text-success">{{ resumen.completadas }}</strong>
-                </div>
-            </div>
+        <div class="mt-10 grid gap-5 md:grid-cols-3">
+            <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex items-center justify-between"><span class="font-medium text-slate-600">Pendientes</span><span class="size-3 rounded-full bg-amber-400"></span></div><strong class="mt-3 block text-4xl font-black text-amber-600">{{ resumen.pendientes }}</strong></article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex items-center justify-between"><span class="font-medium text-slate-600">En proceso</span><span class="size-3 rounded-full bg-sky-500"></span></div><strong class="mt-3 block text-4xl font-black text-sky-700">{{ resumen.en_proceso }}</strong></article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex items-center justify-between"><span class="font-medium text-slate-600">Completadas</span><span class="size-3 rounded-full bg-emerald-500"></span></div><strong class="mt-3 block text-4xl font-black text-emerald-700">{{ resumen.completadas }}</strong></article>
         </div>
-
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white p-4 border-0">
-                <h2 class="h5 fw-bold mb-0">Solicitudes recientes</h2>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="px-4">Cliente</th>
-                            <th>Servicio</th>
-                            <th>Destino</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+        <div class="mt-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200 px-6 py-5"><h2 class="text-lg font-bold">Solicitudes recientes</h2></div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                    <thead class="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500"><tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Servicio</th><th class="px-6 py-4">Destino</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4">Acciones</th></tr></thead>
+                    <tbody class="divide-y divide-slate-100">
                         {% for cotizacion in cotizaciones %}
-                            <tr>
-                                <td class="px-4">{{ cotizacion.cliente }}</td>
-                                <td>{{ cotizacion.servicio }}</td>
-                                <td>{{ cotizacion.destino }}</td>
-                                <td>{{ cotizacion.estado }}</td>
-                                <td><button class="btn btn-sm btn-outline-primary">Ver detalle</button></td>
-                            </tr>
+                            <tr class="transition hover:bg-sky-50/60"><td class="whitespace-nowrap px-6 py-4 font-semibold">{{ cotizacion.cliente }}</td><td class="whitespace-nowrap px-6 py-4 text-slate-600">{{ cotizacion.servicio }}</td><td class="whitespace-nowrap px-6 py-4 text-slate-600">{{ cotizacion.destino }}</td><td class="whitespace-nowrap px-6 py-4 text-slate-600">{{ cotizacion.estado }}</td><td class="whitespace-nowrap px-6 py-4"><button class="rounded-lg border border-sky-700 px-3 py-2 font-bold text-sky-800 hover:bg-sky-800 hover:text-white">Ver detalle</button></td></tr>
                         {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center text-secondary py-5">
-                                    <i class="bi bi-inbox display-5 d-block mb-2"></i>
-                                    Aún no hay cotizaciones registradas.
-                                </td>
-                            </tr>
+                            <tr><td colspan="5" class="px-6 py-16 text-center text-slate-500"><i class="fa-solid fa-inbox mb-3 block text-4xl text-slate-400"></i>Aún no hay cotizaciones registradas.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

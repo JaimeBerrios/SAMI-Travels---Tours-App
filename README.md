@@ -39,7 +39,7 @@ SAMI/
 
 - **Python 3.11** en la imagen de producción.
 - **Django 4.2+** (limitado a versiones anteriores a Django 5.0).
-- **SQLite** como base de datos actual.
+- **SQLite** para desarrollo local y **MySQL 8+** para producción.
 - **Gunicorn** como servidor WSGI de producción.
 - **Docker** para construir y ejecutar la aplicación de forma aislada.
 - **Caddy Server** como proxy inverso, encargado de publicar la aplicación y administrar automáticamente los certificados SSL/TLS mediante Let's Encrypt.
@@ -57,7 +57,7 @@ Caddy (SSL automático / proxy inverso)
 sami_container (Gunicorn :8000)
     │
     ▼
-Django / SQLite
+Django / MySQL
 ```
 
 ## Requisitos previos
@@ -159,6 +159,14 @@ La configuración actual reconoce estas variables:
 | --- | --- | --- |
 | `DJANGO_SECRET_KEY` | Clave criptográfica de Django. Debe ser larga, aleatoria y privada en producción. | Clave insegura únicamente para desarrollo |
 | `DJANGO_DEBUG` | Activa o desactiva el modo de depuración (`True`/`False`). | `True` |
+| `DB_ENGINE` | Selecciona `sqlite` para desarrollo o `mysql` para producción. | `sqlite` |
+| `MYSQL_DATABASE` | Nombre de la base de datos MySQL. | `sami_travels` |
+| `MYSQL_USER` | Usuario de MySQL. | `sami_user` |
+| `MYSQL_PASSWORD` | Contraseña del usuario de MySQL. | Vacío |
+| `MYSQL_HOST` | Host o nombre del contenedor MySQL. | `127.0.0.1` |
+| `MYSQL_PORT` | Puerto de MySQL. | `3306` |
+| `GOOGLE_CLIENT_ID` | Identificador OAuth de Google. | Vacío |
+| `GOOGLE_CLIENT_SECRET` | Secreto OAuth de Google. | Vacío |
 
 > [!IMPORTANT]
 > En producción se deben proporcionar una `DJANGO_SECRET_KEY` segura y `DJANGO_DEBUG=False`. Nunca se deben almacenar secretos reales en Git.
@@ -167,102 +175,167 @@ El dominio de producción configurado en `ALLOWED_HOSTS` es `samitravelsytours.j
 
 ## Guía de despliegue en producción
 
-La infraestructura prevista utiliza un servidor de DigitalOcean, Docker para la aplicación y un contenedor Caddy conectado a la red compartida `web_network`.
+La aplicación se despliega en un Droplet de DigitalOcean con Ubuntu 24.04 LTS (`68.183.122.81`). Caddy publica `samitravelsytours.jaimeberrios.com`, gestiona HTTPS automáticamente y se comunica con Gunicorn mediante la red Docker compartida `web_network`.
 
-### 1. Publicar los cambios en GitHub
+### 1. Publicar los cambios desde el equipo de desarrollo
 
-Desde el equipo de desarrollo, revisar y enviar los cambios:
+Antes de actualizar el servidor, compilar y verificar el proyecto:
 
 ```bash
+python manage.py tailwind build
+python manage.py check
 git status
 git add .
-git commit -m "Descripción breve de los cambios"
+git commit -m "Actualizar Sami Travels & Tours"
 git push origin main
 ```
 
-Si la rama de producción tiene otro nombre, sustituir `main` por la rama correspondiente.
-
-### 2. Conectarse al servidor
+### 2. Conectarse al servidor y entrar al proyecto
 
 ```bash
-ssh usuario@IP_DEL_SERVIDOR
-```
-
-Entrar al directorio de la aplicación:
-
-```bash
+ssh root@68.183.122.81
 cd /var/www/sami_app
 ```
 
-### 3. Descargar los cambios
+Si se utiliza un usuario administrativo diferente de `root`, sustituirlo en el comando SSH.
+
+### 3. Descargar el código publicado
 
 ```bash
-git pull origin main
+git status --short
+git pull --ff-only origin main
 ```
 
-### 4. Reconstruir la imagen Docker
+`git pull --ff-only` evita crear un *merge commit* accidental en producción. Si `git status --short` muestra cambios locales inesperados, detener el despliegue y revisarlos antes de continuar.
+
+### 4. Verificar configuración y red Docker
+
+El archivo `/var/www/sami_app/.env.production` debe existir únicamente en el servidor y no debe almacenarse en Git:
+
+```dotenv
+DJANGO_SECRET_KEY=REEMPLAZAR_POR_UNA_CLAVE_SEGURA
+DJANGO_DEBUG=False
+DB_ENGINE=mysql
+MYSQL_DATABASE=sami_travels
+MYSQL_USER=sami_user
+MYSQL_PASSWORD=REEMPLAZAR_POR_UNA_CONTRASENA_SEGURA
+MYSQL_HOST=mysql
+MYSQL_PORT=3306
+MYSQL_CONN_MAX_AGE=60
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+ACCOUNT_EMAIL_VERIFICATION=none
+```
+
+Comprobar que el archivo y la red existan:
 
 ```bash
-docker build -t sami-image .
+test -f .env.production
+docker network inspect web_network >/dev/null
 ```
 
-Durante la construcción, el `Dockerfile` instala las dependencias y ejecuta `python manage.py collectstatic --noinput`.
+`MYSQL_HOST` debe coincidir con el nombre o alias del contenedor MySQL conectado a `web_network`.
 
-### 5. Recrear el contenedor de la aplicación
+### 5. Reconstruir la imagen corporativa
 
-Detener y eliminar el contenedor anterior, si existe:
+```bash
+docker build --pull -t sami-image:latest .
+```
+
+El `Dockerfile` multietapa instala las dependencias npm, compila Tailwind y Font Awesome, instala Python/MySQL/WeasyPrint, ejecuta `collectstatic` y configura Gunicorn en el puerto `8000`.
+
+### 6. Aplicar las migraciones de MySQL
+
+Ejecutar las migraciones con un contenedor temporal antes de reemplazar la aplicación activa:
+
+```bash
+docker run --rm \
+  --network web_network \
+  --env-file .env.production \
+  sami-image:latest \
+  python manage.py migrate --noinput
+```
+
+Si la migración falla, no detener el contenedor que está atendiendo producción. Corregir primero la conexión, las credenciales o la migración.
+
+### 7. Recrear el contenedor de Django
 
 ```bash
 docker stop sami_container
 docker rm sami_container
-```
-
-Crear el contenedor actualizado y conectarlo a la red compartida:
-
-```bash
 docker run -d \
   --name sami_container \
   --network web_network \
   --restart unless-stopped \
-  -e DJANGO_DEBUG=False \
-  -e DJANGO_SECRET_KEY="REEMPLAZAR_POR_UNA_CLAVE_SEGURA" \
-  sami-image
+  --env-file .env.production \
+  sami-image:latest
 ```
 
-La forma mínima del comando, cuando las variables ya se suministran por otro mecanismo, es:
+Gunicorn escucha en `sami_container:8000` dentro de la red Docker. No es necesario publicar el puerto con `-p` porque Caddy accede al contenedor por `web_network`.
+
+### 8. Verificar Django antes de recargar Caddy
 
 ```bash
-docker run -d --name sami_container --network web_network --restart unless-stopped sami-image
+docker ps --filter name=sami_container
+docker logs --tail 100 sami_container
+docker exec sami_container python manage.py check --deploy
 ```
 
-> [!WARNING]
-> El contenedor actual utiliza SQLite dentro de su sistema de archivos. Al eliminarlo también se elimina cualquier dato escrito dentro del contenedor. Antes de usar datos reales, debe configurarse almacenamiento persistente mediante un volumen o migrarse a una base de datos externa.
+Comprobar desde el propio servidor que Gunicorn responda a través de la red compartida:
 
-### 6. Recargar Caddy
+```bash
+docker run --rm --network web_network curlimages/curl:latest \
+  --fail --silent --show-error \
+  -H "Host: samitravelsytours.jaimeberrios.com" \
+  http://sami_container:8000/ >/dev/null
+```
 
-Forzar una recarga limpia de la configuración de Caddy:
+### 9. Validar y recargar Caddy
+
+Validar primero la configuración activa:
+
+```bash
+docker exec -w /etc/caddy caddy caddy validate --config /etc/caddy/Caddyfile
+```
+
+Si la validación termina correctamente, forzar una recarga limpia:
 
 ```bash
 docker exec -w /etc/caddy caddy caddy reload --force
 ```
 
-Caddy actúa como proxy inverso hacia `sami_container:8000` dentro de `web_network` y gestiona automáticamente HTTPS con certificados de Let's Encrypt.
-
-### 7. Verificar el despliegue
-
-Comprobar que los contenedores están en ejecución:
+### 10. Verificación externa
 
 ```bash
-docker ps
-```
+curl --fail --silent --show-error \
+  -o /dev/null \
+  -w "HTTP %{http_code}\n" \
+  https://samitravelsytours.jaimeberrios.com/
 
-Consultar los registros de la aplicación:
-
-```bash
 docker logs --tail 100 sami_container
+docker logs --tail 100 caddy
 ```
 
-Finalmente, visitar <https://samitravelsytours.jaimeberrios.com> y comprobar el portal público, el inicio de sesión administrativo y la carga de archivos estáticos.
+El resultado esperado es `HTTP 200`. Revisar también el portal, `/accounts/login/`, `/admin/` y la carga de los archivos estáticos desde un navegador.
+
+### Secuencia compacta de actualización
+
+Después de verificar `.env.production`, esta es la secuencia habitual completa dentro de `/var/www/sami_app`:
+
+```bash
+git pull --ff-only origin main
+docker network inspect web_network >/dev/null
+docker build --pull -t sami-image:latest .
+docker run --rm --network web_network --env-file .env.production sami-image:latest python manage.py migrate --noinput
+docker stop sami_container
+docker rm sami_container
+docker run -d --name sami_container --network web_network --restart unless-stopped --env-file .env.production sami-image:latest
+docker logs --tail 100 sami_container
+docker exec sami_container python manage.py check --deploy
+docker exec -w /etc/caddy caddy caddy validate --config /etc/caddy/Caddyfile
+docker exec -w /etc/caddy caddy caddy reload --force
+curl --fail --silent --show-error -o /dev/null -w "HTTP %{http_code}\n" https://samitravelsytours.jaimeberrios.com/
+```
 
 ## Comandos útiles
 

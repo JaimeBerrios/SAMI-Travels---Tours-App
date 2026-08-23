@@ -1,107 +1,71 @@
 {% extends "core/base.html" %}
-
 {% block title %}Viaja con nosotros | Sami Travels & Tours{% endblock %}
-
 {% block content %}
-<section class="hero-section text-white">
-    <div class="container py-5">
-        <div class="row align-items-center min-vh-75 py-5">
-            <div class="col-lg-7">
-                <span class="badge rounded-pill text-bg-warning mb-3">Explora. Descubre. Disfruta.</span>
-                <h1 class="display-3 fw-bold">Tu próximo destino está más cerca de lo que imaginas.</h1>
-                <p class="lead my-4">Encontramos vuelos, tours y experiencias diseñadas para ti, con acompañamiento antes, durante y después de tu viaje.</p>
-                <a href="#cotizar" class="btn btn-warning btn-lg px-4 me-2">Solicitar cotización</a>
-                <a href="#servicios" class="btn btn-outline-light btn-lg px-4">Ver servicios</a>
+<section class="relative isolate overflow-hidden bg-sky-950 text-white">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(56,189,248,.45),transparent_35%),linear-gradient(110deg,#082f49_20%,#075985_100%)]"></div>
+    <div class="mx-auto grid min-h-[70vh] max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-28">
+        <div>
+            <span class="inline-flex rounded-full bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-[.2em] text-sky-950">Explora · Descubre · Disfruta</span>
+            <h1 class="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">Tu próximo destino está más cerca de lo que imaginas.</h1>
+            <p class="mt-6 max-w-2xl text-lg leading-8 text-sky-100">Encontramos vuelos, tours y experiencias diseñadas para ti, con acompañamiento antes, durante y después de tu viaje.</p>
+            <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+                <a href="#cotizar" class="rounded-xl bg-amber-400 px-6 py-3.5 text-center font-bold text-sky-950 shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-300">Solicitar cotización</a>
+                <a href="#servicios" class="rounded-xl border border-white/40 px-6 py-3.5 text-center font-bold transition hover:bg-white/10">Ver servicios</a>
             </div>
         </div>
-    </div>
-</section>
-
-<section id="servicios" class="py-5 bg-light">
-    <div class="container py-4">
-        <div class="text-center mb-5">
-            <span class="text-primary fw-semibold text-uppercase">Nuestros servicios</span>
-            <h2 class="fw-bold mt-2">Planeamos el viaje que tienes en mente</h2>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <article class="card service-card border-0 shadow-sm h-100 p-3">
-                    <div class="card-body">
-                        <div class="service-icon"><i class="bi bi-airplane"></i></div>
-                        <h3 class="h4">Vuelos</h3>
-                        <p class="text-secondary mb-0">Buscamos opciones convenientes según tus fechas, presupuesto y destino.</p>
-                    </div>
-                </article>
-            </div>
-            <div class="col-md-4">
-                <article class="card service-card border-0 shadow-sm h-100 p-3">
-                    <div class="card-body">
-                        <div class="service-icon"><i class="bi bi-map"></i></div>
-                        <h3 class="h4">Tours</h3>
-                        <p class="text-secondary mb-0">Experiencias locales e internacionales para viajar en pareja, familia o grupo.</p>
-                    </div>
-                </article>
-            </div>
-            <div class="col-md-4">
-                <article class="card service-card border-0 shadow-sm h-100 p-3">
-                    <div class="card-body">
-                        <div class="service-icon"><i class="bi bi-headset"></i></div>
-                        <h3 class="h4">Asesoría</h3>
-                        <p class="text-secondary mb-0">Te orientamos en cada paso para que viajes con tranquilidad y confianza.</p>
-                    </div>
-                </article>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section id="cotizar" class="py-5">
-    <div class="container py-4">
-        <div class="row g-5 align-items-center">
-            <div class="col-lg-5">
-                <span class="text-primary fw-semibold text-uppercase">Cotiza tu viaje</span>
-                <h2 class="display-6 fw-bold mt-2">Cuéntanos qué aventura estás buscando</h2>
-                <p class="text-secondary">Completa tus datos y un asesor se comunicará contigo para preparar una propuesta personalizada.</p>
-                <div class="d-flex gap-3 align-items-center mt-4">
-                    <i class="bi bi-shield-check fs-2 text-primary"></i>
-                    <span>Atención personalizada y sin compromiso.</span>
+        <div class="hidden justify-center lg:flex" aria-hidden="true">
+            <div class="grid size-80 place-items-center rounded-full border border-white/15 bg-white/5 backdrop-blur-sm">
+                <div class="grid size-56 place-items-center rounded-full bg-sky-400/15">
+                    <i class="fa-solid fa-plane-up text-8xl text-amber-300"></i>
                 </div>
             </div>
-            <div class="col-lg-7">
-                <form method="post" class="card border-0 shadow p-4 p-md-5">
-                    {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="nombre" class="form-label">Nombre completo</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="contacto" class="form-label">Correo o teléfono</label>
-                            <input type="text" class="form-control" id="contacto" name="contacto" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="servicio" class="form-label">Servicio</label>
-                            <select class="form-select" id="servicio" name="servicio" required>
-                                <option value="vuelo">Cotización de vuelo</option>
-                                <option value="tour">Cotización de tour</option>
-                                <option value="vuelo y tour">Vuelo y tour</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="destino" class="form-label">Destino</label>
-                            <input type="text" class="form-control" id="destino" name="destino" placeholder="Ej. Cancún">
-                        </div>
-                        <div class="col-12">
-                            <label for="detalles" class="form-label">Detalles del viaje</label>
-                            <textarea class="form-control" id="detalles" name="detalles" rows="4" placeholder="Fechas, número de viajeros y cualquier preferencia"></textarea>
-                        </div>
-                        <div class="col-12 d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Enviar solicitud</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
         </div>
+    </div>
+</section>
+
+<section id="servicios" class="scroll-mt-20 bg-white py-20 sm:py-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl text-center">
+            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-sky-700">Nuestros servicios</span>
+            <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Planeamos el viaje que tienes en mente</h2>
+            <p class="mt-4 text-slate-600">Soluciones personalizadas para disfrutar cada etapa de tu próxima aventura.</p>
+        </div>
+        <div class="mt-12 grid gap-6 md:grid-cols-3">
+            <article class="group rounded-2xl border border-slate-200 p-7 shadow-sm transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-xl">
+                <div class="grid size-14 place-items-center rounded-2xl bg-sky-100 text-sky-800 transition group-hover:bg-sky-700 group-hover:text-white"><i class="fa-solid fa-plane text-2xl"></i></div>
+                <h3 class="mt-6 text-xl font-bold">Vuelos</h3><p class="mt-3 leading-7 text-slate-600">Buscamos opciones convenientes según tus fechas, presupuesto y destino.</p>
+            </article>
+            <article class="group rounded-2xl border border-slate-200 p-7 shadow-sm transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-xl">
+                <div class="grid size-14 place-items-center rounded-2xl bg-sky-100 text-sky-800 transition group-hover:bg-sky-700 group-hover:text-white"><i class="fa-solid fa-map-location-dot text-2xl"></i></div>
+                <h3 class="mt-6 text-xl font-bold">Tours</h3><p class="mt-3 leading-7 text-slate-600">Experiencias locales e internacionales para viajar en pareja, familia o grupo.</p>
+            </article>
+            <article class="group rounded-2xl border border-slate-200 p-7 shadow-sm transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-xl">
+                <div class="grid size-14 place-items-center rounded-2xl bg-sky-100 text-sky-800 transition group-hover:bg-sky-700 group-hover:text-white"><i class="fa-solid fa-headset text-2xl"></i></div>
+                <h3 class="mt-6 text-xl font-bold">Asesoría</h3><p class="mt-3 leading-7 text-slate-600">Te orientamos en cada paso para viajar con tranquilidad y confianza.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section id="cotizar" class="scroll-mt-20 bg-slate-100 py-20 sm:py-24">
+    <div class="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-5 lg:items-center lg:px-8">
+        <div class="lg:col-span-2">
+            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-sky-700">Cotiza tu viaje</span>
+            <h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Cuéntanos qué aventura estás buscando</h2>
+            <p class="mt-5 leading-7 text-slate-600">Completa tus datos y un asesor se comunicará contigo para preparar una propuesta personalizada.</p>
+            <div class="mt-7 flex items-center gap-4 rounded-2xl bg-sky-950 p-5 text-white"><i class="fa-solid fa-shield-halved shrink-0 text-3xl text-amber-300"></i><span class="font-medium">Atención personalizada y sin compromiso.</span></div>
+        </div>
+        <form method="post" class="rounded-3xl bg-white p-6 shadow-xl shadow-slate-300/50 sm:p-9 lg:col-span-3">
+            {% csrf_token %}
+            <div class="grid gap-6 sm:grid-cols-2">
+                <div><label for="nombre" class="mb-2 block text-sm font-bold text-slate-700">Nombre completo</label><input type="text" id="nombre" name="nombre" required autocomplete="name" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-sky-600 focus:ring-4 focus:ring-sky-100"></div>
+                <div><label for="contacto" class="mb-2 block text-sm font-bold text-slate-700">Correo o teléfono</label><input type="text" id="contacto" name="contacto" required class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-sky-600 focus:ring-4 focus:ring-sky-100"></div>
+                <div><label for="servicio" class="mb-2 block text-sm font-bold text-slate-700">Servicio</label><select id="servicio" name="servicio" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-sky-600 focus:ring-4 focus:ring-sky-100"><option value="vuelo">Cotización de vuelo</option><option value="tour">Cotización de tour</option><option value="vuelo y tour">Vuelo y tour</option></select></div>
+                <div><label for="destino" class="mb-2 block text-sm font-bold text-slate-700">Destino</label><input type="text" id="destino" name="destino" placeholder="Ej. Cancún" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-sky-600 focus:ring-4 focus:ring-sky-100"></div>
+                <div class="sm:col-span-2"><label for="detalles" class="mb-2 block text-sm font-bold text-slate-700">Detalles del viaje</label><textarea id="detalles" name="detalles" rows="4" placeholder="Fechas, número de viajeros y cualquier preferencia" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-sky-600 focus:ring-4 focus:ring-sky-100"></textarea></div>
+                <button type="submit" class="rounded-xl bg-sky-800 px-6 py-3.5 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-sky-700 focus:ring-4 focus:ring-sky-200 sm:col-span-2">Enviar solicitud</button>
+            </div>
+        </form>
     </div>
 </section>
 {% endblock %}

@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Entornos virtuales
+venv/
+.venv/
+
+# Variables de entorno
+.env
+
+# Dependencias y artefactos de Tailwind
+theme/static_src/node_modules/
+
+# Herramientas y sistema operativo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
