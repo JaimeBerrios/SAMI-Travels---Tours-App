@@ -11,23 +11,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" referrerpolicy="no-referrer">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
-    <nav class="relative z-50 bg-sky-950 text-white shadow-lg" aria-label="Navegación principal">
+<body class="flex min-h-screen flex-col bg-slate-50 text-brand-navy antialiased">
+    <nav class="relative z-50 bg-brand-navy text-brand-white shadow-lg" aria-label="Navegación principal">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
             <a class="flex items-center gap-3 text-lg font-bold tracking-tight sm:text-xl" href="{% url 'core:portal-publico' %}">
-                <span class="grid size-10 place-items-center rounded-xl bg-amber-400 text-sky-950" aria-hidden="true">
+                <span class="grid size-10 place-items-center rounded-xl bg-brand-red text-brand-white" aria-hidden="true">
                     <i class="fa-solid fa-plane-departure text-lg"></i>
                 </span>
-                <span>Sami Travels <span class="text-amber-300">& Tours</span></span>
+                <span>Sami Travels <span class="text-brand-red">& Tours</span></span>
             </a>
-            <button id="menu-button" type="button" class="inline-flex size-11 items-center justify-center rounded-lg border border-white/20 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-300 md:hidden" aria-controls="mobile-menu" aria-expanded="false" aria-label="Abrir navegación">
+            <button id="menu-button" type="button" class="inline-flex size-11 items-center justify-center rounded-lg border border-white/20 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand-red md:hidden" aria-controls="mobile-menu" aria-expanded="false" aria-label="Abrir navegación">
                 <i id="menu-open-icon" class="fa-solid fa-bars text-xl"></i>
                 <i id="menu-close-icon" class="fa-solid fa-xmark hidden text-xl"></i>
             </button>
             <div class="hidden items-center gap-1 md:flex">
-                <a class="rounded-lg px-4 py-2 text-sm font-semibold transition hover:bg-white/10 hover:text-amber-300" href="{% url 'core:portal-publico' %}">Inicio</a>
-                <a class="rounded-lg px-4 py-2 text-sm font-semibold transition hover:bg-white/10 hover:text-amber-300" href="{% url 'core:portal-publico' %}#servicios">Servicios</a>
-                <a class="rounded-lg bg-amber-400 px-4 py-2 text-sm font-bold text-sky-950 transition hover:bg-amber-300" href="{% url 'core:portal-publico' %}#cotizar">Cotizar</a>
+                <a class="rounded-lg px-4 py-2 text-sm font-semibold transition hover:bg-white/10 hover:text-brand-red" href="{% url 'core:portal-publico' %}">Inicio</a>
+                <a class="rounded-lg px-4 py-2 text-sm font-semibold transition hover:bg-white/10 hover:text-brand-red" href="{% url 'core:portal-publico' %}#servicios">Servicios</a>
+                <a class="rounded-lg bg-brand-red px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-red-dark" href="{% url 'core:portal-publico' %}#cotizar">Cotizar</a>
                 <a class="ml-2 rounded-lg border border-white/25 px-4 py-2 text-sm font-semibold transition hover:bg-white/10" href="{% url 'core:panel-interno' %}">Panel interno</a>
             </div>
         </div>
@@ -44,7 +44,7 @@
     {% if messages %}
         <div class="mx-auto w-full max-w-7xl space-y-3 px-4 pt-5 sm:px-6 lg:px-8" aria-live="polite">
             {% for message in messages %}
-                <div class="flex items-start justify-between gap-4 rounded-xl border px-4 py-3 shadow-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-900{% elif message.tags == 'error' %}border-red-200 bg-red-50 text-red-900{% else %}border-sky-200 bg-sky-50 text-sky-900{% endif %}" role="alert">
+                <div class="flex items-start justify-between gap-4 rounded-xl border px-4 py-3 shadow-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-900{% elif message.tags == 'error' %}border-brand-red/25 bg-brand-red-soft text-brand-red-dark{% else %}border-brand-navy/20 bg-white text-brand-navy{% endif %}" role="alert">
                     <p class="text-sm font-medium">{{ message }}</p>
                     <button type="button" class="message-close shrink-0 rounded p-1 opacity-60 hover:bg-black/5 hover:opacity-100" aria-label="Cerrar mensaje">
                         <i class="fa-solid fa-xmark"></i>
@@ -55,7 +55,7 @@
     {% endif %}
 
     <main class="flex-1">{% block content %}{% endblock %}</main>
-    <footer class="bg-slate-950 py-8 text-white">
+    <footer class="border-t-4 border-brand-red bg-brand-navy-dark py-8 text-white">
         <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
             <p class="font-bold">Sami Travels & Tours</p>
             <p class="mt-1 text-sm text-slate-400">Tu próxima aventura comienza con nosotros.</p>
