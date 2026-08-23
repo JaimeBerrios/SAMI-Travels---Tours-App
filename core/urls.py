@@ -8,4 +8,9 @@ app_name = "core"
 urlpatterns = [
     path("", views.portal_publico, name="portal-publico"),
     path("panel-interno/", views.panel_interno, name="panel-interno"),
+    path(
+        "cotizaciones/<int:cotizacion_id>/pdf/",
+        views.cotizacion_pdf,
+        name="cotizacion-pdf",
+    ),
 ]

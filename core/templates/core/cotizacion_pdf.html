@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Cotización {{ cotizacion.id }} | Sami Travels & Tours</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 22mm 18mm 25mm;
+            @bottom-center {
+                content: "Sami Travels & Tours · Página " counter(page) " de " counter(pages);
+                color: #64748b;
+                font-size: 9pt;
+            }
+        }
+        * { box-sizing: border-box; }
+        body {
+            color: #1e293b;
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+        }
+        header {
+            align-items: center;
+            border-bottom: 3px solid #0f766e;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            padding-bottom: 14px;
+        }
+        .brand { color: #0f766e; font-size: 22pt; font-weight: 700; }
+        .tagline { color: #64748b; font-size: 9pt; }
+        h1 { color: #0f766e; font-size: 20pt; margin: 0 0 18px; }
+        .meta { color: #475569; text-align: right; }
+        .card {
+            background: #f8fafc;
+            border-left: 4px solid #14b8a6;
+            margin: 20px 0;
+            padding: 14px 18px;
+        }
+        table { border-collapse: collapse; margin-top: 22px; width: 100%; }
+        th { background: #0f766e; color: white; padding: 10px; text-align: left; }
+        td { border-bottom: 1px solid #cbd5e1; padding: 10px; }
+        .amount { text-align: right; }
+        .total { color: #0f766e; font-size: 14pt; font-weight: 700; }
+        .notes { color: #64748b; font-size: 9pt; margin-top: 36px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <div class="brand">Sami Travels & Tours</div>
+            <div class="tagline">Creamos experiencias, conectamos destinos</div>
+        </div>
+        <div class="meta">
+            Cotización #{{ cotizacion.id }}<br>
+            Emitida: {{ fecha_emision|date:"d/m/Y" }}
+        </div>
+    </header>
+
+    <h1>Cotización de viaje</h1>
+    <div class="card">
+        <strong>Cliente:</strong> {{ cotizacion.cliente }}<br>
+        <strong>Destino:</strong> {{ cotizacion.destino }}<br>
+        <strong>Fecha de salida:</strong> {{ cotizacion.fecha_salida }}<br>
+        <strong>Viajeros:</strong> {{ cotizacion.viajeros }}
+    </div>
+
+    <table>
+        <thead>
+            <tr><th>Concepto</th><th class="amount">Importe (USD)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Paquete turístico</td><td class="amount">$ {{ cotizacion.subtotal }}</td></tr>
+            <tr><td>Impuestos y tasas</td><td class="amount">$ {{ cotizacion.impuestos }}</td></tr>
+            <tr class="total"><td>Total</td><td class="amount">$ {{ cotizacion.total }}</td></tr>
+        </tbody>
+    </table>
+
+    <p class="notes">
+        Esta cotización está sujeta a disponibilidad y cambios de tarifa hasta
+        confirmar la reserva. Consulte con un agente las políticas de pago,
+        cancelación y equipaje aplicables.
+    </p>
+</body>
+</html>
