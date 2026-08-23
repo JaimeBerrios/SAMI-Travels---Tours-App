@@ -1,8 +1,12 @@
-from django.contrib.auth import get_user_model
-from django.test import TestCase
-from django.urls import reverse
-from django.test.utils import override_settings
+import os
+from io import StringIO
 from unittest.mock import patch
+
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.test import TestCase
+from django.test.utils import override_settings
+from django.urls import reverse
 
 
 @override_settings(
@@ -67,3 +71,39 @@ class BasicProductionViewsTests(TestCase):
         self.assertIn("Cotización de viaje", rendered_html)
         self.assertNotIn("�", rendered_html)
         self.assertEqual(base_url, "http://testserver/")
+
+
+class BootstrapAdminCommandTests(TestCase):
+    def test_disabled_bootstrap_does_nothing(self):
+        with patch.dict(os.environ, {"DJANGO_BOOTSTRAP_ADMIN": "false"}):
+            call_command("bootstrap_admin")
+
+        self.assertFalse(get_user_model().objects.exists())
+
+    def test_enabled_bootstrap_creates_admin_only_once(self):
+        environment = {
+            "DJANGO_BOOTSTRAP_ADMIN": "true",
+            "DJANGO_ADMIN_USERNAME": "temporary-admin",
+            "DJANGO_ADMIN_EMAIL": "admin@example.com",
+            "DJANGO_ADMIN_PASSWORD": "initial-test-password",
+        }
+        output = StringIO()
+
+        with patch.dict(os.environ, environment, clear=False):
+            call_command("bootstrap_admin", stdout=output)
+
+        user = get_user_model().objects.get(username="temporary-admin")
+        self.assertTrue(user.is_staff)
+        self.assertTrue(user.is_superuser)
+        self.assertTrue(user.check_password("initial-test-password"))
+
+        environment["DJANGO_ADMIN_PASSWORD"] = "must-not-replace-password"
+        with patch.dict(os.environ, environment, clear=False):
+            call_command("bootstrap_admin", stdout=output)
+
+        user.refresh_from_db()
+        self.assertEqual(
+            get_user_model().objects.filter(username="temporary-admin").count(),
+            1,
+        )
+        self.assertTrue(user.check_password("initial-test-password"))
