@@ -1,5 +1,33 @@
 {% extends "core/base.html" %}
 {% block title %}Viaja con nosotros | Sami Travels & Tours{% endblock %}
+{% block extra_css %}
+<style>
+    .flight-animation {
+        aspect-ratio: 3 / 2;
+        position: relative;
+        width: min(100%, 420px);
+    }
+    .flight-animation__route {
+        height: 100%;
+        inset: 0;
+        overflow: visible;
+        position: absolute;
+        width: 100%;
+    }
+    .flight-animation__plane {
+        filter: drop-shadow(0 5px 7px rgb(6 21 43 / 45%));
+        height: 44px;
+        left: -22px;
+        position: absolute;
+        top: -22px;
+        width: 44px;
+        will-change: transform;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .flight-animation__plane { will-change: auto; }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <section class="relative isolate overflow-hidden bg-brand-navy text-white">
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(215,25,32,.28),transparent_35%),linear-gradient(110deg,#06152B_20%,#173F6B_100%)]"></div>
@@ -13,12 +41,47 @@
                 <a href="#servicios" class="rounded-xl border border-white/40 px-6 py-3.5 text-center font-bold transition hover:bg-white/10">Ver servicios</a>
             </div>
         </div>
-        <div class="hidden justify-center lg:flex" aria-hidden="true">
-            <div class="grid size-80 place-items-center rounded-full border border-white/15 bg-white/5 backdrop-blur-sm">
-                <div class="grid size-56 place-items-center rounded-full bg-white/10">
-                    <i class="fa-solid fa-plane-up text-8xl text-brand-red"></i>
-                </div>
-            </div>
+        <div class="hidden justify-center lg:flex">
+            <button id="flight-animation-toggle" type="button" class="flight-animation rounded-3xl border border-white/15 bg-white/5 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-4 focus:ring-offset-brand-navy" aria-label="Pausar animación del avión" aria-pressed="false">
+                <svg class="flight-animation__route" viewBox="0 0 420 280" role="img" aria-labelledby="flight-route-title flight-route-description">
+                    <title id="flight-route-title">Ruta de vuelo de Sami Travels & Tours</title>
+                    <desc id="flight-route-description">Un avión rojo viaja alrededor de un globo terráqueo siguiendo una ruta animada.</desc>
+                    <defs>
+                        <clipPath id="globe-clip">
+                            <circle cx="210" cy="140" r="96"></circle>
+                        </clipPath>
+                        <radialGradient id="globe-fill" cx="35%" cy="30%" r="75%">
+                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".2"></stop>
+                            <stop offset="100%" stop-color="#173F6B" stop-opacity=".55"></stop>
+                        </radialGradient>
+                    </defs>
+
+                    <circle cx="210" cy="140" r="100" fill="url(#globe-fill)" stroke="#FFFFFF" stroke-opacity=".72" stroke-width="2"></circle>
+                    <g clip-path="url(#globe-clip)" fill="none" stroke="#FFFFFF" stroke-opacity=".24" stroke-width="1.5">
+                        <ellipse cx="210" cy="140" rx="54" ry="96"></ellipse>
+                        <ellipse cx="210" cy="140" rx="20" ry="96"></ellipse>
+                        <path d="M114 108C164 127 256 127 306 108"></path>
+                        <path d="M114 172C164 153 256 153 306 172"></path>
+                        <path d="M110 140H310"></path>
+                    </g>
+                    <g clip-path="url(#globe-clip)" fill="#FFFFFF" fill-opacity=".5">
+                        <path d="M128 91L145 76L169 72L184 83L177 96L161 101L156 116L143 120L133 108L119 104Z"></path>
+                        <path d="M170 126L190 132L196 149L187 165L183 190L169 208L158 181L160 158L148 143Z"></path>
+                        <path d="M224 79L248 70L278 82L291 100L276 111L253 108L244 119L226 112L211 96Z"></path>
+                        <path d="M238 126L266 119L287 132L279 151L258 157L249 177L234 164L226 145Z"></path>
+                        <path d="M278 180L295 184L301 199L286 207L271 196Z"></path>
+                    </g>
+
+                    <path id="flight-route" d="M55 184C69 71 205 20 330 70C423 108 399 210 300 243C191 279 72 247 55 184Z" fill="none" stroke="#D71920" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 10"></path>
+                    <circle cx="55" cy="184" r="7" fill="#FFFFFF" stroke="#D71920" stroke-width="3"></circle>
+                    <circle cx="300" cy="243" r="6" fill="#D71920" stroke="#FFFFFF" stroke-width="2"></circle>
+                </svg>
+                <svg id="flight-plane" class="flight-animation__plane" viewBox="0 0 64 64" aria-hidden="true" style="transform: translateX(55px) translateY(184px);">
+                    <path d="M60 30L39 23L32 4H25L28 25L10 22L4 27L25 33L4 39L10 44L28 41L25 60H32L39 41L60 34Z" fill="#D71920" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"></path>
+                    <path d="M18 31H47" stroke="#0B1F3A" stroke-width="2.5" stroke-linecap="round"></path>
+                </svg>
+                <span class="absolute bottom-4 left-0 right-0 text-center text-xs font-bold uppercase tracking-[.18em] text-white/70">Haz clic para pausar</span>
+            </button>
         </div>
     </div>
 </section>
@@ -47,12 +110,12 @@
     </div>
 </section>
 
-<section id="ubicacion" class="scroll-mt-20 bg-white py-20 sm:py-24">
+<section id="cobertura" class="scroll-mt-20 bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-10 max-w-2xl text-center">
-            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Nuestra ubicación</span>
-            <h2 class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">Visítanos en Sami Travels & Tours</h2>
-            <p class="mt-4 text-slate-600">Encuentra nuestra agencia en el mapa y planifica tu próxima aventura con nuestro equipo.</p>
+            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Nuestra cobertura</span>
+            <h2 class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">Atención virtual, estés donde estés</h2>
+            <p class="mt-4 text-slate-600">Operamos de manera virtual y brindamos nuestros servicios de viajes desde El Salvador. El mapa representa nuestra zona de atención, no una oficina abierta al público.</p>
         </div>
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-300/40">
             <iframe
@@ -62,7 +125,7 @@
                 loading="lazy"
                 allowfullscreen
                 referrerpolicy="strict-origin-when-cross-origin"
-                title="Ubicación de Agencia de Viajes Sami Travels & Tours"
+                title="Zona de atención virtual de Sami Travels & Tours"
             ></iframe>
         </div>
     </div>
@@ -89,4 +152,49 @@
         </form>
     </div>
 </section>
+{% endblock %}
+{% block extra_js %}
+<script type="module">
+    import { animate, svg } from "https://esm.sh/animejs";
+
+    const flightToggle = document.querySelector("#flight-animation-toggle");
+    const flightPlane = document.querySelector("#flight-plane");
+    const flightRoute = document.querySelector("#flight-route");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (flightToggle && flightPlane && flightRoute && !reduceMotion) {
+        const motionPath = svg.createMotionPath(flightRoute);
+        const planeAnimation = animate(flightPlane, {
+            ease: "linear",
+            duration: 12000,
+            loop: true,
+            ...motionPath,
+        });
+        const routeAnimation = animate(svg.createDrawable(flightRoute), {
+            draw: ["0 0", "0 1"],
+            ease: "linear",
+            duration: 12000,
+            loop: true,
+        });
+        let paused = false;
+
+        flightToggle.addEventListener("click", () => {
+            paused = !paused;
+            const action = paused ? "pause" : "play";
+            planeAnimation[action]();
+            routeAnimation[action]();
+            flightToggle.setAttribute("aria-pressed", String(paused));
+            flightToggle.setAttribute(
+                "aria-label",
+                paused ? "Reanudar animación del avión" : "Pausar animación del avión",
+            );
+            flightToggle.querySelector("span").textContent = paused
+                ? "Haz clic para reanudar"
+                : "Haz clic para pausar";
+        });
+    } else if (flightToggle) {
+        flightToggle.querySelector("span").textContent = "Ruta de vuelo";
+        flightToggle.setAttribute("aria-label", "Ruta de vuelo de Sami Travels & Tours");
+    }
+</script>
 {% endblock %}

@@ -67,6 +67,8 @@ Para trabajar localmente se necesita:
 - Git.
 - Python 3.11 o una versión compatible con Django 4.2.
 - `pip` y el módulo `venv`.
+- Node.js y npm para compilar Tailwind CSS cuando cambien estilos o plantillas.
+- Conexión a Internet para cargar Anime.js, Font Awesome y Google Maps durante el desarrollo.
 - Docker, únicamente si se desea probar la imagen de producción.
 
 ## Guía de ejecución local
@@ -107,7 +109,31 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Aplicar las migraciones
+Instalar también las dependencias frontend:
+
+```bash
+cd theme/static_src
+npm ci
+cd ../..
+```
+
+### 4. Compilar Tailwind CSS
+
+Generar una vez el CSS minificado:
+
+```bash
+npm --prefix theme/static_src run build:tailwind
+```
+
+Mientras se trabaja en estilos o plantillas, ejecutar el observador en una segunda terminal:
+
+```bash
+npm --prefix theme/static_src run dev
+```
+
+El archivo generado que sirve Django es `theme/static/css/dist/styles.css`. Detener el observador con `Ctrl+C`.
+
+### 5. Aplicar las migraciones
 
 ```bash
 python manage.py migrate
@@ -119,7 +145,14 @@ Si se necesita acceso a `/admin/` o `/panel-interno/`, crear un superusuario:
 python manage.py createsuperuser
 ```
 
-### 5. Recolectar los archivos estáticos
+### 6. Verificar y ejecutar las pruebas
+
+```bash
+python manage.py check
+python manage.py test
+```
+
+### 7. Recolectar los archivos estáticos (opcional en desarrollo)
 
 ```bash
 python manage.py collectstatic
@@ -131,7 +164,9 @@ Django solicitará confirmación si el directorio `staticfiles/` ya contiene arc
 python manage.py collectstatic --noinput
 ```
 
-### 6. Iniciar el servidor de desarrollo
+Con `DEBUG=True`, `runserver` sirve directamente los archivos de cada aplicación, por lo que este paso no es necesario para el uso local habitual. Sí permite comprobar anticipadamente el comportamiento de WhiteNoise.
+
+### 8. Iniciar el servidor de desarrollo
 
 ```bash
 python manage.py runserver
@@ -145,7 +180,9 @@ Para detener el servidor, presionar:
 Ctrl + C
 ```
 
-### 7. Desactivar el entorno virtual
+El mapa muestra la zona desde la cual se brindan los servicios virtuales; no representa una oficina física abierta al público. Anime.js, Font Awesome y el mapa requieren conexión a Internet.
+
+### 9. Desactivar el entorno virtual
 
 ```bash
 deactivate
@@ -173,24 +210,78 @@ La configuración actual reconoce estas variables:
 
 El dominio de producción configurado en `ALLOWED_HOSTS` es `samitravelsytours.jaimeberrios.com`.
 
-## Guía de despliegue en producción
+## Flujo para actualizar la aplicación
 
 La aplicación se despliega en un Droplet de DigitalOcean con Ubuntu 24.04 LTS (`68.183.122.81`). Caddy publica `samitravelsytours.jaimeberrios.com`, gestiona HTTPS automáticamente y se comunica con Gunicorn mediante la red Docker compartida `web_network`.
 
-### 1. Publicar los cambios desde el equipo de desarrollo
+Los archivos estáticos de producción se guardan en el volumen Docker nombrado `sami_static`:
+
+```text
+contenedor temporal (collectstatic) ──► sami_static ◄── sami_container (/app/staticfiles)
+                                             └── caddy (/srv/sami_static, solo lectura)
+```
+
+Caddy sirve `/static/` directamente. WhiteNoise permanece disponible en Django como respaldo y utiliza el mismo contenido montado en `/app/staticfiles`.
+
+### Parte A: trabajo en el equipo local
+
+#### 1. Actualizar la rama antes de comenzar
+
+Con el entorno virtual activado:
+
+```bash
+git switch main
+git pull --ff-only origin main
+pip install -r requirements.txt
+npm --prefix theme/static_src ci
+```
+
+#### 2. Implementar y comprobar los cambios
+
+Si se modifican modelos, crear y revisar las migraciones:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+Si cambian plantillas, clases o configuración de Tailwind, regenerar el CSS que se guarda en Git:
+
+```bash
+npm --prefix theme/static_src run build:tailwind
+```
 
 Antes de actualizar el servidor, compilar y verificar el proyecto:
 
 ```bash
-python manage.py tailwind build
 python manage.py check
+python manage.py test
+git diff --check
 git status
+```
+
+Probar visualmente en <http://127.0.0.1:8000/>:
+
+```bash
+python manage.py runserver
+```
+
+#### 3. Publicar los cambios
+
+Revisar `git diff` antes de crear el commit. Debe incluir `theme/static/css/dist/styles.css` cuando se modificaron clases de Tailwind.
+
+```bash
+git diff
 git add .
 git commit -m "Actualizar Sami Travels & Tours"
 git push origin main
 ```
 
-### 2. Conectarse al servidor y entrar al proyecto
+No subir `.env`, `.env.production`, contraseñas, copias de la base de datos ni el entorno virtual.
+
+### Parte B: actualización en el servidor
+
+#### 4. Conectarse al servidor y entrar al proyecto
 
 ```bash
 ssh root@68.183.122.81
@@ -199,7 +290,7 @@ cd /var/www/sami_app
 
 Si se utiliza un usuario administrativo diferente de `root`, sustituirlo en el comando SSH.
 
-### 3. Descargar el código publicado
+#### 5. Descargar el código publicado
 
 ```bash
 git status --short
@@ -208,7 +299,7 @@ git pull --ff-only origin main
 
 `git pull --ff-only` evita crear un *merge commit* accidental en producción. Si `git status --short` muestra cambios locales inesperados, detener el despliegue y revisarlos antes de continuar.
 
-### 4. Verificar configuración y red Docker
+#### 6. Verificar configuración y red Docker
 
 El archivo `/var/www/sami_app/.env.production` debe existir únicamente en el servidor y no debe almacenarse en Git:
 
@@ -227,24 +318,27 @@ GOOGLE_CLIENT_SECRET=
 ACCOUNT_EMAIL_VERIFICATION=none
 ```
 
-Comprobar que el archivo y la red existan:
+Comprobar que el archivo, la red y el volumen de estáticos existan:
 
 ```bash
 test -f .env.production
 docker network inspect web_network >/dev/null
+docker volume inspect sami_static >/dev/null 2>&1 || docker volume create sami_static
 ```
 
 `MYSQL_HOST` debe coincidir con el nombre o alias del contenedor MySQL conectado a `web_network`.
 
-### 5. Reconstruir la imagen corporativa
+#### 7. Reconstruir la imagen de la aplicación
 
 ```bash
 docker build --pull -t sami-image:latest .
 ```
 
-El `Dockerfile` multietapa instala las dependencias npm, compila Tailwind y Font Awesome, instala Python/MySQL/WeasyPrint, ejecuta `collectstatic` y configura Gunicorn en el puerto `8000`.
+El `Dockerfile` instala Python, las bibliotecas nativas de MySQL/WeasyPrint y las dependencias de `requirements.txt`. Después copia el CSS de Tailwind previamente compilado, ejecuta `collectstatic` dentro de la imagen y configura Gunicorn en el puerto `8000`. Node.js no se ejecuta dentro del contenedor actual.
 
-### 6. Aplicar las migraciones de MySQL
+El volumen montado en producción oculta el directorio `staticfiles` incluido en la imagen. Por eso el paso explícito de `collectstatic` contra `sami_static` que aparece más adelante es obligatorio.
+
+#### 8. Aplicar las migraciones de MySQL
 
 Ejecutar las migraciones con un contenedor temporal antes de reemplazar la aplicación activa:
 
@@ -258,7 +352,33 @@ docker run --rm \
 
 Si la migración falla, no detener el contenedor que está atendiendo producción. Corregir primero la conexión, las credenciales o la migración.
 
-### 7. Recrear el contenedor de Django
+#### 9. Recopilar los archivos estáticos en el volumen compartido
+
+Ejecutar `collectstatic` desde la imagen nueva y montar el volumen en la misma ruta definida por `STATIC_ROOT` (`/app/staticfiles`):
+
+```bash
+docker run --rm \
+  --network web_network \
+  --env-file .env.production \
+  --mount source=sami_static,target=/app/staticfiles \
+  sami-image:latest \
+  python manage.py collectstatic --noinput
+```
+
+No utilizar `--clear` durante una actualización normal: Caddy puede estar leyendo el volumen mientras se recopilan los archivos. Los nombres versionados generados por WhiteNoise permiten actualizarlo sin invalidar los recursos que todavía usan clientes con páginas anteriores.
+
+Comprobar que el manifiesto y el CSS se encuentren en el volumen:
+
+```bash
+docker run --rm \
+  --mount source=sami_static,target=/staticfiles,readonly \
+  alpine:3.20 \
+  sh -c 'test -f /staticfiles/staticfiles.json && test -d /staticfiles/css/dist'
+```
+
+Si este comando falla, no reemplazar aún `sami_container`.
+
+#### 10. Recrear el contenedor de Django
 
 ```bash
 docker stop sami_container
@@ -268,12 +388,13 @@ docker run -d \
   --network web_network \
   --restart unless-stopped \
   --env-file .env.production \
+  --mount source=sami_static,target=/app/staticfiles \
   sami-image:latest
 ```
 
 Gunicorn escucha en `sami_container:8000` dentro de la red Docker. No es necesario publicar el puerto con `-p` porque Caddy accede al contenedor por `web_network`.
 
-### 8. Verificar Django antes de recargar Caddy
+#### 11. Verificar Django antes de recargar Caddy
 
 ```bash
 docker ps --filter name=sami_container
@@ -290,7 +411,37 @@ docker run --rm --network web_network curlimages/curl:latest \
   http://sami_container:8000/ >/dev/null
 ```
 
-### 9. Validar y recargar Caddy
+#### 12. Configurar, validar y recargar Caddy
+
+El contenedor `caddy` debe tener el mismo volumen montado en modo de solo lectura:
+
+```text
+--mount source=sami_static,target=/srv/sami_static,readonly
+```
+
+Este montaje se configura al crear el contenedor de Caddy o en su archivo Compose; no puede agregarse a un contenedor que ya está ejecutándose. Antes de recrear Caddy, conservar sus opciones actuales, redes, puertos y volúmenes de certificados. Confirmar el montaje con:
+
+```bash
+docker inspect caddy \
+  --format '{{range .Mounts}}{{println .Name "->" .Destination}}{{end}}'
+```
+
+El bloque del sitio en `/etc/caddy/Caddyfile` debe dirigir `/static/*` al volumen y el resto a Gunicorn:
+
+```caddyfile
+samitravelsytours.jaimeberrios.com {
+    encode zstd gzip
+
+    handle_path /static/* {
+        root * /srv/sami_static
+        file_server
+    }
+
+    handle {
+        reverse_proxy sami_container:8000
+    }
+}
+```
 
 Validar primero la configuración activa:
 
@@ -304,13 +455,18 @@ Si la validación termina correctamente, forzar una recarga limpia:
 docker exec -w /etc/caddy caddy caddy reload --force
 ```
 
-### 10. Verificación externa
+#### 13. Verificación externa
 
 ```bash
 curl --fail --silent --show-error \
   -o /dev/null \
   -w "HTTP %{http_code}\n" \
   https://samitravelsytours.jaimeberrios.com/
+
+curl --fail --silent --show-error \
+  -o /dev/null \
+  -w "Static HTTP %{http_code}\n" \
+  https://samitravelsytours.jaimeberrios.com/static/css/dist/styles.css
 
 docker logs --tail 100 sami_container
 docker logs --tail 100 caddy
@@ -325,11 +481,13 @@ Después de verificar `.env.production`, esta es la secuencia habitual completa 
 ```bash
 git pull --ff-only origin main
 docker network inspect web_network >/dev/null
+docker volume inspect sami_static >/dev/null 2>&1 || docker volume create sami_static
 docker build --pull -t sami-image:latest .
 docker run --rm --network web_network --env-file .env.production sami-image:latest python manage.py migrate --noinput
+docker run --rm --network web_network --env-file .env.production --mount source=sami_static,target=/app/staticfiles sami-image:latest python manage.py collectstatic --noinput
 docker stop sami_container
 docker rm sami_container
-docker run -d --name sami_container --network web_network --restart unless-stopped --env-file .env.production sami-image:latest
+docker run -d --name sami_container --network web_network --restart unless-stopped --env-file .env.production --mount source=sami_static,target=/app/staticfiles sami-image:latest
 docker logs --tail 100 sami_container
 docker exec sami_container python manage.py check --deploy
 docker exec -w /etc/caddy caddy caddy validate --config /etc/caddy/Caddyfile
