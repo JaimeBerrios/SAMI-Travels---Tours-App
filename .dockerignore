@@ -1,11 +1,45 @@
+# Entornos virtuales y caches de Python
+.venv/
 venv/
-node_modules/
-theme/static_src/node_modules/
+env/
+ENV/
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Dependencias y caches de Node (Tailwind se compila localmente)
+node_modules/
+**/node_modules/
+.npm/
+.yarn/
+theme/static_src/
+
+# Salida de collectstatic; se regenera durante docker build
+staticfiles/
+
+# Datos y configuracion local
 db.sqlite3
+*.sqlite3
 .env
 .env.*
 !.env.example
-.git
+
+# Control de versiones y archivos del editor/SO
+.git/
 .gitignore
+.gitattributes
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Artefactos locales
+*.log
+*.tmp
+/dist/
+/build/

@@ -1,18 +1,12 @@
-FROM node:20-slim AS frontend
-
-WORKDIR /theme/static_src
-
-COPY theme/static_src/package.json theme/static_src/package-lock.json ./
-RUN npm ci
-
-COPY theme/static_src/ ./
-RUN npm run build
-
-
-FROM python:3.11-slim AS application
+FROM python:3.11-slim
 
 WORKDIR /app
 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Dependencias para mysqlclient y WeasyPrint (Pango/Harfbuzz).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     default-libmysqlclient-dev \
@@ -23,12 +17,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
+# Incluye theme/static/, donde Tailwind ya fue compilado localmente.
 COPY . .
-
-# Usa los artefactos frontend generados en Linux, no los del equipo local.
-COPY --from=frontend /theme/static /app/theme/static
 
 RUN python manage.py collectstatic --noinput
 
