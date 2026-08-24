@@ -32,14 +32,14 @@ SAMI/
 ├── Dockerfile
 ├── manage.py
 ├── requirements.txt
-└── db.sqlite3                 # Base de datos SQLite actual
+└── db.sqlite3                 # Base SQLite heredada (uso local opcional)
 ```
 
 ## Tecnologías
 
 - **Python 3.11** en la imagen de producción.
 - **Django 4.2+** (limitado a versiones anteriores a Django 5.0).
-- **SQLite** para desarrollo local y **MySQL 8+** para producción.
+- **MySQL 8.0** como base de datos principal; SQLite queda disponible para tareas locales opcionales.
 - **Gunicorn** como servidor WSGI de producción.
 - **Docker** para construir y ejecutar la aplicación de forma aislada.
 - **Caddy Server** como proxy inverso, encargado de publicar la aplicación y administrar automáticamente los certificados SSL/TLS mediante Let's Encrypt.
@@ -196,11 +196,11 @@ La configuración actual reconoce estas variables:
 | --- | --- | --- |
 | `DJANGO_SECRET_KEY` | Clave criptográfica de Django. Debe ser larga, aleatoria y privada en producción. | Clave insegura únicamente para desarrollo |
 | `DJANGO_DEBUG` | Activa o desactiva el modo de depuración (`True`/`False`). | `True` |
-| `DB_ENGINE` | Selecciona `sqlite` para desarrollo o `mysql` para producción. | `sqlite` |
-| `MYSQL_DATABASE` | Nombre de la base de datos MySQL. | `sami_travels` |
-| `MYSQL_USER` | Usuario de MySQL. | `sami_user` |
+| `DB_ENGINE` | Selecciona `mysql` (principal) o `sqlite` para tareas locales opcionales. | `mysql` |
+| `MYSQL_DATABASE` | Nombre de la base de datos MySQL. | `sami_db` |
+| `MYSQL_USER` | Usuario de MySQL. | `jaifer08` |
 | `MYSQL_PASSWORD` | Contraseña del usuario de MySQL. | Vacío |
-| `MYSQL_HOST` | Host o nombre del contenedor MySQL. | `127.0.0.1` |
+| `MYSQL_HOST` | Host o nombre del contenedor MySQL. | `mysql_server` |
 | `MYSQL_PORT` | Puerto de MySQL. | `3306` |
 | `GOOGLE_CLIENT_ID` | Identificador OAuth de Google. | Vacío |
 | `GOOGLE_CLIENT_SECRET` | Secreto OAuth de Google. | Vacío |
@@ -307,10 +307,10 @@ El archivo `/var/www/sami_app/.env.production` debe existir únicamente en el se
 DJANGO_SECRET_KEY=REEMPLAZAR_POR_UNA_CLAVE_SEGURA
 DJANGO_DEBUG=False
 DB_ENGINE=mysql
-MYSQL_DATABASE=sami_travels
-MYSQL_USER=sami_user
+MYSQL_DATABASE=sami_db
+MYSQL_USER=jaifer08
 MYSQL_PASSWORD=REEMPLAZAR_POR_UNA_CONTRASENA_SEGURA
-MYSQL_HOST=mysql
+MYSQL_HOST=mysql_server
 MYSQL_PORT=3306
 MYSQL_CONN_MAX_AGE=60
 GOOGLE_CLIENT_ID=
@@ -326,7 +326,7 @@ docker network inspect web_network >/dev/null
 docker volume inspect sami_static >/dev/null 2>&1 || docker volume create sami_static
 ```
 
-`MYSQL_HOST` debe coincidir con el nombre o alias del contenedor MySQL conectado a `web_network`.
+`MYSQL_HOST` debe ser `mysql_server`, el nombre o alias del contenedor MySQL conectado a `web_network`.
 
 #### 7. Reconstruir la imagen de la aplicación
 
