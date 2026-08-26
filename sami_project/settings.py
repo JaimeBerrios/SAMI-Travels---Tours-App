@@ -1,5 +1,6 @@
 """Django settings for sami_project."""
 
+import mimetypes
 import os
 from pathlib import Path
 
@@ -168,6 +169,11 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Garantiza tipos MIME correctos incluso en imágenes Linux mínimas que no
+# incluyen una base de datos completa de tipos del sistema.
+mimetypes.add_type("text/css", ".css", True)
+mimetypes.add_type("application/javascript", ".js", True)
 
 # collectstatic genera nombres versionados y archivos .gz/.br. WhiteNoise los
 # sirve directamente cuando Caddy solo actua como proxy hacia Gunicorn.
