@@ -19,6 +19,8 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in {
 }
 
 ALLOWED_HOSTS = [
+    "samitravelstours.com",
+    "www.samitravelstours.com",
     "samitravelsytours.jaimeberrios.com",
     "localhost",
     "127.0.0.1",
@@ -32,7 +34,8 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://samitravelsytours.jaimeberrios.com",
+    "https://samitravelstours.com",
+    "https://www.samitravelstours.com",
 ]
 
 INSTALLED_APPS = [
