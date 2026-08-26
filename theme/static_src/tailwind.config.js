@@ -1,7 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
+    // Este archivo vive en theme/static_src/; las rutas son relativas a él.
     "../templates/**/*.html",
+    "../../core/templates/**/*.html",
     "../../**/templates/**/*.html",
     "../../**/*.py",
   ],
