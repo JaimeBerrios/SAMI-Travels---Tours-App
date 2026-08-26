@@ -18,6 +18,13 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in {
     "on",
 }
 
+MAINTENANCE_MODE = os.environ.get("MAINTENANCE_MODE", "False").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
 ALLOWED_HOSTS = [
     "samitravelstours.com",
     "www.samitravelstours.com",

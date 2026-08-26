@@ -43,60 +43,101 @@
                 </div>
             </div>
 
-            <button id="maintenance-flight-toggle" type="button" class="relative mx-auto aspect-[3/2] w-full max-w-lg rounded-3xl border border-white/15 bg-white/5 p-4 shadow-2xl shadow-black/30 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Pausar animación del avión" aria-pressed="false">
-                <svg class="h-full w-full overflow-visible" viewBox="0 0 520 340" role="img" aria-labelledby="route-title route-description">
-                    <title id="route-title">Ruta de vuelo de Sami Travels & Tours</title>
-                    <desc id="route-description">Un avión rojo recorre una ruta alrededor del mundo.</desc>
+            <button id="maintenance-flight-toggle" type="button" class="relative mx-auto aspect-[3/2] w-full max-w-lg rounded-3xl border border-white/15 bg-white/5 p-4 shadow-2xl shadow-black/30 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Pausar reparación animada del avión" aria-pressed="false">
+                <svg class="h-full w-full overflow-visible" viewBox="0 0 520 340" role="img" aria-labelledby="repair-title repair-description">
+                    <title id="repair-title">Avión de Sami Travels & Tours en mantenimiento</title>
+                    <desc id="repair-description">Un avión rojo descansa en una plataforma mientras una llave, engranajes y luces de diagnóstico muestran que está siendo reparado.</desc>
                     <defs>
-                        <radialGradient id="maintenance-globe" cx="35%" cy="30%" r="75%">
-                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".24"></stop>
-                            <stop offset="100%" stop-color="#173F6B" stop-opacity=".5"></stop>
-                        </radialGradient>
+                        <linearGradient id="hangar-floor" x1="0" x2="1">
+                            <stop offset="0%" stop-color="#173F6B" stop-opacity=".2"></stop>
+                            <stop offset="50%" stop-color="#FFFFFF" stop-opacity=".13"></stop>
+                            <stop offset="100%" stop-color="#173F6B" stop-opacity=".2"></stop>
+                        </linearGradient>
+                        <filter id="repair-glow" x="-80%" y="-80%" width="260%" height="260%">
+                            <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
+                            <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+                        </filter>
                     </defs>
-                    <circle cx="260" cy="170" r="112" fill="url(#maintenance-globe)" stroke="#FFFFFF" stroke-opacity=".6" stroke-width="2"></circle>
-                    <g fill="none" stroke="#FFFFFF" stroke-opacity=".2" stroke-width="1.5">
-                        <ellipse cx="260" cy="170" rx="62" ry="112"></ellipse>
-                        <ellipse cx="260" cy="170" rx="25" ry="112"></ellipse>
-                        <path d="M148 132C206 153 314 153 372 132M148 208C206 187 314 187 372 208M148 170H372"></path>
+
+                    <path d="M40 272H480L446 312H74Z" fill="url(#hangar-floor)" stroke="#FFFFFF" stroke-opacity=".18"></path>
+                    <path d="M78 292H442" fill="none" stroke="#FFFFFF" stroke-opacity=".35" stroke-width="3" stroke-dasharray="16 12"></path>
+                    <path id="ready-route" d="M70 250C125 182 186 142 259 141C334 140 393 103 451 47" fill="none" stroke="#D71920" stroke-opacity=".7" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 10"></path>
+
+                    <g id="repair-plane" style="transform-box:fill-box;transform-origin:center">
+                        <path d="M115 206L217 187L263 104H286L270 181L398 169C421 167 440 177 446 190C438 202 421 209 398 208L270 199L286 272H263L217 203L115 220L76 250H58L82 211L58 177H76Z" fill="#F8FAFC" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"></path>
+                        <path d="M82 211L217 187L270 181L398 169C421 167 440 177 446 190H84Z" fill="#D71920"></path>
+                        <path d="M276 185L398 175C414 174 426 179 432 187" fill="none" stroke="#0B1F3A" stroke-width="5" stroke-linecap="round"></path>
+                        <circle cx="384" cy="190" r="5" fill="#173F6B"></circle>
+                        <circle cx="403" cy="188" r="5" fill="#173F6B"></circle>
+                        <circle cx="422" cy="187" r="5" fill="#173F6B"></circle>
+                        <path d="M217 203L263 272H286L270 199Z" fill="#E2E8F0"></path>
+                        <path d="M211 220V257M309 207V257" stroke="#CBD5E1" stroke-width="5" stroke-linecap="round"></path>
+                        <circle cx="211" cy="263" r="10" fill="#06152B" stroke="#94A3B8" stroke-width="4"></circle>
+                        <circle cx="309" cy="263" r="10" fill="#06152B" stroke="#94A3B8" stroke-width="4"></circle>
                     </g>
-                    <path id="maintenance-route" d="M55 218C76 72 251 20 404 83C512 128 472 274 341 302C202 332 76 287 55 218Z" fill="none" stroke="#D71920" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 11"></path>
-                    <circle cx="55" cy="218" r="7" fill="#FFFFFF" stroke="#D71920" stroke-width="3"></circle>
-                    <circle cx="341" cy="302" r="7" fill="#D71920" stroke="#FFFFFF" stroke-width="2"></circle>
+
+                    <g id="scanner" filter="url(#repair-glow)">
+                        <path d="M160 126V242" stroke="#38BDF8" stroke-width="3" stroke-opacity=".9"></path>
+                        <path d="M151 126H169M151 242H169" stroke="#BAE6FD" stroke-width="3" stroke-linecap="round"></path>
+                    </g>
+
+                    <g id="repair-wrench" style="transform-box:fill-box;transform-origin:bottom center">
+                        <path d="M105 72C91 63 87 46 94 33L108 48L122 34C126 48 121 62 109 70L149 110L134 125L94 85C82 91 67 88 58 79L75 73L80 56Z" fill="#D71920" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"></path>
+                        <circle cx="141" cy="117" r="5" fill="#06152B"></circle>
+                    </g>
+
+                    <g id="gear-large" style="transform-box:fill-box;transform-origin:center">
+                        <path d="M416 65L426 68L434 60L442 68L439 78L448 84L445 95L434 97L431 108L420 110L414 100L403 102L397 92L403 83L397 74L405 65Z" fill="#173F6B" stroke="#FFFFFF" stroke-width="2"></path>
+                        <circle cx="422" cy="85" r="10" fill="#06152B" stroke="#D71920" stroke-width="4"></circle>
+                    </g>
+                    <g id="gear-small" style="transform-box:fill-box;transform-origin:center">
+                        <path d="M374 103L382 105L388 99L395 105L393 113L401 118L398 126L389 127L386 136L378 137L373 129L364 130L360 122L365 115L361 108L367 102Z" fill="#D71920" stroke="#FFFFFF" stroke-width="2"></path>
+                        <circle cx="381" cy="118" r="7" fill="#06152B"></circle>
+                    </g>
+
+                    <g id="repair-sparks" fill="#FACC15" filter="url(#repair-glow)">
+                        <circle class="repair-spark" cx="322" cy="181" r="4"></circle>
+                        <circle class="repair-spark" cx="337" cy="167" r="3"></circle>
+                        <circle class="repair-spark" cx="346" cy="187" r="3.5"></circle>
+                        <circle class="repair-spark" cx="330" cy="198" r="2.5"></circle>
+                    </g>
                 </svg>
-                <svg id="maintenance-plane" class="absolute left-0 top-0 h-12 w-12 drop-shadow-xl will-change-transform" viewBox="0 0 64 64" aria-hidden="true">
-                    <path d="M60 30L39 23L32 4H25L28 25L10 22L4 27L25 33L4 39L10 44L28 41L25 60H32L39 41L60 34Z" fill="#D71920" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"></path>
-                </svg>
-                <span class="absolute bottom-4 left-0 right-0 text-center text-xs font-bold uppercase tracking-[.18em] text-white/60">Haz clic para pausar</span>
+                <span class="absolute bottom-4 left-0 right-0 text-center text-xs font-bold uppercase tracking-[.18em] text-white/60">Afinando motores · Haz clic para pausar</span>
             </button>
         </section>
     </main>
 
     <script type="module">
-        import { animate, svg } from "https://esm.sh/animejs";
+        import { animate, stagger, svg } from "https://esm.sh/animejs";
 
         const toggle = document.querySelector("#maintenance-flight-toggle");
-        const plane = document.querySelector("#maintenance-plane");
-        const route = document.querySelector("#maintenance-route");
+        const plane = document.querySelector("#repair-plane");
+        const route = document.querySelector("#ready-route");
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
         if (toggle && plane && route && !reduceMotion) {
-            const motionPath = svg.createMotionPath(route);
-            const planeAnimation = animate(plane, { duration: 11000, ease: "linear", loop: true, ...motionPath });
-            const routeAnimation = animate(svg.createDrawable(route), { draw: ["0 0", "0 1"], duration: 11000, ease: "linear", loop: true });
+            const animations = [
+                animate(plane, { y: [0, -4, 0], duration: 2400, ease: "inOutSine", loop: true }),
+                animate("#repair-wrench", { rotate: [-14, 16], duration: 700, ease: "inOutQuad", alternate: true, loop: true }),
+                animate("#gear-large", { rotate: 360, duration: 4200, ease: "linear", loop: true }),
+                animate("#gear-small", { rotate: -360, duration: 3000, ease: "linear", loop: true }),
+                animate("#scanner", { x: [0, 210, 0], opacity: [.35, 1, .35], duration: 3600, ease: "inOutSine", loop: true }),
+                animate(".repair-spark", { opacity: [0, 1, 0], scale: [.4, 1.6, .4], duration: 900, delay: stagger(150), loop: true }),
+                animate(svg.createDrawable(route), { draw: ["0 0", "0 1"], duration: 4200, ease: "inOutSine", alternate: true, loop: true }),
+            ];
             let paused = false;
 
             toggle.addEventListener("click", () => {
                 paused = !paused;
                 const action = paused ? "pause" : "play";
-                planeAnimation[action]();
-                routeAnimation[action]();
+                animations.forEach((animation) => animation[action]());
                 toggle.setAttribute("aria-pressed", String(paused));
-                toggle.setAttribute("aria-label", paused ? "Reanudar animación del avión" : "Pausar animación del avión");
-                toggle.querySelector("span").textContent = paused ? "Haz clic para reanudar" : "Haz clic para pausar";
+                toggle.setAttribute("aria-label", paused ? "Reanudar reparación animada del avión" : "Pausar reparación animada del avión");
+                toggle.querySelector("span").textContent = paused ? "Reparación en pausa · Haz clic para reanudar" : "Afinando motores · Haz clic para pausar";
             });
         } else if (toggle) {
-            toggle.querySelector("span").textContent = "Volveremos muy pronto";
-            toggle.setAttribute("aria-label", "Ruta de vuelo de Sami Travels & Tours");
+            toggle.querySelector("span").textContent = "Afinando motores · Volveremos muy pronto";
+            toggle.setAttribute("aria-label", "Avión de Sami Travels & Tours en mantenimiento");
         }
     </script>
 </body>

@@ -196,6 +196,7 @@ La configuración actual reconoce estas variables:
 | --- | --- | --- |
 | `DJANGO_SECRET_KEY` | Clave criptográfica de Django. Debe ser larga, aleatoria y privada en producción. | Clave insegura únicamente para desarrollo |
 | `DJANGO_DEBUG` | Activa o desactiva el modo de depuración (`True`/`False`). | `True` |
+| `MAINTENANCE_MODE` | Muestra temporalmente la página de mantenimiento en `/`. | `False` |
 | `DB_ENGINE` | Selecciona `mysql` (principal) o `sqlite` para tareas locales opcionales. | `mysql` |
 | `MYSQL_DATABASE` | Nombre de la base de datos MySQL. | `sami_db` |
 | `MYSQL_USER` | Usuario de MySQL. | `jaifer08` |
@@ -251,6 +252,25 @@ docker restart caddy
 
 > [!IMPORTANT]
 > La aplicación real utiliza `.env.production`, migraciones y el volumen persistente `sami_static`. Por ello, para una actualización completa y segura se debe seguir la secuencia detallada que aparece a continuación; esta conserva la conexión a MySQL, los secretos y los archivos estáticos compartidos con Caddy.
+
+### Activar la página de mantenimiento
+
+La página puede revisarse permanentemente en `/mantenimiento/`. Para mostrarla temporalmente al entrar en `https://samitravelstours.com/`, establecer esta variable en `/var/www/sami_app/.env.production`:
+
+```dotenv
+MAINTENANCE_MODE=True
+CONTACT_EMAIL=contacto@samitravelstours.com
+```
+
+Después, recrear `sami_container` siguiendo el flujo de despliegue. El modo de mantenimiento devuelve HTTP `503 Service Unavailable`, mientras que `/admin/`, `/accounts/` y los archivos estáticos continúan disponibles.
+
+Para recuperar el portal público:
+
+```dotenv
+MAINTENANCE_MODE=False
+```
+
+Volver a recrear el contenedor para aplicar el cambio. La escena animada representa un avión en revisión, con escáner, engranajes, herramienta y luces de reparación. El visitante puede pausarla o reanudarla haciendo clic sobre la ilustración y se respeta la preferencia del sistema `prefers-reduced-motion`.
 
 Los archivos estáticos de producción se guardan en el volumen Docker nombrado `sami_static`:
 
