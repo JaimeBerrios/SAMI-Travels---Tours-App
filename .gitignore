@@ -10,6 +10,7 @@ venv/
 .env
 
 # Dependencias y artefactos de Tailwind
+node_modules/
 theme/static_src/node_modules/
 
 # Herramientas y sistema operativo
