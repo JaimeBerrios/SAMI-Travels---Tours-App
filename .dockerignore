@@ -12,12 +12,11 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Dependencias y caches de Node (Tailwind se compila localmente)
+# Dependencias y caches de Node
 node_modules/
 **/node_modules/
 .npm/
 .yarn/
-theme/static_src/
 
 # Salida de collectstatic; se regenera durante docker build
 staticfiles/

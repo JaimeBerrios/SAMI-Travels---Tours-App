@@ -1,3 +1,21 @@
+FROM node:20-slim AS frontend
+
+WORKDIR /app
+
+# Tailwind se compila en cada build para que la imagen nunca dependa de un
+# styles.css obsoleto generado en el equipo de desarrollo.
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY theme/src/ ./theme/src/
+COPY theme/static_src/tailwind.config.js ./theme/static_src/tailwind.config.js
+COPY theme/templates/ ./theme/templates/
+COPY core/templates/ ./core/templates/
+COPY core/*.py ./core/
+
+RUN npm run build:css
+
+
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -19,8 +37,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Incluye theme/static/, donde Tailwind ya fue compilado localmente.
 COPY . .
+
+# La compilación de la etapa frontend prevalece sobre cualquier copia local.
+COPY --from=frontend /app/theme/static/css/dist/styles.css /app/theme/static/css/dist/styles.css
 
 RUN python manage.py collectstatic --noinput
 

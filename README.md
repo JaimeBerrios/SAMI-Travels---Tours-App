@@ -195,7 +195,7 @@ La configuración actual reconoce estas variables:
 | Variable | Descripción | Valor predeterminado |
 | --- | --- | --- |
 | `DJANGO_SECRET_KEY` | Clave criptográfica de Django. Debe ser larga, aleatoria y privada en producción. | Clave insegura únicamente para desarrollo |
-| `DJANGO_DEBUG` | Activa o desactiva el modo de depuración (`True`/`False`). | `True` |
+| `DJANGO_DEBUG` | Activa o desactiva el modo de depuración (`True`/`False`). | `False` |
 | `MAINTENANCE_MODE` | Muestra temporalmente la página de mantenimiento en `/`. | `False` |
 | `DB_ENGINE` | Selecciona `mysql` (principal) o `sqlite` para tareas locales opcionales. | `mysql` |
 | `MYSQL_DATABASE` | Nombre de la base de datos MySQL. | `sami_db` |
@@ -392,7 +392,7 @@ docker volume inspect sami_static >/dev/null 2>&1 || docker volume create sami_s
 docker build --pull -t sami-image:latest .
 ```
 
-El `Dockerfile` instala Python, las bibliotecas nativas de MySQL/WeasyPrint y las dependencias de `requirements.txt`. Después copia el CSS de Tailwind previamente compilado, ejecuta `collectstatic` dentro de la imagen y configura Gunicorn en el puerto `8000`. Node.js no se ejecuta dentro del contenedor actual.
+El `Dockerfile` utiliza una construcción multietapa. La primera etapa instala las dependencias de Node y ejecuta `npm run build:css`; la segunda instala Python, las bibliotecas nativas de MySQL/WeasyPrint y `requirements.txt`, copia el CSS recién compilado, ejecuta `collectstatic` y configura Gunicorn en el puerto `8000`. De este modo, la imagen no depende de un CSS generado previamente en el equipo local.
 
 El volumen montado en producción oculta el directorio `staticfiles` incluido en la imagen. Por eso el paso explícito de `collectstatic` contra `sami_static` que aparece más adelante es obligatorio.
 
@@ -424,6 +424,9 @@ docker run --rm \
 ```
 
 No utilizar `--clear` durante una actualización normal: Caddy puede estar leyendo el volumen mientras se recopilan los archivos. Los nombres versionados generados por WhiteNoise permiten actualizarlo sin invalidar los recursos que todavía usan clientes con páginas anteriores.
+
+> [!WARNING]
+> Ejecutar `collectstatic` dentro de un contenedor que no tenga montado `sami_static` solo actualiza el sistema de archivos interno de ese contenedor. Caddy continuará entregando el CSS antiguo desde su volumen. El contenedor temporal de este paso debe montar siempre `sami_static` en `/app/staticfiles`.
 
 Comprobar que el manifiesto y el CSS se encuentren en el volumen:
 
@@ -531,6 +534,13 @@ docker logs --tail 100 caddy
 ```
 
 El resultado esperado es `HTTP 200`. Revisar también el portal, `/accounts/login/`, `/admin/` y la carga de los archivos estáticos desde un navegador.
+
+En producción, el HTML debe referenciar un nombre versionado similar a `/static/css/dist/styles.<hash>.css`. Si aparece `/static/css/dist/styles.css` sin hash, comprobar que `DJANGO_DEBUG=False` esté llegando realmente al contenedor:
+
+```bash
+docker exec sami_container python -c "from django.conf import settings; print(settings.DEBUG)"
+docker inspect sami_container --format '{{range .Config.Env}}{{println .}}{{end}}' | grep '^DJANGO_DEBUG='
+```
 
 ### Secuencia compacta de actualización
 

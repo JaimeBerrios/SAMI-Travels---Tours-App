@@ -11,7 +11,7 @@ SECRET_KEY = os.environ.get(
     "django-insecure-change-this-key-before-production",
 )
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in {
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in {
     "1",
     "true",
     "yes",
