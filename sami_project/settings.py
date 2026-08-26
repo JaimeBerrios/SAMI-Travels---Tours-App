@@ -167,7 +167,10 @@ TIME_ZONE = "America/El_Salvador"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "/static/"
+# Caddy conserva un manejador heredado para /static/ con un volumen separado.
+# /assets/ pasa por el proxy hacia Django y permite que WhiteNoise sirva el
+# mismo manifiesto versionado que genera collectstatic dentro de la imagen.
+STATIC_URL = "/assets/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Garantiza tipos MIME correctos incluso en imágenes Linux mínimas que no

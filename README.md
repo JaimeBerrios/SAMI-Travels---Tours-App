@@ -251,7 +251,7 @@ docker restart caddy
 ```
 
 > [!IMPORTANT]
-> La aplicación real utiliza `.env.production`, migraciones y el volumen persistente `sami_static`. Por ello, para una actualización completa y segura se debe seguir la secuencia detallada que aparece a continuación; esta conserva la conexión a MySQL, los secretos y los archivos estáticos compartidos con Caddy.
+> La aplicación real utiliza `.env.production`, migraciones y el volumen persistente `sami_static`. Por ello, para una actualización completa y segura se debe seguir la secuencia detallada que aparece a continuación; esta conserva la conexión a MySQL, los secretos y los archivos estáticos que WhiteNoise sirve desde Django.
 
 ### Activar la página de mantenimiento
 
@@ -276,10 +276,9 @@ Los archivos estáticos de producción se guardan en el volumen Docker nombrado 
 
 ```text
 contenedor temporal (collectstatic) ──► sami_static ◄── sami_container (/app/staticfiles)
-                                             └── caddy (/srv/sami_static, solo lectura)
 ```
 
-Caddy sirve `/static/` directamente. WhiteNoise permanece disponible en Django como respaldo y utiliza el mismo contenido montado en `/app/staticfiles`.
+Caddy reenvía todas las peticiones a Gunicorn. WhiteNoise sirve `/assets/` desde el contenido montado en `/app/staticfiles`, incluido el CSS de Tailwind y los recursos del administrador de Django.
 
 ### Parte A: trabajo en el equipo local
 
@@ -426,7 +425,7 @@ docker run --rm \
 No utilizar `--clear` durante una actualización normal: Caddy puede estar leyendo el volumen mientras se recopilan los archivos. Los nombres versionados generados por WhiteNoise permiten actualizarlo sin invalidar los recursos que todavía usan clientes con páginas anteriores.
 
 > [!WARNING]
-> Ejecutar `collectstatic` dentro de un contenedor que no tenga montado `sami_static` solo actualiza el sistema de archivos interno de ese contenedor. Caddy continuará entregando el CSS antiguo desde su volumen. El contenedor temporal de este paso debe montar siempre `sami_static` en `/app/staticfiles`.
+> Ejecutar `collectstatic` dentro de un contenedor que no tenga montado `sami_static` solo actualiza el sistema de archivos interno de ese contenedor. El contenedor persistente continuará leyendo la versión anterior del volumen. El contenedor temporal de este paso debe montar siempre `sami_static` en `/app/staticfiles`.
 
 Comprobar que el manifiesto y el CSS se encuentren en el volumen:
 
@@ -474,35 +473,17 @@ docker run --rm --network web_network curlimages/curl:latest \
 
 #### 12. Configurar, validar y recargar Caddy
 
-El contenedor `caddy` debe tener el mismo volumen montado en modo de solo lectura:
-
-```text
---mount source=sami_static,target=/srv/sami_static,readonly
-```
-
-Este montaje se configura al crear el contenedor de Caddy o en su archivo Compose; no puede agregarse a un contenedor que ya está ejecutándose. Antes de recrear Caddy, conservar sus opciones actuales, redes, puertos y volúmenes de certificados. Confirmar el montaje con:
-
-```bash
-docker inspect caddy \
-  --format '{{range .Mounts}}{{println .Name "->" .Destination}}{{end}}'
-```
-
-El bloque del sitio en `/etc/caddy/Caddyfile` debe dirigir `/static/*` al volumen y el resto a Gunicorn:
+El contenedor `caddy` no necesita montar `sami_static`. El bloque del sitio en `/etc/caddy/Caddyfile` debe reenviar todas las rutas a Gunicorn:
 
 ```caddyfile
 samitravelstours.com, www.samitravelstours.com {
     encode zstd gzip
 
-    handle_path /static/* {
-        root * /srv/sami_static
-        file_server
-    }
-
-    handle {
-        reverse_proxy sami_container:8000
-    }
+    reverse_proxy sami_container:8000
 }
 ```
+
+Django publica sus recursos con el prefijo `/assets/` y WhiteNoise los sirve desde el mismo contenedor que generó el manifiesto. No se debe crear en Caddy un `handle` separado para `/assets/*`: esas peticiones deben llegar a Gunicorn. Esto evita que un volumen estático desactualizado entregue un CSS anterior o responda `404` para un nombre versionado nuevo.
 
 Validar primero la configuración activa:
 
@@ -527,7 +508,7 @@ curl --fail --silent --show-error \
 curl --fail --silent --show-error \
   -o /dev/null \
   -w "Static HTTP %{http_code}\n" \
-  https://samitravelstours.com/static/css/dist/styles.css
+  https://samitravelstours.com/assets/css/dist/styles.css
 
 docker logs --tail 100 sami_container
 docker logs --tail 100 caddy
@@ -535,7 +516,7 @@ docker logs --tail 100 caddy
 
 El resultado esperado es `HTTP 200`. Revisar también el portal, `/accounts/login/`, `/admin/` y la carga de los archivos estáticos desde un navegador.
 
-En producción, el HTML debe referenciar un nombre versionado similar a `/static/css/dist/styles.<hash>.css`. Si aparece `/static/css/dist/styles.css` sin hash, comprobar que `DJANGO_DEBUG=False` esté llegando realmente al contenedor:
+En producción, el HTML debe referenciar un nombre versionado similar a `/assets/css/dist/styles.<hash>.css`. Si aparece `/assets/css/dist/styles.css` sin hash, comprobar que `DJANGO_DEBUG=False` esté llegando realmente al contenedor:
 
 ```bash
 docker exec sami_container python -c "from django.conf import settings; print(settings.DEBUG)"
