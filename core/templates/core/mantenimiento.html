@@ -1,0 +1,103 @@
+{% load static %}
+<!doctype html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sami Travels & Tours se encuentra temporalmente en mantenimiento.">
+    <title>Estamos mejorando para ti | Sami Travels & Tours</title>
+    <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" referrerpolicy="no-referrer">
+</head>
+<body class="min-h-full overflow-x-hidden bg-brand-navy-dark text-white antialiased">
+    <main class="relative isolate grid min-h-screen place-items-center overflow-hidden px-4 py-12 sm:px-6">
+        <div class="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_75%_20%,rgba(215,25,32,.25),transparent_28%),radial-gradient(circle_at_20%_80%,rgba(23,63,107,.65),transparent_35%),linear-gradient(135deg,#06152B,#0B1F3A)]"></div>
+        <div class="absolute left-1/2 top-1/2 -z-10 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-navy-light/20 blur-3xl"></div>
+
+        <section class="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16" aria-labelledby="maintenance-title">
+            <div class="text-center lg:text-left">
+                <a href="{% url 'core:portal-publico' %}" class="inline-flex items-center gap-3 font-bold tracking-tight" aria-label="Sami Travels & Tours">
+                    <span class="grid size-12 place-items-center rounded-2xl bg-brand-red shadow-lg shadow-brand-red/25" aria-hidden="true">
+                        <i class="fa-solid fa-plane-departure text-xl"></i>
+                    </span>
+                    <span class="text-xl">Sami Travels <span class="text-brand-red">& Tours</span></span>
+                </a>
+
+                <p class="mt-10 text-sm font-extrabold uppercase tracking-[.24em] text-brand-red">Mantenimiento programado</p>
+                <h1 id="maintenance-title" class="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">Estamos mejorando para ti</h1>
+                <p class="mx-auto mt-6 max-w-xl text-lg leading-8 text-slate-300 lg:mx-0">
+                    Estamos preparando una mejor experiencia para planificar tu próxima aventura. Muy pronto volveremos con todos los servicios de SAMI Travels & Tours.
+                </p>
+
+                <div class="mt-9 flex flex-wrap justify-center gap-3 lg:justify-start">
+                    <a href="https://www.facebook.com/samitravelstours" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-bold shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/30">
+                        <i class="fa-brands fa-facebook-f" aria-hidden="true"></i> Facebook
+                    </a>
+                    <a href="https://www.instagram.com/sami.travelstours/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-5 py-3 font-bold backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-white/20">
+                        <i class="fa-brands fa-instagram" aria-hidden="true"></i> Instagram
+                    </a>
+                    <a href="mailto:{{ contact_email }}" class="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-5 py-3 font-bold backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-white/20">
+                        <i class="fa-solid fa-envelope" aria-hidden="true"></i> Escríbenos
+                    </a>
+                </div>
+            </div>
+
+            <button id="maintenance-flight-toggle" type="button" class="relative mx-auto aspect-[3/2] w-full max-w-lg rounded-3xl border border-white/15 bg-white/5 p-4 shadow-2xl shadow-black/30 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Pausar animación del avión" aria-pressed="false">
+                <svg class="h-full w-full overflow-visible" viewBox="0 0 520 340" role="img" aria-labelledby="route-title route-description">
+                    <title id="route-title">Ruta de vuelo de Sami Travels & Tours</title>
+                    <desc id="route-description">Un avión rojo recorre una ruta alrededor del mundo.</desc>
+                    <defs>
+                        <radialGradient id="maintenance-globe" cx="35%" cy="30%" r="75%">
+                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".24"></stop>
+                            <stop offset="100%" stop-color="#173F6B" stop-opacity=".5"></stop>
+                        </radialGradient>
+                    </defs>
+                    <circle cx="260" cy="170" r="112" fill="url(#maintenance-globe)" stroke="#FFFFFF" stroke-opacity=".6" stroke-width="2"></circle>
+                    <g fill="none" stroke="#FFFFFF" stroke-opacity=".2" stroke-width="1.5">
+                        <ellipse cx="260" cy="170" rx="62" ry="112"></ellipse>
+                        <ellipse cx="260" cy="170" rx="25" ry="112"></ellipse>
+                        <path d="M148 132C206 153 314 153 372 132M148 208C206 187 314 187 372 208M148 170H372"></path>
+                    </g>
+                    <path id="maintenance-route" d="M55 218C76 72 251 20 404 83C512 128 472 274 341 302C202 332 76 287 55 218Z" fill="none" stroke="#D71920" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 11"></path>
+                    <circle cx="55" cy="218" r="7" fill="#FFFFFF" stroke="#D71920" stroke-width="3"></circle>
+                    <circle cx="341" cy="302" r="7" fill="#D71920" stroke="#FFFFFF" stroke-width="2"></circle>
+                </svg>
+                <svg id="maintenance-plane" class="absolute left-0 top-0 h-12 w-12 drop-shadow-xl will-change-transform" viewBox="0 0 64 64" aria-hidden="true">
+                    <path d="M60 30L39 23L32 4H25L28 25L10 22L4 27L25 33L4 39L10 44L28 41L25 60H32L39 41L60 34Z" fill="#D71920" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"></path>
+                </svg>
+                <span class="absolute bottom-4 left-0 right-0 text-center text-xs font-bold uppercase tracking-[.18em] text-white/60">Haz clic para pausar</span>
+            </button>
+        </section>
+    </main>
+
+    <script type="module">
+        import { animate, svg } from "https://esm.sh/animejs";
+
+        const toggle = document.querySelector("#maintenance-flight-toggle");
+        const plane = document.querySelector("#maintenance-plane");
+        const route = document.querySelector("#maintenance-route");
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (toggle && plane && route && !reduceMotion) {
+            const motionPath = svg.createMotionPath(route);
+            const planeAnimation = animate(plane, { duration: 11000, ease: "linear", loop: true, ...motionPath });
+            const routeAnimation = animate(svg.createDrawable(route), { draw: ["0 0", "0 1"], duration: 11000, ease: "linear", loop: true });
+            let paused = false;
+
+            toggle.addEventListener("click", () => {
+                paused = !paused;
+                const action = paused ? "pause" : "play";
+                planeAnimation[action]();
+                routeAnimation[action]();
+                toggle.setAttribute("aria-pressed", String(paused));
+                toggle.setAttribute("aria-label", paused ? "Reanudar animación del avión" : "Pausar animación del avión");
+                toggle.querySelector("span").textContent = paused ? "Haz clic para reanudar" : "Haz clic para pausar";
+            });
+        } else if (toggle) {
+            toggle.querySelector("span").textContent = "Volveremos muy pronto";
+            toggle.setAttribute("aria-label", "Ruta de vuelo de Sami Travels & Tours");
+        }
+    </script>
+</body>
+</html>

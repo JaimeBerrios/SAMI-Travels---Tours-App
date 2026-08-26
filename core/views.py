@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -30,6 +31,16 @@ def portal_publico(request):
         messages.error(request, "Por favor, indícanos tu nombre para continuar.")
 
     return render(request, "core/portal_publico.html")
+
+
+def mantenimiento(request):
+    """Display the maintenance page without replacing the public portal."""
+    return render(
+        request,
+        "core/mantenimiento.html",
+        {"contact_email": settings.CONTACT_EMAIL},
+        status=503,
+    )
 
 
 @staff_member_required(login_url="admin:login")

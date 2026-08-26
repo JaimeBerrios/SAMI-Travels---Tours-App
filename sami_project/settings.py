@@ -114,6 +114,11 @@ ACCOUNT_EMAIL_VERIFICATION = os.environ.get("ACCOUNT_EMAIL_VERIFICATION", "none"
 LOGIN_REDIRECT_URL = "/panel-interno/"
 LOGOUT_REDIRECT_URL = "/"
 
+CONTACT_EMAIL = os.environ.get(
+    "CONTACT_EMAIL",
+    "contacto@samitravelstours.com",
+)
+
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": ["profile", "email"],

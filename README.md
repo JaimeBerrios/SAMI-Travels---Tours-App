@@ -204,15 +204,53 @@ La configuración actual reconoce estas variables:
 | `MYSQL_PORT` | Puerto de MySQL. | `3306` |
 | `GOOGLE_CLIENT_ID` | Identificador OAuth de Google. | Vacío |
 | `GOOGLE_CLIENT_SECRET` | Secreto OAuth de Google. | Vacío |
+| `CONTACT_EMAIL` | Correo mostrado en la página de mantenimiento. | `contacto@samitravelstours.com` |
 
 > [!IMPORTANT]
 > En producción se deben proporcionar una `DJANGO_SECRET_KEY` segura y `DJANGO_DEBUG=False`. Nunca se deben almacenar secretos reales en Git.
 
-El dominio de producción configurado en `ALLOWED_HOSTS` es `samitravelsytours.jaimeberrios.com`.
+Los dominios de producción configurados en `ALLOWED_HOSTS` son `samitravelstours.com` y `www.samitravelstours.com`. El dominio anterior se conserva temporalmente por compatibilidad.
 
 ## Flujo para actualizar la aplicación
 
-La aplicación se despliega en un Droplet de DigitalOcean con Ubuntu 24.04 LTS (`68.183.122.81`). Caddy publica `samitravelsytours.jaimeberrios.com`, gestiona HTTPS automáticamente y se comunica con Gunicorn mediante la red Docker compartida `web_network`.
+La aplicación se despliega en un Droplet de DigitalOcean con Ubuntu 24.04 LTS (`68.183.122.81`). Caddy publica `samitravelstours.com`, gestiona HTTPS automáticamente y se comunica con Gunicorn mediante la red Docker compartida `web_network`.
+
+### Resumen del flujo de desarrollo y actualización
+
+El ciclo de trabajo comienza en el equipo local. Después de desarrollar y verificar los cambios, guardarlos en el historial de Git y enviarlos a GitHub:
+
+```bash
+git add .
+git commit -m "Descripción de los cambios"
+git push origin main
+```
+
+Luego, conectarse al VPS y entrar al directorio de la aplicación:
+
+```bash
+ssh root@68.183.122.81
+cd /var/www/sami_app
+```
+
+Descargar la versión publicada en la rama principal:
+
+```bash
+git pull origin main
+```
+
+La secuencia directa para reconstruir y recrear el contenedor es:
+
+```bash
+docker stop sami_container
+docker rm sami_container
+docker build -t sami_app_image .
+docker run -d --name sami_container --network web_network -p 8000:8000 sami_app_image
+docker exec -it sami_container python manage.py collectstatic --noinput
+docker restart caddy
+```
+
+> [!IMPORTANT]
+> La aplicación real utiliza `.env.production`, migraciones y el volumen persistente `sami_static`. Por ello, para una actualización completa y segura se debe seguir la secuencia detallada que aparece a continuación; esta conserva la conexión a MySQL, los secretos y los archivos estáticos compartidos con Caddy.
 
 Los archivos estáticos de producción se guardan en el volumen Docker nombrado `sami_static`:
 
@@ -407,7 +445,7 @@ Comprobar desde el propio servidor que Gunicorn responda a través de la red com
 ```bash
 docker run --rm --network web_network curlimages/curl:latest \
   --fail --silent --show-error \
-  -H "Host: samitravelsytours.jaimeberrios.com" \
+  -H "Host: samitravelstours.com" \
   http://sami_container:8000/ >/dev/null
 ```
 
@@ -429,7 +467,7 @@ docker inspect caddy \
 El bloque del sitio en `/etc/caddy/Caddyfile` debe dirigir `/static/*` al volumen y el resto a Gunicorn:
 
 ```caddyfile
-samitravelsytours.jaimeberrios.com {
+samitravelstours.com, www.samitravelstours.com {
     encode zstd gzip
 
     handle_path /static/* {
@@ -461,12 +499,12 @@ docker exec -w /etc/caddy caddy caddy reload --force
 curl --fail --silent --show-error \
   -o /dev/null \
   -w "HTTP %{http_code}\n" \
-  https://samitravelsytours.jaimeberrios.com/
+  https://samitravelstours.com/
 
 curl --fail --silent --show-error \
   -o /dev/null \
   -w "Static HTTP %{http_code}\n" \
-  https://samitravelsytours.jaimeberrios.com/static/css/dist/styles.css
+  https://samitravelstours.com/static/css/dist/styles.css
 
 docker logs --tail 100 sami_container
 docker logs --tail 100 caddy
@@ -492,7 +530,7 @@ docker logs --tail 100 sami_container
 docker exec sami_container python manage.py check --deploy
 docker exec -w /etc/caddy caddy caddy validate --config /etc/caddy/Caddyfile
 docker exec -w /etc/caddy caddy caddy reload --force
-curl --fail --silent --show-error -o /dev/null -w "HTTP %{http_code}\n" https://samitravelsytours.jaimeberrios.com/
+curl --fail --silent --show-error -o /dev/null -w "HTTP %{http_code}\n" https://samitravelstours.com/
 ```
 
 ## Comandos útiles
