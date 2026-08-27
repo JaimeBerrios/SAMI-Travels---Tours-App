@@ -2,7 +2,6 @@ from functools import wraps
 
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
 
 
 def staff_required(view_func):
@@ -11,10 +10,7 @@ def staff_required(view_func):
     @wraps(view_func)
     def wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect_to_login(
-                request.get_full_path(),
-                login_url=reverse("account_login"),
-            )
+            return redirect_to_login(request.get_full_path())
 
         if not request.user.is_active or not request.user.is_staff:
             raise PermissionDenied(

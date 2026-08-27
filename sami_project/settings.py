@@ -120,6 +120,7 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = os.environ.get("ACCOUNT_EMAIL_VERIFICATION", "none")
+LOGIN_URL = "/sami-admin/login/"
 LOGIN_REDIRECT_URL = "/sami-admin/"
 LOGOUT_REDIRECT_URL = "/"
 

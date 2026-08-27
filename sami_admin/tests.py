@@ -12,13 +12,16 @@ class StaffRequiredTests(SimpleTestCase):
         self.request = RequestFactory().get("/sami-admin/")
         self.protected_view = staff_required(lambda request: None)
 
-    def test_anonymous_user_is_sent_to_account_login(self):
+    def test_anonymous_user_is_sent_to_sami_admin_login(self):
         self.request.user = SimpleNamespace(is_authenticated=False)
 
         response = self.protected_view(self.request)
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(response["Location"].startswith("/accounts/login/"))
+        self.assertEqual(
+            response["Location"],
+            "/sami-admin/login/?next=/sami-admin/",
+        )
 
     def test_authenticated_non_staff_user_gets_permission_denied(self):
         self.request.user = SimpleNamespace(
@@ -38,3 +41,7 @@ class SamiAdminUrlTests(SimpleTestCase):
             resolve("/sami-admin/").view_name,
             "sami_admin:dashboard",
         )
+
+    def test_authentication_urls(self):
+        self.assertEqual(reverse("sami_admin:login"), "/sami-admin/login/")
+        self.assertEqual(reverse("sami_admin:logout"), "/sami-admin/logout/")

@@ -1,0 +1,77 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Iniciar sesión | SAMI Admin</title>
+    <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" referrerpolicy="no-referrer">
+</head>
+<body class="min-h-screen bg-brand-navy antialiased">
+    <main class="relative grid min-h-screen place-items-center overflow-hidden px-4 py-10">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(215,25,32,0.22),_transparent_36%)]" aria-hidden="true"></div>
+        <div class="absolute -bottom-32 -left-32 size-80 rounded-full bg-brand-navy-light/40 blur-3xl" aria-hidden="true"></div>
+
+        <section class="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl shadow-black/30">
+            <div class="border-b-4 border-brand-red bg-brand-navy-dark px-8 py-7 text-center text-white">
+                <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-brand-red text-2xl shadow-lg" aria-hidden="true">
+                    <i class="fa-solid fa-plane-departure"></i>
+                </span>
+                <h1 class="mt-4 text-2xl font-bold tracking-wide">SAMI Admin</h1>
+                <p class="mt-1 text-sm text-slate-300">Travels & Tours · Acceso administrativo</p>
+            </div>
+
+            <div class="px-7 py-8 sm:px-9">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-brand-navy">Bienvenido de nuevo</h2>
+                    <p class="mt-1 text-sm text-slate-500">Ingresa con tu usuario administrativo de Django.</p>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="mb-5 rounded-xl border border-brand-red/25 bg-brand-red-soft px-4 py-3 text-sm text-brand-red-dark" role="alert">
+                        <div class="flex gap-2">
+                            <i class="fa-solid fa-circle-exclamation mt-0.5" aria-hidden="true"></i>
+                            <div>
+                                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'sami_admin:login' %}" class="space-y-5">
+                    {% csrf_token %}
+                    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+                    <div>
+                        <label for="{{ form.username.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">
+                            {{ form.username.label }}
+                        </label>
+                        {{ form.username }}
+                        {% for error in form.username.errors %}<p class="mt-1 text-sm text-brand-red">{{ error }}</p>{% endfor %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.password.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">
+                            {{ form.password.label }}
+                        </label>
+                        {{ form.password }}
+                        {% for error in form.password.errors %}<p class="mt-1 text-sm text-brand-red">{{ error }}</p>{% endfor %}
+                    </div>
+
+                    <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-bold text-white shadow-lg shadow-brand-red/20 transition hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/25">
+                        <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                        Iniciar sesión
+                    </button>
+                </form>
+
+                <p class="mt-6 text-center text-xs text-slate-400">
+                    Acceso exclusivo para personal autorizado de SAMI Travels & Tours.
+                </p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
