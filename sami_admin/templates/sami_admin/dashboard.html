@@ -1,7 +1,7 @@
 {% extends "sami_admin/base.html" %}
 
-{% block title %}Resumen | SAMI Admin{% endblock %}
-{% block page_heading %}Resumen general{% endblock %}
+{% block title %}Panel principal | SAMI Admin{% endblock %}
+{% block page_heading %}Panel principal{% endblock %}
 
 {% block content %}
 <section>
@@ -10,84 +10,47 @@
         <h2 class="mt-1 text-2xl font-bold text-brand-navy sm:text-3xl">
             Bienvenido, {{ request.user.first_name|default:request.user.username }}
         </h2>
-        <p class="mt-2 text-slate-600">Este es el estado actual de las operaciones de la agencia.</p>
+        <p class="mt-2 text-slate-600">Tu espacio seguro para gestionar las operaciones de la agencia.</p>
     </div>
 
     <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <p class="text-sm font-medium text-slate-500">Reservas</p>
-                <span class="grid size-10 place-items-center rounded-xl bg-brand-red-soft text-brand-red"><i class="fa-solid fa-calendar-check"></i></span>
-            </div>
-            <p class="mt-3 text-4xl font-bold text-brand-navy">{{ stats.reservas }}</p>
-            <p class="mt-2 text-sm text-slate-500"><span class="font-semibold text-brand-red">{{ stats.pendientes }}</span> por atender</p>
+            <span class="grid size-10 place-items-center rounded-xl bg-brand-red-soft text-brand-red"><i class="fa-solid fa-calendar-check"></i></span>
+            <h3 class="mt-4 text-lg font-bold text-brand-navy">Reservas</h3>
+            <p class="mt-2 text-sm text-slate-500">Consulta y administra los viajes de los clientes.</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <p class="text-sm font-medium text-slate-500">Clientes activos</p>
-                <span class="grid size-10 place-items-center rounded-xl bg-blue-50 text-brand-navy-light"><i class="fa-solid fa-users"></i></span>
-            </div>
-            <p class="mt-3 text-4xl font-bold text-brand-navy">{{ stats.clientes }}</p>
+            <span class="grid size-10 place-items-center rounded-xl bg-blue-50 text-brand-navy-light"><i class="fa-solid fa-users"></i></span>
+            <h3 class="mt-4 text-lg font-bold text-brand-navy">Clientes</h3>
+            <p class="mt-2 text-sm text-slate-500">Mantén organizada la información de los viajeros.</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <p class="text-sm font-medium text-slate-500">Paquetes activos</p>
-                <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><i class="fa-solid fa-suitcase-rolling"></i></span>
-            </div>
-            <p class="mt-3 text-4xl font-bold text-brand-navy">{{ stats.paquetes }}</p>
+            <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><i class="fa-solid fa-suitcase-rolling"></i></span>
+            <h3 class="mt-4 text-lg font-bold text-brand-navy">Paquetes</h3>
+            <p class="mt-2 text-sm text-slate-500">Prepara la oferta de experiencias de SAMI.</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <p class="text-sm font-medium text-slate-500">Destinos activos</p>
-                <span class="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-700"><i class="fa-solid fa-map-location-dot"></i></span>
-            </div>
-            <p class="mt-3 text-4xl font-bold text-brand-navy">{{ stats.destinos }}</p>
+            <span class="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-700"><i class="fa-solid fa-map-location-dot"></i></span>
+            <h3 class="mt-4 text-lg font-bold text-brand-navy">Destinos</h3>
+            <p class="mt-2 text-sm text-slate-500">Organiza los lugares disponibles para viajar.</p>
         </article>
     </div>
 
-    <section class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+    <section class="mt-8 rounded-2xl bg-brand-navy p-6 text-white shadow-lg sm:p-8">
+        <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h3 class="text-lg font-bold text-brand-navy">Reservas recientes</h3>
-                <p class="text-sm text-slate-500">Las últimas cinco solicitudes registradas.</p>
+                <p class="text-sm font-semibold uppercase tracking-wider text-red-300">SAMI Travels & Tours</p>
+                <h3 class="mt-2 text-2xl font-bold">Panel administrativo listo</h3>
+                <p class="mt-2 max-w-2xl text-slate-300">Los módulos operativos se habilitarán progresivamente desde este espacio.</p>
             </div>
+            <span class="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold">
+                <i class="fa-solid fa-shield-halved text-brand-red" aria-hidden="true"></i>
+                Sesión protegida
+            </span>
         </div>
-
-        {% if reservas_recientes %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-sm">
-                    <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        <tr>
-                            <th class="px-6 py-3">Cliente</th>
-                            <th class="px-6 py-3">Viaje</th>
-                            <th class="px-6 py-3">Salida</th>
-                            <th class="px-6 py-3">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for reserva in reservas_recientes %}
-                            <tr class="hover:bg-slate-50">
-                                <td class="whitespace-nowrap px-6 py-4 font-medium text-brand-navy">{{ reserva.cliente }}</td>
-                                <td class="px-6 py-4 text-slate-600">{{ reserva.paquete|default:reserva.destino }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-slate-600">{{ reserva.fecha_salida|date:"d/m/Y" }}</td>
-                                <td class="whitespace-nowrap px-6 py-4">
-                                    <span class="rounded-full bg-brand-red-soft px-3 py-1 text-xs font-semibold text-brand-red-dark">{{ reserva.get_estado_display }}</span>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="px-6 py-12 text-center">
-                <i class="fa-regular fa-calendar-xmark text-3xl text-slate-300" aria-hidden="true"></i>
-                <p class="mt-3 font-medium text-brand-navy">Aún no hay reservas registradas.</p>
-                <p class="mt-1 text-sm text-slate-500">Las nuevas solicitudes aparecerán aquí.</p>
-            </div>
-        {% endif %}
     </section>
 </section>
 {% endblock %}

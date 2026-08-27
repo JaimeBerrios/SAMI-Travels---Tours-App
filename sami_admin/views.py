@@ -1,12 +1,9 @@
 from django.conf import settings
 from django.contrib.auth import login, logout
-from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
-
-from core.models import Cliente, Destino, PaqueteTuristico, Reserva
 
 from .decorators import staff_required
 from .forms import SamiAdminAuthenticationForm
@@ -47,23 +44,5 @@ def logout_view(request):
 
 @staff_required
 def dashboard(request):
-    """Show a live operational summary for agency staff."""
-    reservas_por_estado = dict(
-        Reserva.objects.values_list("estado")
-        .annotate(total=Count("id"))
-        .order_by()
-    )
-
-    context = {
-        "stats": {
-            "clientes": Cliente.objects.filter(activo=True).count(),
-            "reservas": Reserva.objects.count(),
-            "pendientes": reservas_por_estado.get(Reserva.Estado.SOLICITADA, 0),
-            "paquetes": PaqueteTuristico.objects.filter(activo=True).count(),
-            "destinos": Destino.objects.filter(activo=True).count(),
-        },
-        "reservas_recientes": Reserva.objects.select_related(
-            "cliente", "paquete", "destino"
-        )[:5],
-    }
-    return render(request, "sami_admin/dashboard.html", context)
+    """Render the main workspace without requiring operational data tables."""
+    return render(request, "sami_admin/dashboard.html")
