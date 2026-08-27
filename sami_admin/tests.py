@@ -9,7 +9,7 @@ from django.test import RequestFactory, SimpleTestCase
 from django.urls import resolve, reverse
 
 from .decorators import staff_required, superuser_required
-from .forms import ROLE_ADMIN, ROLE_SUPERUSER, StaffUserCreationForm
+from .forms import ROLE_ADMIN, ROLE_SUPERUSER, CotizacionForm, StaffUserCreationForm
 from .models import Cotizacion
 from .views import (
     assign_user_role,
@@ -249,8 +249,66 @@ class CotizacionModelTests(SimpleTestCase):
         quotation = Cotizacion(pk=12, cliente_nombre="María López")
         self.assertEqual(str(quotation), "Cotización #12 - María López")
 
+    def test_tour_form_clears_internal_flight_data(self):
+        form = CotizacionForm(
+            data={
+                "cliente_nombre": "Ana Pérez",
+                "cliente_correo": "ana@example.com",
+                "tipo_cotizacion": Cotizacion.TipoCotizacion.TOURS,
+                "destino": "Antigua Guatemala",
+                "aerolinea": "Dato que debe limpiarse",
+                "precio_estimado": "500.00",
+                "estado": Cotizacion.Estado.PENDIENTE,
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.cleaned_data["aerolinea"])
+
 
 class QuotationPdfTests(SimpleTestCase):
+    def test_flight_document_shows_itinerary_but_never_airline(self):
+        quotation = SimpleNamespace(
+            id=21,
+            cliente_nombre="Carlos Rivera",
+            cliente_correo="carlos@example.com",
+            tipo_cotizacion=Cotizacion.TipoCotizacion.VUELOS_TOURS,
+            destino="Guadalajara",
+            ruta_vuelo="San Salvador a Guadalajara",
+            cantidad_adultos=2,
+            cantidad_ninos=1,
+            fecha_ida=None,
+            hora_salida_ida=None,
+            hora_llegada_ida=None,
+            escala_ida="1 escala de 2 horas",
+            fecha_vuelta=None,
+            hora_salida_vuelta=None,
+            hora_llegada_vuelta=None,
+            escala_vuelta="Vuelo directo",
+            aerolinea="AEROLINEA-CONFIDENCIAL-XYZ",
+            equipaje_incluido="Una maleta de 23 kg",
+            notas_importantes="Presentarse tres horas antes",
+            fecha_creacion=None,
+            precio_estimado=1200,
+            asesor=SimpleNamespace(
+                get_full_name=lambda: "Asesor SAMI",
+                username="asesor",
+            ),
+        )
+
+        html = get_template("sami_admin/cotizacion_documento.html").render(
+            {
+                "cotizacion": quotation,
+                "preview": True,
+                "contact_email": "contacto@example.com",
+            }
+        )
+
+        self.assertIn("Itinerario aéreo", html)
+        self.assertIn("San Salvador a Guadalajara", html)
+        self.assertIn("Una maleta de 23 kg", html)
+        self.assertNotIn("AEROLINEA-CONFIDENCIAL-XYZ", html)
+
     def test_document_has_svg_social_links_and_omits_internal_status(self):
         quotation = SimpleNamespace(
             id=18,

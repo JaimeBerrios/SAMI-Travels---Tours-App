@@ -49,6 +49,22 @@
         .detail-label { display: block; margin-bottom: 2px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
         .detail-value { display: block; color: var(--navy-dark); font-size: 13px; font-weight: 700; word-break: break-word; }
         .detail-subvalue { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; }
+        .flight-summary { margin-top: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
+        .flight-heading { display: flex; align-items: center; justify-content: space-between; padding: 11px 15px; background: var(--navy); color: white; }
+        .flight-heading strong { font-size: 12px; }
+        .flight-heading span { border-radius: 999px; padding: 3px 8px; background: var(--red); font-size: 8px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
+        .passengers { display: flex; gap: 22px; padding: 10px 15px; border-bottom: 1px solid var(--line); background: var(--soft); color: var(--muted); font-size: 9px; }
+        .passengers strong { color: var(--navy); font-size: 11px; }
+        .flight-legs { display: flex; }
+        .flight-leg { width: 50%; padding: 12px 15px; }
+        .flight-leg + .flight-leg { border-left: 1px solid var(--line); }
+        .flight-leg-title { margin: 0 0 7px; color: var(--red); font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+        .flight-date { display: block; color: var(--navy-dark); font-size: 11px; font-weight: 700; }
+        .flight-time { margin-top: 5px; color: var(--ink); font-size: 10px; }
+        .flight-scale { margin-top: 3px; color: var(--muted); font-size: 9px; }
+        .flight-extras { display: flex; gap: 10px; padding: 0 15px 12px; }
+        .flight-extra { flex: 1; border-left: 3px solid var(--red); padding: 7px 9px; background: var(--soft); color: var(--muted); font-size: 9px; }
+        .flight-extra strong { display: block; margin-bottom: 2px; color: var(--navy); font-size: 9px; text-transform: uppercase; }
         .investment { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; overflow: hidden; border-radius: 12px; background: var(--navy); color: white; }
         .investment-copy { display: flex; align-items: center; gap: 13px; padding: 18px 21px; }
         .investment-icon { display: flex; width: 42px; height: 42px; align-items: center; justify-content: center; border-radius: 11px; background: rgba(255,255,255,.1); color: white; }
@@ -109,6 +125,18 @@
                     <div class="detail"><div class="detail-card"><div class="detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5V3m10 2V3M3 10h18"/></svg></div><div><span class="detail-label">Fecha de propuesta</span><strong class="detail-value">{{ cotizacion.fecha_creacion|date:"d \d\e F \d\e Y" }}</strong><span class="detail-subvalue">Cotización #{{ cotizacion.id }}</span></div></div></div>
                     <div class="detail"><div class="detail-card"><div class="detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg></div><div><span class="detail-label">Tu asesor SAMI</span><strong class="detail-value">{{ cotizacion.asesor.get_full_name|default:cotizacion.asesor.username }}</strong><span class="detail-subvalue">Acompañamiento personalizado</span></div></div></div>
                 </section>
+
+                {% if cotizacion.tipo_cotizacion == "vuelos" or cotizacion.tipo_cotizacion == "vuelos_tours" %}
+                    <section class="flight-summary">
+                        <div class="flight-heading"><strong>{{ cotizacion.ruta_vuelo|default:cotizacion.destino }}</strong><span>Itinerario aéreo</span></div>
+                        <div class="passengers"><span><strong>{{ cotizacion.cantidad_adultos|default:0 }}</strong> adulto{{ cotizacion.cantidad_adultos|default:0|pluralize }}</span><span><strong>{{ cotizacion.cantidad_ninos|default:0 }}</strong> niño{{ cotizacion.cantidad_ninos|default:0|pluralize }}</span></div>
+                        <div class="flight-legs">
+                            <div class="flight-leg"><p class="flight-leg-title">Vuelo de ida</p><time class="flight-date">{{ cotizacion.fecha_ida|date:"d/m/Y"|default:"Fecha por confirmar" }}</time><p class="flight-time">Salida {{ cotizacion.hora_salida_ida|time:"H:i"|default:"--:--" }} · Llegada {{ cotizacion.hora_llegada_ida|time:"H:i"|default:"--:--" }}</p><p class="flight-scale">{{ cotizacion.escala_ida|default:"Vuelo directo / por confirmar" }}</p></div>
+                            <div class="flight-leg"><p class="flight-leg-title">Vuelo de vuelta</p><time class="flight-date">{{ cotizacion.fecha_vuelta|date:"d/m/Y"|default:"Fecha por confirmar" }}</time><p class="flight-time">Salida {{ cotizacion.hora_salida_vuelta|time:"H:i"|default:"--:--" }} · Llegada {{ cotizacion.hora_llegada_vuelta|time:"H:i"|default:"--:--" }}</p><p class="flight-scale">{{ cotizacion.escala_vuelta|default:"Vuelo directo / por confirmar" }}</p></div>
+                        </div>
+                        {% if cotizacion.equipaje_incluido or cotizacion.notas_importantes %}<div class="flight-extras">{% if cotizacion.equipaje_incluido %}<div class="flight-extra"><strong>Equipaje incluido</strong>{{ cotizacion.equipaje_incluido|linebreaksbr }}</div>{% endif %}{% if cotizacion.notas_importantes %}<div class="flight-extra"><strong>Notas importantes</strong>{{ cotizacion.notas_importantes|linebreaksbr }}</div>{% endif %}</div>{% endif %}
+                    </section>
+                {% endif %}
 
                 <section class="investment">
                     <div class="investment-copy"><div class="investment-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M16 12h4M6 6V4h12v2"/></svg></div><div><span>Inversión del viaje</span><strong>Precio estimado de la propuesta</strong></div></div>

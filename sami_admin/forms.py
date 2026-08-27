@@ -135,18 +135,58 @@ class StaffUserUpdateForm(StaffUserFieldsMixin, forms.ModelForm):
 
 
 class CotizacionForm(forms.ModelForm):
+    FLIGHT_FIELDS = (
+        "ruta_vuelo",
+        "cantidad_adultos",
+        "cantidad_ninos",
+        "fecha_ida",
+        "hora_salida_ida",
+        "hora_llegada_ida",
+        "escala_ida",
+        "fecha_vuelta",
+        "hora_salida_vuelta",
+        "hora_llegada_vuelta",
+        "escala_vuelta",
+        "aerolinea",
+        "equipaje_incluido",
+        "notas_importantes",
+    )
+
     class Meta:
         model = Cotizacion
         fields = (
             "cliente_nombre",
             "cliente_correo",
+            "tipo_cotizacion",
             "destino",
+            "ruta_vuelo",
+            "cantidad_adultos",
+            "cantidad_ninos",
+            "fecha_ida",
+            "hora_salida_ida",
+            "hora_llegada_ida",
+            "escala_ida",
+            "fecha_vuelta",
+            "hora_salida_vuelta",
+            "hora_llegada_vuelta",
+            "escala_vuelta",
+            "aerolinea",
+            "equipaje_incluido",
+            "notas_importantes",
             "precio_estimado",
             "estado",
         )
         labels = {
             "cliente_nombre": "Nombre del cliente",
             "cliente_correo": "Correo del cliente",
+            "tipo_cotizacion": "Tipo de cotización",
+            "ruta_vuelo": "Ruta del vuelo",
+            "cantidad_ninos": "Cantidad de niños",
+            "escala_ida": "Escala de ida",
+            "escala_vuelta": "Escala de vuelta",
+            "aerolinea": "Aerolínea (uso interno)",
+            "equipaje_incluido": "Equipaje incluido",
+            "notas_importantes": "Notas importantes para el cliente",
             "precio_estimado": "Precio estimado (USD)",
         }
         widgets = {
@@ -155,6 +195,25 @@ class CotizacionForm(forms.ModelForm):
                 attrs={"placeholder": "cliente@correo.com"}
             ),
             "destino": forms.TextInput(attrs={"placeholder": "Destino del viaje"}),
+            "ruta_vuelo": forms.TextInput(
+                attrs={"placeholder": "Ej. San Salvador a Guadalajara"}
+            ),
+            "cantidad_adultos": forms.NumberInput(attrs={"min": "0"}),
+            "cantidad_ninos": forms.NumberInput(attrs={"min": "0"}),
+            "fecha_ida": forms.DateInput(attrs={"type": "date"}),
+            "hora_salida_ida": forms.TimeInput(attrs={"type": "time"}),
+            "hora_llegada_ida": forms.TimeInput(attrs={"type": "time"}),
+            "escala_ida": forms.TextInput(
+                attrs={"placeholder": "Ej. 1 escala de 2 h 30 min"}
+            ),
+            "fecha_vuelta": forms.DateInput(attrs={"type": "date"}),
+            "hora_salida_vuelta": forms.TimeInput(attrs={"type": "time"}),
+            "hora_llegada_vuelta": forms.TimeInput(attrs={"type": "time"}),
+            "escala_vuelta": forms.TextInput(
+                attrs={"placeholder": "Ej. Vuelo directo"}
+            ),
+            "equipaje_incluido": forms.Textarea(attrs={"rows": 3}),
+            "notas_importantes": forms.Textarea(attrs={"rows": 3}),
             "precio_estimado": forms.NumberInput(
                 attrs={"min": "0", "step": "0.01", "placeholder": "0.00"}
             ),
@@ -170,3 +229,10 @@ class CotizacionForm(forms.ModelForm):
         )
         for field in self.fields.values():
             field.widget.attrs["class"] = input_class
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("tipo_cotizacion") == Cotizacion.TipoCotizacion.TOURS:
+            for field_name in self.FLIGHT_FIELDS:
+                cleaned_data[field_name] = None
+        return cleaned_data

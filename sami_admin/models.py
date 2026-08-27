@@ -4,6 +4,11 @@ from django.db import models
 
 
 class Cotizacion(models.Model):
+    class TipoCotizacion(models.TextChoices):
+        VUELOS = "vuelos", "Vuelos"
+        TOURS = "tours", "Tours"
+        VUELOS_TOURS = "vuelos_tours", "Vuelos y Tours"
+
     class Estado(models.TextChoices):
         PENDIENTE = "pendiente", "Pendiente"
         APROBADA = "aprobada", "Aprobada"
@@ -16,7 +21,27 @@ class Cotizacion(models.Model):
     )
     cliente_nombre = models.CharField(max_length=180)
     cliente_correo = models.EmailField()
+    tipo_cotizacion = models.CharField(
+        max_length=20,
+        choices=TipoCotizacion.choices,
+        default=TipoCotizacion.TOURS,
+        db_index=True,
+    )
     destino = models.CharField(max_length=180)
+    ruta_vuelo = models.CharField(max_length=255, null=True, blank=True)
+    cantidad_adultos = models.IntegerField(null=True, blank=True)
+    cantidad_ninos = models.IntegerField(null=True, blank=True)
+    fecha_ida = models.DateField(null=True, blank=True)
+    hora_salida_ida = models.TimeField(null=True, blank=True)
+    hora_llegada_ida = models.TimeField(null=True, blank=True)
+    escala_ida = models.CharField(max_length=180, null=True, blank=True)
+    fecha_vuelta = models.DateField(null=True, blank=True)
+    hora_salida_vuelta = models.TimeField(null=True, blank=True)
+    hora_llegada_vuelta = models.TimeField(null=True, blank=True)
+    escala_vuelta = models.CharField(max_length=180, null=True, blank=True)
+    aerolinea = models.CharField(max_length=180, null=True, blank=True)
+    equipaje_incluido = models.TextField(null=True, blank=True)
+    notas_importantes = models.TextField(null=True, blank=True)
     precio_estimado = models.DecimalField(
         max_digits=12,
         decimal_places=2,
