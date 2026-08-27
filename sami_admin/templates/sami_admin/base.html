@@ -1,0 +1,85 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>{% block title %}SAMI Admin{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" referrerpolicy="no-referrer">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased">
+    <div class="min-h-screen lg:flex">
+        <aside class="bg-brand-navy text-white lg:min-h-screen lg:w-72 lg:shrink-0">
+            <div class="flex items-center justify-between border-b border-white/10 px-6 py-5">
+                <a href="{% url 'sami_admin:dashboard' %}" class="flex items-center gap-3">
+                    <span class="grid size-10 place-items-center rounded-xl bg-brand-red" aria-hidden="true">
+                        <i class="fa-solid fa-plane-departure"></i>
+                    </span>
+                    <span>
+                        <span class="block text-lg font-bold tracking-wide">SAMI</span>
+                        <span class="block text-xs text-slate-300">Travels & Tours</span>
+                    </span>
+                </a>
+                <span class="rounded-full bg-brand-red px-3 py-1 text-xs font-semibold">Admin</span>
+            </div>
+
+            <nav class="space-y-2 p-4" aria-label="Navegación administrativa">
+                <a href="{% url 'sami_admin:dashboard' %}" class="flex items-center gap-3 rounded-lg bg-white/10 px-4 py-3 font-medium transition hover:bg-white/20">
+                    <i class="fa-solid fa-chart-line w-5 text-brand-red" aria-hidden="true"></i>
+                    Resumen
+                </a>
+                <span class="flex cursor-not-allowed items-center gap-3 rounded-lg px-4 py-3 text-slate-400" title="Próximamente">
+                    <i class="fa-solid fa-calendar-check w-5" aria-hidden="true"></i>
+                    Reservas
+                </span>
+                <span class="flex cursor-not-allowed items-center gap-3 rounded-lg px-4 py-3 text-slate-400" title="Próximamente">
+                    <i class="fa-solid fa-users w-5" aria-hidden="true"></i>
+                    Clientes
+                </span>
+                <span class="flex cursor-not-allowed items-center gap-3 rounded-lg px-4 py-3 text-slate-400" title="Próximamente">
+                    <i class="fa-solid fa-map-location-dot w-5" aria-hidden="true"></i>
+                    Destinos
+                </span>
+            </nav>
+        </aside>
+
+        <div class="flex min-h-screen min-w-0 flex-1 flex-col">
+            <header class="border-b border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-6 lg:px-8">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-xl font-bold text-brand-navy">{% block page_heading %}Panel administrativo{% endblock %}</h1>
+                        <p class="text-sm text-slate-500">Gestión interna de SAMI Travels & Tours</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="hidden text-right sm:block">
+                            <p class="text-sm font-semibold text-brand-navy">{{ request.user.get_full_name|default:request.user.username }}</p>
+                            <p class="text-xs text-slate-500">{{ request.user.email }}</p>
+                        </div>
+                        <form method="post" action="{% url 'account_logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2">
+                                <i class="fa-solid fa-right-from-bracket mr-1" aria-hidden="true"></i>
+                                Salir
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                {% if messages %}
+                    <div class="mb-6 space-y-3" aria-live="polite">
+                        {% for message in messages %}
+                            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

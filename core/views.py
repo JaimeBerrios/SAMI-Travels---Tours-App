@@ -45,16 +45,8 @@ def mantenimiento(request):
 
 @staff_member_required(login_url="admin:login")
 def panel_interno(request):
-    """Display the provisional workspace for agency staff."""
-    context = {
-        "resumen": {
-            "pendientes": 0,
-            "en_proceso": 0,
-            "completadas": 0,
-        },
-        "cotizaciones": [],
-    }
-    return render(request, "core/panel_interno.html", context)
+    """Keep the former staff URL as an alias for the SAMI Admin dashboard."""
+    return redirect("sami_admin:dashboard")
 
 
 @staff_member_required(login_url="admin:login")

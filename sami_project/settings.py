@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "core",
+    "sami_admin",
 ]
 
 MIDDLEWARE = [
@@ -119,7 +120,7 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = os.environ.get("ACCOUNT_EMAIL_VERIFICATION", "none")
-LOGIN_REDIRECT_URL = "/panel-interno/"
+LOGIN_REDIRECT_URL = "/sami-admin/"
 LOGOUT_REDIRECT_URL = "/"
 
 CONTACT_EMAIL = os.environ.get(
