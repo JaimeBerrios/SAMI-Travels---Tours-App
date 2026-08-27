@@ -57,7 +57,7 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
                     "block w-full rounded-xl border border-slate-300 bg-white "
                     "py-3 pl-11 pr-4 text-brand-navy shadow-sm outline-none transition "
                     "placeholder:text-slate-400 focus:border-brand-red "
-                    "focus:ring-2 focus:ring-brand-red"
+                    "focus:ring-2 focus:ring-red-600"
                 ),
             }
         ),
@@ -73,7 +73,7 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
                     "block w-full rounded-xl border border-slate-300 bg-white "
                     "py-3 pl-11 pr-4 text-brand-navy shadow-sm outline-none transition "
                     "placeholder:text-slate-400 focus:border-brand-red "
-                    "focus:ring-2 focus:ring-brand-red"
+                    "focus:ring-2 focus:ring-red-600"
                 ),
             }
         ),

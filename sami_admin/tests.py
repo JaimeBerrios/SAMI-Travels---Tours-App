@@ -278,6 +278,9 @@ class QuotationPdfTests(SimpleTestCase):
         self.assertIn("Editar Cotización", html)
         self.assertIn("instagram.com/sami.travelstours", html)
         self.assertIn("facebook.com/samitravelstours", html)
+        self.assertIn("@page { size: Letter; margin: 0; }", html)
+        self.assertIn("print-color-adjust: exact", html)
+        self.assertIn("position: absolute; bottom: 0", html)
         self.assertNotIn("Estado", html)
         self.assertNotIn("Pendiente", html)
 
@@ -327,4 +330,8 @@ class QuotationPdfTests(SimpleTestCase):
         self.assertEqual(
             response["Content-Disposition"],
             'attachment; filename="Cotizacion_SAMI_42.pdf"',
+        )
+        generate_mock.assert_called_once_with(
+            "<html></html>",
+            base_url="http://testserver/",
         )

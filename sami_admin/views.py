@@ -173,7 +173,8 @@ def quotation_pdf(request, quotation_id):
         },
         request=request,
     )
-    pdf = generate_quotation_pdf(html, request.build_absolute_uri("/"))
+    base_url = request.build_absolute_uri("/")
+    pdf = generate_quotation_pdf(html, base_url=base_url)
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="Cotizacion_SAMI_{quotation.pk}.pdf"'
