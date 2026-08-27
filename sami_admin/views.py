@@ -9,6 +9,7 @@ from django.contrib.auth import (
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
 from django.db import transaction
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -84,8 +85,26 @@ def logout_view(request):
 
 @staff_required
 def dashboard(request):
-    """Render the main workspace without requiring operational data tables."""
-    return render(request, "sami_admin/dashboard.html")
+    """Render the main workspace with a compact quotation status summary."""
+    counts_by_status = {
+        row["estado"]: row["total"]
+        for row in Cotizacion.objects.values("estado").annotate(total=Count("id"))
+    }
+    return render(
+        request,
+        "sami_admin/dashboard.html",
+        {
+            "cotizaciones_pendientes": counts_by_status.get(
+                Cotizacion.Estado.PENDIENTE, 0
+            ),
+            "cotizaciones_aprobadas": counts_by_status.get(
+                Cotizacion.Estado.APROBADA, 0
+            ),
+            "cotizaciones_rechazadas": counts_by_status.get(
+                Cotizacion.Estado.RECHAZADA, 0
+            ),
+        },
+    )
 
 
 def can_view_all_quotes(user):

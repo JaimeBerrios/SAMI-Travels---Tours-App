@@ -143,7 +143,14 @@ class SamiAdminUrlTests(SimpleTestCase):
 
 
 class DashboardTests(SimpleTestCase):
-    def test_staff_user_can_render_dashboard_without_database_queries(self):
+    @patch("sami_admin.views.Cotizacion.objects")
+    def test_dashboard_renders_grouped_quotation_analytics(self, quotation_manager):
+        grouped_query = quotation_manager.values.return_value
+        grouped_query.annotate.return_value = [
+            {"estado": Cotizacion.Estado.PENDIENTE, "total": 5},
+            {"estado": Cotizacion.Estado.APROBADA, "total": 3},
+            {"estado": Cotizacion.Estado.RECHAZADA, "total": 1},
+        ]
         request = RequestFactory().get("/sami-admin/")
         request.user = get_user_model()(
             username="admin",
@@ -156,6 +163,24 @@ class DashboardTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Bienvenido, SAMI")
+        self.assertContains(response, "chart.js@4.4.7")
+        self.assertContains(
+            response,
+            '<script id="quotation-approved-data" type="application/json">3</script>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<script id="quotation-pending-data" type="application/json">5</script>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<script id="quotation-rejected-data" type="application/json">1</script>',
+            html=True,
+        )
+        quotation_manager.values.assert_called_once_with("estado")
+        grouped_query.annotate.assert_called_once()
 
 
 class StaffUserCreationFormTests(SimpleTestCase):
