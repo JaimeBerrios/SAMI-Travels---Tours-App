@@ -17,6 +17,16 @@ urlpatterns = [
         name="quotation-update",
     ),
     path(
+        "cotizaciones/<int:quotation_id>/vista-previa/",
+        views.quotation_preview,
+        name="quotation-preview",
+    ),
+    path(
+        "cotizaciones/<int:quotation_id>/pdf/",
+        views.quotation_pdf,
+        name="quotation-pdf",
+    ),
+    path(
         "cotizaciones/<int:quotation_id>/eliminar/",
         views.quotation_delete,
         name="quotation-delete",

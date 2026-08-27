@@ -9,7 +9,9 @@ from django.contrib.auth import (
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
@@ -25,6 +27,13 @@ from .forms import (
     get_user_role,
 )
 from .models import Cotizacion
+
+
+def generate_quotation_pdf(html, base_url):
+    """Generate a PDF while keeping WeasyPrint lazy-loaded for HTML requests."""
+    from weasyprint import HTML
+
+    return HTML(string=html, base_url=base_url).write_pdf()
 
 
 def assign_user_role(user, role):
@@ -136,6 +145,40 @@ def quotation_update(request, quotation_id):
         "sami_admin/cotizacion_form.html",
         {"form": form, "form_title": "Editar cotización"},
     )
+
+
+@staff_required
+def quotation_preview(request, quotation_id):
+    quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
+    return render(
+        request,
+        "sami_admin/cotizacion_documento.html",
+        {
+            "cotizacion": quotation,
+            "preview": True,
+            "contact_email": settings.CONTACT_EMAIL,
+        },
+    )
+
+
+@staff_required
+def quotation_pdf(request, quotation_id):
+    quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
+    html = render_to_string(
+        "sami_admin/cotizacion_documento.html",
+        {
+            "cotizacion": quotation,
+            "preview": False,
+            "contact_email": settings.CONTACT_EMAIL,
+        },
+        request=request,
+    )
+    pdf = generate_quotation_pdf(html, request.build_absolute_uri("/"))
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="Cotizacion_SAMI_{quotation.pk}.pdf"'
+    )
+    return response
 
 
 @require_POST

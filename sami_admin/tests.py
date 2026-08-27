@@ -14,7 +14,9 @@ from .views import (
     assign_user_role,
     can_view_all_quotes,
     dashboard,
+    generate_quotation_pdf,
     quotation_delete,
+    quotation_pdf,
     quotations_for,
     user_deactivate,
 )
@@ -106,6 +108,14 @@ class SamiAdminUrlTests(SimpleTestCase):
         self.assertEqual(
             reverse("sami_admin:quotation-delete", args=[9]),
             "/sami-admin/cotizaciones/9/eliminar/",
+        )
+        self.assertEqual(
+            reverse("sami_admin:quotation-preview", args=[9]),
+            "/sami-admin/cotizaciones/9/vista-previa/",
+        )
+        self.assertEqual(
+            reverse("sami_admin:quotation-pdf", args=[9]),
+            "/sami-admin/cotizaciones/9/pdf/",
         )
 
     def test_user_management_urls(self):
@@ -237,3 +247,53 @@ class CotizacionModelTests(SimpleTestCase):
     def test_string_representation(self):
         quotation = Cotizacion(pk=12, cliente_nombre="María López")
         self.assertEqual(str(quotation), "Cotización #12 - María López")
+
+
+class QuotationPdfTests(SimpleTestCase):
+    def test_pdf_generator_uses_html_and_base_url(self):
+        html_class = MagicMock()
+        html_class.return_value.write_pdf.return_value = b"pdf-content"
+
+        with patch.dict(
+            "sys.modules",
+            {"weasyprint": SimpleNamespace(HTML=html_class)},
+        ):
+            result = generate_quotation_pdf(
+                "<html></html>",
+                "https://example.com/",
+            )
+
+        self.assertEqual(result, b"pdf-content")
+        html_class.assert_called_once_with(
+            string="<html></html>",
+            base_url="https://example.com/",
+        )
+
+    @patch("sami_admin.views.generate_quotation_pdf", return_value=b"pdf-content")
+    @patch("sami_admin.views.render_to_string", return_value="<html></html>")
+    @patch("sami_admin.views.get_object_or_404")
+    @patch("sami_admin.views.quotations_for")
+    def test_download_uses_strict_filename(
+        self,
+        quotations_for_mock,
+        get_object_mock,
+        render_mock,
+        generate_mock,
+    ):
+        quotation = SimpleNamespace(pk=42)
+        get_object_mock.return_value = quotation
+        request = RequestFactory().get("/sami-admin/cotizaciones/42/pdf/")
+        request.user = SimpleNamespace(
+            is_authenticated=True,
+            is_active=True,
+            is_staff=True,
+        )
+
+        response = quotation_pdf(request, quotation_id=42)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertEqual(
+            response["Content-Disposition"],
+            'attachment; filename="Cotizacion_SAMI_42.pdf"',
+        )

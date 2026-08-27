@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Cotización SAMI #{{ cotizacion.id }}</title>
+    <style>
+        @page { size: A4; margin: 18mm 16mm 20mm; }
+        :root { --navy: #0B1F3A; --navy-dark: #06152B; --red: #D71920; --soft: #F4F7FA; --muted: #64748B; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #e8edf3; color: var(--navy); font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.5; }
+        .actions { position: fixed; z-index: 10; top: 0; left: 0; right: 0; display: flex; justify-content: center; gap: 12px; padding: 14px; background: rgba(6, 21, 43, .96); box-shadow: 0 4px 18px rgba(6, 21, 43, .25); }
+        .button { display: inline-block; border-radius: 8px; padding: 10px 18px; color: white; font-size: 13px; font-weight: 700; text-decoration: none; }
+        .button-secondary { border: 1px solid rgba(255,255,255,.4); background: transparent; }
+        .button-primary { background: var(--red); }
+        .preview-shell { padding: 84px 20px 30px; }
+        .document { width: 210mm; min-height: 260mm; margin: 0 auto; overflow: hidden; background: white; box-shadow: 0 14px 40px rgba(11,31,58,.16); }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 28px 34px; border-bottom: 5px solid var(--red); background: var(--navy-dark); color: white; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .logo { display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid rgba(255,255,255,.5); border-radius: 14px; background: var(--red); font-size: 18px; font-weight: 800; letter-spacing: 1px; }
+        .brand h1 { margin: 0; font-size: 24px; letter-spacing: .5px; }
+        .brand p, .agency p { margin: 2px 0 0; color: #cbd5e1; font-size: 11px; }
+        .agency { text-align: right; }
+        .content { padding: 34px; }
+        .title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+        .eyebrow { margin: 0 0 5px; color: var(--red); font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        h2 { margin: 0; color: var(--navy-dark); font-size: 27px; }
+        .quote-number { border-radius: 10px; padding: 10px 14px; background: var(--soft); text-align: right; }
+        .quote-number strong { display: block; color: var(--red); font-size: 17px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { width: 31%; padding: 14px 16px; border-bottom: 1px solid #dce3ea; background: var(--soft); color: var(--navy); text-align: left; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; }
+        td { padding: 14px 16px; border-bottom: 1px solid #dce3ea; color: #334155; }
+        .status { display: inline-block; border-radius: 999px; padding: 5px 11px; background: #fff1f2; color: var(--red); font-size: 11px; font-weight: 700; }
+        .total { margin-top: 28px; padding: 24px; border-left: 5px solid var(--red); border-radius: 8px; background: var(--navy); color: white; text-align: right; }
+        .total span { display: block; color: #cbd5e1; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+        .total strong { display: block; margin-top: 3px; font-size: 30px; }
+        .note { margin-top: 30px; padding: 18px; border-radius: 8px; background: var(--soft); color: var(--muted); font-size: 11px; }
+        .footer { display: flex; justify-content: space-between; margin: 35px 34px 0; padding: 18px 0 28px; border-top: 1px solid #dce3ea; color: var(--muted); font-size: 10px; }
+        @media print { body { background: white; } .actions { display: none; } .preview-shell { padding: 0; } .document { width: auto; min-height: auto; box-shadow: none; } }
+    </style>
+</head>
+<body>
+    {% if preview %}
+        <nav class="actions" aria-label="Acciones del documento">
+            <a class="button button-secondary" href="{% url 'sami_admin:quotation-update' cotizacion.id %}">Editar datos</a>
+            <a class="button button-primary" href="{% url 'sami_admin:quotation-pdf' cotizacion.id %}">Descargar PDF</a>
+        </nav>
+    {% endif %}
+    <div class="preview-shell">
+        <article class="document">
+            <header class="header">
+                <div class="brand"><div class="logo">SAMI</div><div><h1>SAMI Travels & Tours</h1><p>Tu próxima aventura comienza con nosotros</p></div></div>
+                <div class="agency"><strong>Agencia de viajes</strong><p>{{ contact_email }}</p><p>samitravelstours.com</p></div>
+            </header>
+            <main class="content">
+                <div class="title-row"><div><p class="eyebrow">Propuesta de viaje</p><h2>Cotización</h2></div><div class="quote-number"><span>Número</span><strong>#{{ cotizacion.id }}</strong><small>{{ cotizacion.fecha_creacion|date:"d/m/Y" }}</small></div></div>
+                <table aria-label="Detalle de cotización">
+                    <tr><th>Cliente</th><td>{{ cotizacion.cliente_nombre }}</td></tr>
+                    <tr><th>Correo electrónico</th><td>{{ cotizacion.cliente_correo }}</td></tr>
+                    <tr><th>Destino</th><td>{{ cotizacion.destino }}</td></tr>
+                    <tr><th>Asesor SAMI</th><td>{{ cotizacion.asesor.get_full_name|default:cotizacion.asesor.username }}</td></tr>
+                    <tr><th>Estado</th><td><span class="status">{{ cotizacion.get_estado_display }}</span></td></tr>
+                </table>
+                <div class="total"><span>Precio estimado</span><strong>USD ${{ cotizacion.precio_estimado|floatformat:2 }}</strong></div>
+                <div class="note"><strong>Información importante:</strong> Este documento presenta una estimación inicial. Tarifas, disponibilidad y condiciones pueden variar hasta que la reserva sea confirmada por SAMI Travels & Tours.</div>
+            </main>
+            <footer class="footer"><span>SAMI Travels & Tours · Documento generado digitalmente</span><span>Cotización #{{ cotizacion.id }}</span></footer>
+        </article>
+    </div>
+</body>
+</html>
