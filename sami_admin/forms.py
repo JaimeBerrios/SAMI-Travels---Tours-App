@@ -55,9 +55,9 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
                 "placeholder": "Tu usuario de Django",
                 "class": (
                     "block w-full rounded-xl border border-slate-300 bg-white "
-                    "px-4 py-3 text-brand-navy shadow-sm outline-none transition "
+                    "py-3 pl-11 pr-4 text-brand-navy shadow-sm outline-none transition "
                     "placeholder:text-slate-400 focus:border-brand-red "
-                    "focus:ring-4 focus:ring-brand-red/10"
+                    "focus:ring-2 focus:ring-brand-red"
                 ),
             }
         ),
@@ -71,9 +71,9 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
                 "placeholder": "Tu contraseña",
                 "class": (
                     "block w-full rounded-xl border border-slate-300 bg-white "
-                    "px-4 py-3 text-brand-navy shadow-sm outline-none transition "
+                    "py-3 pl-11 pr-4 text-brand-navy shadow-sm outline-none transition "
                     "placeholder:text-slate-400 focus:border-brand-red "
-                    "focus:ring-4 focus:ring-brand-red/10"
+                    "focus:ring-2 focus:ring-brand-red"
                 ),
             }
         ),

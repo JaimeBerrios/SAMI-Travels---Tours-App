@@ -10,9 +10,9 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" referrerpolicy="no-referrer">
 </head>
-<body class="min-h-screen bg-slate-100 antialiased">
+<body class="min-h-screen bg-brand-navy-dark antialiased">
     <main class="relative grid min-h-screen place-items-center overflow-hidden px-4 py-10">
-        <div class="absolute inset-x-0 top-0 h-1/2 bg-brand-navy" aria-hidden="true"></div>
+        <div class="absolute inset-0 bg-brand-navy-dark" aria-hidden="true"></div>
         <div class="absolute left-1/2 top-1/4 size-96 -translate-x-1/2 rounded-full bg-brand-red/15 blur-3xl" aria-hidden="true"></div>
 
         <section class="relative grid w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl shadow-brand-navy/20 md:grid-cols-5">
@@ -39,8 +39,8 @@
                 <form method="post" action="{% url 'sami_admin:login' %}" class="mt-7 space-y-5">
                     {% csrf_token %}
                     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-                    <div><label for="{{ form.username.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ form.username.label }}</label>{{ form.username }}{% for error in form.username.errors %}<p class="mt-1 text-sm text-brand-red">{{ error }}</p>{% endfor %}</div>
-                    <div><label for="{{ form.password.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ form.password.label }}</label>{{ form.password }}{% for error in form.password.errors %}<p class="mt-1 text-sm text-brand-red">{{ error }}</p>{% endfor %}</div>
+                    <div><label for="{{ form.username.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ form.username.label }}</label><div class="relative"><svg class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>{{ form.username }}</div>{% for error in form.username.errors %}<p class="mt-1 text-sm text-brand-red">{{ error }}</p>{% endfor %}</div>
+                    <div><label for="{{ form.password.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ form.password.label }}</label><div class="relative"><svg class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>{{ form.password }}</div>{% for error in form.password.errors %}<p class="mt-1 text-sm text-brand-red">{{ error }}</p>{% endfor %}</div>
                     <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3.5 font-bold text-white shadow-lg shadow-brand-red/20 transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/25"><span>Iniciar sesión</span><i class="fa-solid fa-arrow-right"></i></button>
                 </form>
                 <p class="mt-7 flex items-center justify-center gap-2 text-center text-xs text-slate-400"><i class="fa-solid fa-lock"></i>Acceso exclusivo para personal autorizado</p>
