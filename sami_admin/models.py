@@ -3,6 +3,20 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
+AEROLINEAS_CHOICES = [
+    ("avianca", "Avianca"),
+    ("copa_airlines", "Copa Airlines"),
+    ("volaris", "Volaris"),
+    ("aeromexico", "Aerom\u00e9xico"),
+    ("american_airlines", "American Airlines"),
+    ("united_airlines", "United Airlines"),
+    ("delta", "Delta"),
+    ("spirit_airlines", "Spirit Airlines"),
+    ("iberia", "Iberia"),
+    ("otra", "Otra"),
+]
+
+
 class Cotizacion(models.Model):
     class TipoCotizacion(models.TextChoices):
         VUELOS = "vuelos", "Vuelos"
@@ -39,7 +53,12 @@ class Cotizacion(models.Model):
     hora_salida_vuelta = models.TimeField(null=True, blank=True)
     hora_llegada_vuelta = models.TimeField(null=True, blank=True)
     escala_vuelta = models.CharField(max_length=180, null=True, blank=True)
-    aerolinea = models.CharField(max_length=180, null=True, blank=True)
+    aerolinea = models.CharField(
+        max_length=30,
+        choices=AEROLINEAS_CHOICES,
+        null=True,
+        blank=True,
+    )
     equipaje_incluido = models.TextField(null=True, blank=True)
     notas_importantes = models.TextField(null=True, blank=True)
     precio_estimado = models.DecimalField(

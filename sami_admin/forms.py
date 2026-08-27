@@ -189,6 +189,12 @@ class CotizacionForm(forms.ModelForm):
             "notas_importantes": "Notas importantes para el cliente",
             "precio_estimado": "Precio estimado (USD)",
         }
+        help_texts = {
+            "tipo_cotizacion": "Los campos de vuelo se mostrar\u00e1n seg\u00fan esta selecci\u00f3n.",
+            "aerolinea": "Dato interno: nunca se muestra en el documento del cliente.",
+            "equipaje_incluido": "Detalla peso, piezas y tipo de equipaje incluidos.",
+            "notas_importantes": "Estas notas s\u00ed ser\u00e1n visibles para el cliente.",
+        }
         widgets = {
             "cliente_nombre": forms.TextInput(attrs={"placeholder": "Nombre completo"}),
             "cliente_correo": forms.EmailInput(
@@ -227,8 +233,14 @@ class CotizacionForm(forms.ModelForm):
             "placeholder:text-slate-400 focus:border-brand-red "
             "focus:ring-4 focus:ring-brand-red/10"
         )
-        for field in self.fields.values():
+        for field_name, field in self.fields.items():
             field.widget.attrs["class"] = input_class
+            if field.help_text:
+                field.widget.attrs["aria-describedby"] = f"id_{field_name}_helptext"
+        if self.is_bound:
+            for field_name in self.errors:
+                if field_name in self.fields:
+                    self.fields[field_name].widget.attrs["aria-invalid"] = "true"
 
     def clean(self):
         cleaned_data = super().clean()

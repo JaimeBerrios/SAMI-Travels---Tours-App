@@ -10,7 +10,7 @@ from django.urls import resolve, reverse
 
 from .decorators import staff_required, superuser_required
 from .forms import ROLE_ADMIN, ROLE_SUPERUSER, CotizacionForm, StaffUserCreationForm
-from .models import Cotizacion
+from .models import AEROLINEAS_CHOICES, Cotizacion
 from .views import (
     assign_user_role,
     can_view_all_quotes,
@@ -256,7 +256,7 @@ class CotizacionModelTests(SimpleTestCase):
                 "cliente_correo": "ana@example.com",
                 "tipo_cotizacion": Cotizacion.TipoCotizacion.TOURS,
                 "destino": "Antigua Guatemala",
-                "aerolinea": "Dato que debe limpiarse",
+                "aerolinea": "avianca",
                 "precio_estimado": "500.00",
                 "estado": Cotizacion.Estado.PENDIENTE,
             }
@@ -264,6 +264,19 @@ class CotizacionModelTests(SimpleTestCase):
 
         self.assertTrue(form.is_valid(), form.errors)
         self.assertIsNone(form.cleaned_data["aerolinea"])
+
+    def test_airline_field_uses_the_managed_dropdown_choices(self):
+        field = Cotizacion._meta.get_field("aerolinea")
+        form = CotizacionForm()
+
+        self.assertEqual(list(field.choices), AEROLINEAS_CHOICES)
+        self.assertTrue(field.null)
+        self.assertTrue(field.blank)
+        self.assertEqual(form.fields["aerolinea"].widget.input_type, "select")
+        self.assertEqual(
+            form.fields["aerolinea"].widget.attrs["aria-describedby"],
+            "id_aerolinea_helptext",
+        )
 
 
 class QuotationPdfTests(SimpleTestCase):
