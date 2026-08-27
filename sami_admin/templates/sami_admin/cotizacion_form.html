@@ -1,0 +1,21 @@
+{% extends "sami_admin/base.html" %}
+
+{% block title %}{{ form_title }} | SAMI Admin{% endblock %}
+{% block page_heading %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl">
+    <a href="{% url 'sami_admin:quotation-list' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-red hover:text-brand-red-dark"><i class="fa-solid fa-arrow-left"></i>Volver a cotizaciones</a>
+    <div class="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-l-4 border-brand-red bg-brand-navy px-6 py-5 text-white"><h2 class="text-lg font-bold">{{ form_title }}</h2><p class="mt-1 text-sm text-slate-300">Completa la información comercial de la propuesta.</p></div>
+        <form method="post" class="space-y-6 p-6 sm:p-8">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="rounded-xl bg-brand-red-soft px-4 py-3 text-sm text-brand-red-dark">{{ form.non_field_errors }}</div>{% endif %}
+            <div class="grid gap-6 sm:grid-cols-2">
+                {% for field in form %}<div class="{% if field.name == 'cliente_nombre' or field.name == 'cliente_correo' or field.name == 'destino' %}sm:col-span-2{% endif %}"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %}<span class="text-brand-red"> *</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<p class="mt-2 text-sm font-medium text-brand-red">{{ error }}</p>{% endfor %}</div>{% endfor %}
+            </div>
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end"><a href="{% url 'sami_admin:quotation-list' %}" class="rounded-xl border border-slate-300 px-5 py-3 text-center font-semibold text-slate-600 hover:bg-slate-50">Cancelar</a><button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-semibold text-white shadow-lg shadow-brand-red/15 hover:bg-brand-red-dark"><i class="fa-solid fa-floppy-disk"></i>Guardar cotización</button></div>
+        </form>
+    </div>
+</section>
+{% endblock %}

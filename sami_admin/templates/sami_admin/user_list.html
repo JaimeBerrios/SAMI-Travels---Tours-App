@@ -66,10 +66,10 @@
                                         <i class="fa-solid fa-pen"></i>Editar
                                     </a>
                                     {% if user.is_active %}
-                                        <form method="post" action="{% url 'sami_admin:user-deactivate' user.id %}" onsubmit="return confirm('¿Desactivar la cuenta de {{ user.username|escapejs }}?');">
+                                        <form method="post" action="{% url 'sami_admin:user-delete' user.id %}" onsubmit="return confirm('¿Inhabilitar la cuenta de {{ user.username|escapejs }}? El historial se conservará.');">
                                             {% csrf_token %}
                                             <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg border border-brand-red/30 px-3 py-2 text-xs font-semibold text-brand-red transition hover:bg-brand-red hover:text-white {% if user.id == request.user.id %}cursor-not-allowed opacity-40{% endif %}" {% if user.id == request.user.id %}disabled title="No puedes desactivar tu propia cuenta"{% endif %}>
-                                                <i class="fa-solid fa-user-slash"></i>Desactivar
+                                                <i class="fa-solid fa-user-slash"></i>Eliminar
                                             </button>
                                         </form>
                                     {% endif %}

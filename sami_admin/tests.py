@@ -9,7 +9,15 @@ from django.urls import resolve, reverse
 
 from .decorators import staff_required, superuser_required
 from .forms import ROLE_ADMIN, ROLE_SUPERUSER, StaffUserCreationForm
-from .views import assign_user_role, dashboard, user_deactivate
+from .models import Cotizacion
+from .views import (
+    assign_user_role,
+    can_view_all_quotes,
+    dashboard,
+    quotation_delete,
+    quotations_for,
+    user_deactivate,
+)
 
 
 class StaffRequiredTests(SimpleTestCase):
@@ -77,6 +85,28 @@ class SamiAdminUrlTests(SimpleTestCase):
     def test_authentication_urls(self):
         self.assertEqual(reverse("sami_admin:login"), "/sami-admin/login/")
         self.assertEqual(reverse("sami_admin:logout"), "/sami-admin/logout/")
+        self.assertEqual(
+            reverse("sami_admin:change-password"),
+            "/sami-admin/cambiar-password/",
+        )
+
+    def test_quotation_urls(self):
+        self.assertEqual(
+            reverse("sami_admin:quotation-list"),
+            "/sami-admin/cotizaciones/",
+        )
+        self.assertEqual(
+            reverse("sami_admin:quotation-create"),
+            "/sami-admin/cotizaciones/nueva/",
+        )
+        self.assertEqual(
+            reverse("sami_admin:quotation-update", args=[9]),
+            "/sami-admin/cotizaciones/9/editar/",
+        )
+        self.assertEqual(
+            reverse("sami_admin:quotation-delete", args=[9]),
+            "/sami-admin/cotizaciones/9/eliminar/",
+        )
 
     def test_user_management_urls(self):
         self.assertEqual(reverse("sami_admin:user-list"), "/sami-admin/usuarios/")
@@ -91,6 +121,10 @@ class SamiAdminUrlTests(SimpleTestCase):
         self.assertEqual(
             reverse("sami_admin:user-deactivate", args=[7]),
             "/sami-admin/usuarios/7/desactivar/",
+        )
+        self.assertEqual(
+            reverse("sami_admin:user-delete", args=[7]),
+            "/sami-admin/usuarios/7/eliminar/",
         )
 
     def test_login_redirect_uses_dashboard_name(self):
@@ -165,3 +199,41 @@ class UserDeactivateTests(SimpleTestCase):
         response = user_deactivate(request, user_id=7)
 
         self.assertEqual(response.status_code, 405)
+
+
+class QuotationPermissionTests(SimpleTestCase):
+    def test_superuser_can_view_all_quotes(self):
+        user = SimpleNamespace(is_superuser=True)
+        self.assertTrue(can_view_all_quotes(user))
+
+    def test_administrator_can_view_all_quotes(self):
+        groups = MagicMock()
+        groups.filter.return_value.exists.return_value = True
+        user = SimpleNamespace(is_superuser=False, groups=groups)
+
+        self.assertTrue(can_view_all_quotes(user))
+        groups.filter.assert_called_once_with(name="Administrador")
+
+    @patch("sami_admin.views.Cotizacion.objects")
+    def test_adviser_queryset_is_limited_to_owner(self, quotation_manager):
+        queryset = quotation_manager.select_related.return_value
+        groups = MagicMock()
+        groups.filter.return_value.exists.return_value = False
+        adviser = SimpleNamespace(is_superuser=False, groups=groups)
+
+        quotations_for(adviser)
+
+        queryset.filter.assert_called_once_with(asesor=adviser)
+
+    def test_quotation_delete_rejects_get_requests(self):
+        request = RequestFactory().get("/sami-admin/cotizaciones/9/eliminar/")
+
+        response = quotation_delete(request, quotation_id=9)
+
+        self.assertEqual(response.status_code, 405)
+
+
+class CotizacionModelTests(SimpleTestCase):
+    def test_string_representation(self):
+        quotation = Cotizacion(pk=12, cliente_nombre="María López")
+        self.assertEqual(str(quotation), "Cotización #12 - María López")

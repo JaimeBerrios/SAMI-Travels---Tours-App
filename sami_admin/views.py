@@ -1,6 +1,12 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth import (
+    get_user_model,
+    login,
+    logout,
+    update_session_auth_hash,
+)
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
@@ -12,11 +18,13 @@ from .decorators import staff_required, superuser_required
 from .forms import (
     MANAGED_GROUPS,
     ROLE_SUPERUSER,
+    CotizacionForm,
     SamiAdminAuthenticationForm,
     StaffUserCreationForm,
     StaffUserUpdateForm,
     get_user_role,
 )
+from .models import Cotizacion
 
 
 def assign_user_role(user, role):
@@ -69,6 +77,99 @@ def logout_view(request):
 def dashboard(request):
     """Render the main workspace without requiring operational data tables."""
     return render(request, "sami_admin/dashboard.html")
+
+
+def can_view_all_quotes(user):
+    """Return whether a staff member can access agency-wide quotations."""
+    return user.is_superuser or user.groups.filter(name="Administrador").exists()
+
+
+def quotations_for(user):
+    queryset = Cotizacion.objects.select_related("asesor")
+    if not can_view_all_quotes(user):
+        queryset = queryset.filter(asesor=user)
+    return queryset
+
+
+@staff_required
+def quotation_list(request):
+    can_view_all = can_view_all_quotes(request.user)
+    quotations = Cotizacion.objects.select_related("asesor")
+    if not can_view_all:
+        quotations = quotations.filter(asesor=request.user)
+    return render(
+        request,
+        "sami_admin/cotizacion_list.html",
+        {
+            "cotizaciones": quotations,
+            "can_view_all": can_view_all,
+        },
+    )
+
+
+@staff_required
+def quotation_create(request):
+    form = CotizacionForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        quotation = form.save(commit=False)
+        quotation.asesor = request.user
+        quotation.save()
+        messages.success(request, "La cotización fue creada correctamente.")
+        return redirect("sami_admin:quotation-list")
+    return render(
+        request,
+        "sami_admin/cotizacion_form.html",
+        {"form": form, "form_title": "Nueva cotización"},
+    )
+
+
+@staff_required
+def quotation_update(request, quotation_id):
+    quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
+    form = CotizacionForm(request.POST or None, instance=quotation)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "La cotización fue actualizada.")
+        return redirect("sami_admin:quotation-list")
+    return render(
+        request,
+        "sami_admin/cotizacion_form.html",
+        {"form": form, "form_title": "Editar cotización"},
+    )
+
+
+@require_POST
+@staff_required
+def quotation_delete(request, quotation_id):
+    quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
+    quotation.delete()
+    messages.success(request, "La cotización fue eliminada.")
+    return redirect("sami_admin:quotation-list")
+
+
+@staff_required
+def change_password(request):
+    """Let every authenticated staff role update its own password."""
+    form = PasswordChangeForm(request.user, request.POST or None)
+    input_class = (
+        "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 "
+        "text-brand-navy shadow-sm outline-none transition "
+        "focus:border-brand-red focus:ring-4 focus:ring-brand-red/10"
+    )
+    for field in form.fields.values():
+        field.widget.attrs["class"] = input_class
+
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        update_session_auth_hash(request, user)
+        messages.success(request, "Tu contraseña fue actualizada correctamente.")
+        return redirect("sami_admin:dashboard")
+
+    return render(
+        request,
+        "sami_admin/change_password.html",
+        {"form": form},
+    )
 
 
 @superuser_required
