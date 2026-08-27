@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
+from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase
 from django.urls import resolve, reverse
 
@@ -250,6 +251,36 @@ class CotizacionModelTests(SimpleTestCase):
 
 
 class QuotationPdfTests(SimpleTestCase):
+    def test_document_has_svg_social_links_and_omits_internal_status(self):
+        quotation = SimpleNamespace(
+            id=18,
+            cliente_nombre="Ana Pérez",
+            cliente_correo="ana@example.com",
+            destino="Roatán, Honduras",
+            fecha_creacion=None,
+            precio_estimado=850,
+            asesor=SimpleNamespace(
+                get_full_name=lambda: "Asesor SAMI",
+                username="asesor",
+            ),
+        )
+
+        html = get_template("sami_admin/cotizacion_documento.html").render(
+            {
+                "cotizacion": quotation,
+                "preview": True,
+                "contact_email": "contacto@example.com",
+            }
+        )
+
+        self.assertGreaterEqual(html.count("<svg"), 8)
+        self.assertIn("Descargar PDF", html)
+        self.assertIn("Editar Cotización", html)
+        self.assertIn("instagram.com/sami.travelstours", html)
+        self.assertIn("facebook.com/samitravelstours", html)
+        self.assertNotIn("Estado", html)
+        self.assertNotIn("Pendiente", html)
+
     def test_pdf_generator_uses_html_and_base_url(self):
         html_class = MagicMock()
         html_class.return_value.write_pdf.return_value = b"pdf-content"
