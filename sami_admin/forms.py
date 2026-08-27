@@ -3,6 +3,44 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 
+ROLE_SUPERUSER = "superuser"
+ROLE_ADMIN = "administrador"
+ROLE_ADVISER = "asesor"
+ROLE_CHOICES = (
+    (ROLE_SUPERUSER, "Superusuario"),
+    (ROLE_ADMIN, "Administrador"),
+    (ROLE_ADVISER, "Asesor"),
+)
+MANAGED_GROUPS = {
+    ROLE_ADMIN: "Administrador",
+    ROLE_ADVISER: "Asesor",
+}
+
+
+def get_user_role(user):
+    if user.is_superuser:
+        return ROLE_SUPERUSER
+    group_names = {group.name for group in user.groups.all()}
+    if MANAGED_GROUPS[ROLE_ADMIN] in group_names:
+        return ROLE_ADMIN
+    return ROLE_ADVISER
+
+
+class StaffUserFieldsMixin:
+    role = forms.ChoiceField(label="Rol", choices=ROLE_CHOICES)
+
+    def apply_tailwind_classes(self):
+        self.fields["email"].required = True
+        input_class = (
+            "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 "
+            "text-brand-navy shadow-sm outline-none transition "
+            "placeholder:text-slate-400 focus:border-brand-red "
+            "focus:ring-4 focus:ring-brand-red/10"
+        )
+        for field in self.fields.values():
+            field.widget.attrs["class"] = input_class
+
+
 class SamiAdminAuthenticationForm(AuthenticationForm):
     """Authenticate only active members of the SAMI administrative team."""
 
@@ -48,8 +86,10 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
             )
 
 
-class StaffUserCreationForm(UserCreationForm):
-    """Create limited staff accounts that can access SAMI Admin."""
+class StaffUserCreationForm(StaffUserFieldsMixin, UserCreationForm):
+    """Create a staff account with a role selected by a superuser."""
+
+    role = forms.ChoiceField(label="Rol", choices=ROLE_CHOICES)
 
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
@@ -63,15 +103,7 @@ class StaffUserCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["email"].required = True
-        input_class = (
-            "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 "
-            "text-brand-navy shadow-sm outline-none transition "
-            "placeholder:text-slate-400 focus:border-brand-red "
-            "focus:ring-4 focus:ring-brand-red/10"
-        )
-        for field in self.fields.values():
-            field.widget.attrs["class"] = input_class
+        self.apply_tailwind_classes()
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -81,3 +113,20 @@ class StaffUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class StaffUserUpdateForm(StaffUserFieldsMixin, forms.ModelForm):
+    """Edit identity fields and the SAMI role of an existing staff account."""
+
+    role = forms.ChoiceField(label="Rol", choices=ROLE_CHOICES)
+
+    class Meta:
+        model = get_user_model()
+        fields = ("username", "first_name", "last_name", "email", "role")
+        labels = StaffUserCreationForm.Meta.labels
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.apply_tailwind_classes()
+        if self.instance and self.instance.pk:
+            self.fields["role"].initial = get_user_role(self.instance)

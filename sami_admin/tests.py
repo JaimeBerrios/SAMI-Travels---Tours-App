@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -8,8 +8,8 @@ from django.test import RequestFactory, SimpleTestCase
 from django.urls import resolve, reverse
 
 from .decorators import staff_required, superuser_required
-from .forms import StaffUserCreationForm
-from .views import dashboard
+from .forms import ROLE_ADMIN, ROLE_SUPERUSER, StaffUserCreationForm
+from .views import assign_user_role, dashboard, user_deactivate
 
 
 class StaffRequiredTests(SimpleTestCase):
@@ -84,6 +84,14 @@ class SamiAdminUrlTests(SimpleTestCase):
             reverse("sami_admin:user-create"),
             "/sami-admin/usuarios/nuevo/",
         )
+        self.assertEqual(
+            reverse("sami_admin:user-update", args=[7]),
+            "/sami-admin/usuarios/7/editar/",
+        )
+        self.assertEqual(
+            reverse("sami_admin:user-deactivate", args=[7]),
+            "/sami-admin/usuarios/7/desactivar/",
+        )
 
     def test_login_redirect_uses_dashboard_name(self):
         self.assertEqual(settings.LOGIN_REDIRECT_URL, "sami_admin:dashboard")
@@ -119,3 +127,41 @@ class StaffUserCreationFormTests(SimpleTestCase):
         self.assertTrue(saved_user.is_active)
         self.assertTrue(saved_user.is_staff)
         self.assertFalse(saved_user.is_superuser)
+
+
+class RoleAssignmentTests(SimpleTestCase):
+    @patch("sami_admin.views.Group.objects")
+    def test_administrator_role_uses_group_without_superuser_access(self, group_manager):
+        user = MagicMock()
+        user.is_active = False
+        administrator_group = object()
+        group_manager.filter.return_value = []
+        group_manager.get_or_create.return_value = (administrator_group, True)
+
+        assign_user_role(user, ROLE_ADMIN)
+
+        self.assertFalse(user.is_active)
+        self.assertTrue(user.is_staff)
+        self.assertFalse(user.is_superuser)
+        group_manager.get_or_create.assert_called_once_with(name="Administrador")
+        user.groups.add.assert_called_once_with(administrator_group)
+
+    @patch("sami_admin.views.Group.objects")
+    def test_superuser_role_does_not_add_a_limited_group(self, group_manager):
+        user = MagicMock()
+        group_manager.filter.return_value = []
+
+        assign_user_role(user, ROLE_SUPERUSER)
+
+        self.assertTrue(user.is_superuser)
+        group_manager.get_or_create.assert_not_called()
+        user.groups.add.assert_not_called()
+
+
+class UserDeactivateTests(SimpleTestCase):
+    def test_deactivation_rejects_get_requests(self):
+        request = RequestFactory().get("/sami-admin/usuarios/7/desactivar/")
+
+        response = user_deactivate(request, user_id=7)
+
+        self.assertEqual(response.status_code, 405)
