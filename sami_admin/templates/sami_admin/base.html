@@ -43,6 +43,13 @@
                     <i class="fa-solid fa-map-location-dot w-5" aria-hidden="true"></i>
                     Destinos
                 </span>
+                {% if request.user.is_superuser %}
+                    <div class="my-3 border-t border-white/10"></div>
+                    <a href="{% url 'sami_admin:user-list' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-200 transition hover:bg-white/10 hover:text-white">
+                        <i class="fa-solid fa-user-shield w-5 text-brand-red" aria-hidden="true"></i>
+                        Gestión de usuarios
+                    </a>
+                {% endif %}
             </nav>
         </aside>
 

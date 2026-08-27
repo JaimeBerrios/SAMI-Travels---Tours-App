@@ -1,12 +1,13 @@
 from django.conf import settings
-from django.contrib.auth import login, logout
+from django.contrib import messages
+from django.contrib.auth import get_user_model, login, logout
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .decorators import staff_required
-from .forms import SamiAdminAuthenticationForm
+from .decorators import staff_required, superuser_required
+from .forms import SamiAdminAuthenticationForm, StaffUserCreationForm
 
 
 def login_view(request):
@@ -46,3 +47,27 @@ def logout_view(request):
 def dashboard(request):
     """Render the main workspace without requiring operational data tables."""
     return render(request, "sami_admin/dashboard.html")
+
+
+@superuser_required
+def user_list(request):
+    """List staff accounts; access is exclusive to superusers."""
+    users = get_user_model().objects.filter(is_staff=True).order_by(
+        "-is_superuser", "first_name", "last_name", "username"
+    )
+    return render(request, "sami_admin/user_list.html", {"users": users})
+
+
+@superuser_required
+def user_create(request):
+    """Create a limited staff account without superuser privileges."""
+    form = StaffUserCreationForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        messages.success(
+            request,
+            f"El usuario {user.username} fue creado como asesor.",
+        )
+        return redirect("sami_admin:user-list")
+
+    return render(request, "sami_admin/user_form.html", {"form": form})
