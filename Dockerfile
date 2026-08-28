@@ -42,7 +42,7 @@ COPY . .
 # La compilación de la etapa frontend prevalece sobre cualquier copia local.
 COPY --from=frontend /app/theme/static/css/dist/styles.css /app/theme/static/css/dist/styles.css
 
-RUN python manage.py collectstatic --noinput
+RUN DJANGO_SECRET_KEY=dummy-key-for-build MYSQL_DATABASE=dummy MYSQL_USER=dummy MYSQL_PASSWORD=dummy MYSQL_HOST=dummy python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
