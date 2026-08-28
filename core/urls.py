@@ -14,9 +14,4 @@ urlpatterns = [
     ),
     path("mantenimiento/", views.mantenimiento, name="mantenimiento"),
     path("panel-interno/", views.panel_interno, name="panel-interno"),
-    path(
-        "cotizaciones/<int:cotizacion_id>/pdf/",
-        views.cotizacion_pdf,
-        name="cotizacion-pdf",
-    ),
 ]

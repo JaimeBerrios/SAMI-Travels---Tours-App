@@ -10,9 +10,9 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" referrerpolicy="no-referrer">
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-blue-50/50 text-slate-900 antialiased selection:bg-brand-red selection:text-white">
     <div class="min-h-screen lg:flex">
-        <aside class="bg-brand-navy text-white lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:shrink-0 lg:overflow-y-auto">
+        <aside class="bg-gradient-to-b from-brand-navy via-brand-navy to-brand-navy-dark text-white shadow-2xl shadow-brand-navy/25 lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:shrink-0 lg:overflow-y-auto">
             <div class="flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6 lg:py-5">
                 <a href="{% url 'sami_admin:dashboard' %}" class="flex items-center gap-3">
                     <span class="grid size-10 place-items-center rounded-xl bg-brand-red" aria-hidden="true">
@@ -62,7 +62,7 @@
         </aside>
 
         <div class="flex min-h-screen min-w-0 flex-1 flex-col">
-            <header class="border-b border-slate-200 bg-white py-4 shadow-sm">
+            <header class="sticky top-0 z-40 border-b border-white/60 bg-white/85 py-4 shadow-lg shadow-slate-200/40 backdrop-blur-xl">
                 <div class="app-container flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 class="text-xl font-bold text-brand-navy">{% block page_heading %}Panel administrativo{% endblock %}</h1>
@@ -89,7 +89,7 @@
                 {% if messages %}
                     <div class="mb-6 space-y-3" aria-live="polite">
                         {% for message in messages %}
-                            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">{{ message }}</div>
+                            <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-lg shadow-slate-200/50">{{ message }}</div>
                         {% endfor %}
                     </div>
                 {% endif %}

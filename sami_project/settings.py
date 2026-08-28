@@ -4,13 +4,16 @@ import mimetypes
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-change-this-key-before-production",
-)
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "La variable de entorno DJANGO_SECRET_KEY es obligatoria."
+    )
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in {
     "1",
@@ -18,6 +21,9 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in {
     "yes",
     "on",
 }
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 MAINTENANCE_MODE = os.environ.get("MAINTENANCE_MODE", "False").lower() in {
     "1",
@@ -99,11 +105,11 @@ ASGI_APPLICATION = "sami_project.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "sami_db",
-        "USER": "jaifer08",
-        "PASSWORD": os.environ.get("MYSQL_PASSWORD", ""),
-        "HOST": "mysql_server",
-        "PORT": "3306",
+        "NAME": os.environ.get("MYSQL_DATABASE"),
+        "USER": os.environ.get("MYSQL_USER"),
+        "PASSWORD": os.environ.get("MYSQL_PASSWORD"),
+        "HOST": os.environ.get("MYSQL_HOST"),
+        "PORT": os.environ.get("MYSQL_PORT", "3306"),
         "CONN_MAX_AGE": int(os.environ.get("MYSQL_CONN_MAX_AGE", "60")),
         "OPTIONS": {
             "charset": "utf8mb4",
@@ -111,6 +117,21 @@ DATABASES = {
         },
     }
 }
+
+required_database_settings = {
+    "MYSQL_DATABASE": DATABASES["default"]["NAME"],
+    "MYSQL_USER": DATABASES["default"]["USER"],
+    "MYSQL_PASSWORD": DATABASES["default"]["PASSWORD"],
+    "MYSQL_HOST": DATABASES["default"]["HOST"],
+}
+missing_database_settings = [
+    key for key, value in required_database_settings.items() if not value
+]
+if missing_database_settings:
+    raise ImproperlyConfigured(
+        "Faltan variables de entorno obligatorias para MySQL: "
+        + ", ".join(missing_database_settings)
+    )
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",

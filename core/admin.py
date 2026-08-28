@@ -1,6 +1,22 @@
 from django.contrib import admin
 
-from .models import Cliente, Destino, PaqueteTuristico, Reserva, Servicio, Viajero
+from .models import (
+    Cliente,
+    Destino,
+    PaqueteTuristico,
+    Reserva,
+    Servicio,
+    SolicitudContacto,
+    Viajero,
+)
+
+
+@admin.register(SolicitudContacto)
+class SolicitudContactoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "contacto", "servicio", "destino", "atendida", "creado_en")
+    list_filter = ("atendida", "servicio", "creado_en")
+    search_fields = ("nombre", "contacto", "destino", "detalles")
+    readonly_fields = ("creado_en", "actualizado_en")
 
 
 @admin.register(Servicio)

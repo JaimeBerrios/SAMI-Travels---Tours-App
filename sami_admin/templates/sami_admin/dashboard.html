@@ -5,15 +5,15 @@
 
 {% block content %}
 <section class="page-stack">
-    <div class="page-intro">
+    <div class="rounded-3xl bg-gradient-to-r from-brand-navy to-brand-navy-light p-6 text-white shadow-2xl shadow-brand-navy/20 sm:p-8">
         <p class="text-sm font-semibold uppercase tracking-wider text-brand-red">Centro de operaciones</p>
-        <h2 class="mt-1 text-2xl font-bold text-brand-navy sm:text-3xl">
+        <h2 class="mt-2 text-2xl font-bold text-white sm:text-3xl">
             Bienvenido, {{ request.user.first_name|default:request.user.username }}
         </h2>
-        <p class="mt-2 text-slate-600">Tu espacio seguro para gestionar las operaciones de la agencia.</p>
+        <p class="mt-2 text-slate-200">Tu espacio seguro para gestionar las operaciones de la agencia.</p>
     </div>
 
-    <article class="surface-card-raised p-5 sm:p-6 lg:p-8">
+    <article class="rounded-3xl border border-white bg-white p-5 shadow-2xl shadow-slate-300/40 sm:p-6 lg:p-8">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div class="lg:max-w-sm">
                 <p class="text-sm font-semibold uppercase tracking-wider text-brand-red">Anal&iacute;tica comercial</p>
@@ -30,25 +30,25 @@
     </article>
 
     <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <article class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-xl">
             <span class="grid size-10 place-items-center rounded-xl bg-brand-red-soft text-brand-red"><i class="fa-solid fa-calendar-check"></i></span>
             <h3 class="mt-4 text-lg font-bold text-brand-navy">Reservas</h3>
             <p class="mt-2 text-sm text-slate-500">Consulta y administra los viajes de los clientes.</p>
         </article>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <article class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-xl">
             <span class="grid size-10 place-items-center rounded-xl bg-blue-50 text-brand-navy-light"><i class="fa-solid fa-users"></i></span>
             <h3 class="mt-4 text-lg font-bold text-brand-navy">Clientes</h3>
             <p class="mt-2 text-sm text-slate-500">Mantén organizada la información de los viajeros.</p>
         </article>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <article class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-xl">
             <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><i class="fa-solid fa-suitcase-rolling"></i></span>
             <h3 class="mt-4 text-lg font-bold text-brand-navy">Paquetes</h3>
             <p class="mt-2 text-sm text-slate-500">Prepara la oferta de experiencias de SAMI.</p>
         </article>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <article class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-xl">
             <span class="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-700"><i class="fa-solid fa-map-location-dot"></i></span>
             <h3 class="mt-4 text-lg font-bold text-brand-navy">Destinos</h3>
             <p class="mt-2 text-sm text-slate-500">Organiza los lugares disponibles para viajar.</p>

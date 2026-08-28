@@ -86,9 +86,12 @@ def logout_view(request):
 @staff_required
 def dashboard(request):
     """Render the main workspace with a compact quotation status summary."""
+    quotations = Cotizacion.objects.all()
+    if not request.user.is_superuser:
+        quotations = quotations.filter(asesor=request.user)
     counts_by_status = {
         row["estado"]: row["total"]
-        for row in Cotizacion.objects.values("estado").annotate(total=Count("id"))
+        for row in quotations.values("estado").annotate(total=Count("id"))
     }
     return render(
         request,

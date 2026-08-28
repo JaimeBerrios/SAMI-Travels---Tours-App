@@ -145,7 +145,9 @@ class SamiAdminUrlTests(SimpleTestCase):
 class DashboardTests(SimpleTestCase):
     @patch("sami_admin.views.Cotizacion.objects")
     def test_dashboard_renders_grouped_quotation_analytics(self, quotation_manager):
-        grouped_query = quotation_manager.values.return_value
+        queryset = quotation_manager.all.return_value
+        filtered_queryset = queryset.filter.return_value
+        grouped_query = filtered_queryset.values.return_value
         grouped_query.annotate.return_value = [
             {"estado": Cotizacion.Estado.PENDIENTE, "total": 5},
             {"estado": Cotizacion.Estado.APROBADA, "total": 3},
@@ -179,7 +181,8 @@ class DashboardTests(SimpleTestCase):
             '<script id="quotation-rejected-data" type="application/json">1</script>',
             html=True,
         )
-        quotation_manager.values.assert_called_once_with("estado")
+        queryset.filter.assert_called_once_with(asesor=request.user)
+        filtered_queryset.values.assert_called_once_with("estado")
         grouped_query.annotate.assert_called_once()
 
 

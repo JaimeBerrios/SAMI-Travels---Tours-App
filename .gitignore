@@ -1,10 +1,15 @@
 # Python
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
 
 # Entornos virtuales
 venv/
 .venv/
+
+# Datos y artefactos generados localmente
+staticfiles/
+db.sqlite3
 
 # Variables de entorno
 .env
