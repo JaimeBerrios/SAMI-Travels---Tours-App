@@ -27,7 +27,7 @@
                         <tr class="transition hover:bg-slate-50/80">
                             <td data-label="Cliente" class="px-6 py-4"><div><p class="font-semibold text-brand-navy">{{ cotizacion.cliente_nombre }}</p><p class="mt-1 text-xs text-slate-500">{{ cotizacion.cliente_correo }}</p></div></td>
                             <td data-label="Destino" class="px-6 py-4 text-slate-600"><div><p>{{ cotizacion.destino }}</p><span class="mt-1 inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy">{{ cotizacion.get_tipo_cotizacion_display }}</span></div></td>
-                            {% if can_view_all %}<td data-label="Asesor" class="px-6 py-4 text-slate-600">{{ cotizacion.asesor.get_full_name|default:cotizacion.asesor.username }}</td>{% endif %}
+                            {% if can_view_all %}<td data-label="Asesor" class="px-6 py-4 text-slate-600">{{ cotizacion.asesor.get_full_name|default:"Equipo SAMI" }}</td>{% endif %}
                             <td data-label="Estimado" class="whitespace-nowrap px-6 py-4 font-semibold text-brand-navy">${{ cotizacion.precio_estimado|floatformat:2 }}</td>
                             <td data-label="Estado" class="whitespace-nowrap px-6 py-4">
                                 {% if cotizacion.estado == "aprobada" %}<span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Aprobada</span>{% elif cotizacion.estado == "rechazada" %}<span class="rounded-full bg-brand-red-soft px-3 py-1 text-xs font-semibold text-brand-red-dark">Rechazada</span>{% else %}<span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Pendiente</span>{% endif %}

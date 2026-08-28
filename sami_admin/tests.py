@@ -330,7 +330,7 @@ class QuotationPdfTests(SimpleTestCase):
             precio_estimado=1200,
             asesor=SimpleNamespace(
                 get_full_name=lambda: "Asesor SAMI",
-                username="asesor",
+                username="USUARIO-PRIVADO-ASESOR",
             ),
         )
 
@@ -346,6 +346,7 @@ class QuotationPdfTests(SimpleTestCase):
         self.assertIn("San Salvador a Guadalajara", html)
         self.assertIn("Una maleta de 23 kg", html)
         self.assertNotIn("AEROLINEA-CONFIDENCIAL-XYZ", html)
+        self.assertNotIn("USUARIO-PRIVADO-ASESOR", html)
 
     def test_document_has_svg_social_links_and_omits_internal_status(self):
         quotation = SimpleNamespace(
