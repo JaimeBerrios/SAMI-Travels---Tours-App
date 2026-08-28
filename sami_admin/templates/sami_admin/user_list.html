@@ -17,9 +17,9 @@
         </a>
     </div>
 
-    <div class="table-shell">
+    <div class="table-shell mobile-card-table">
         <div class="table-scroll">
-            <table class="sami-table">
+            <table class="sami-table responsive-table">
                 <thead class="bg-brand-navy text-left text-xs font-semibold uppercase tracking-wider text-slate-200">
                     <tr>
                         <th class="px-6 py-4">Personal</th>
@@ -32,7 +32,7 @@
                 <tbody>
                     {% for user in users %}
                         <tr class="group transition hover:bg-slate-50/80 {% if not user.is_active %}bg-slate-50 opacity-70{% endif %}">
-                            <td class="px-6 py-4">
+                            <td data-label="Personal" class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-navy text-sm font-bold text-white">
                                         {{ user.first_name|first|default:user.username|first|upper }}
@@ -43,7 +43,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4">
+                            <td data-label="Rol" class="whitespace-nowrap px-6 py-4">
                                 {% if user.sami_role == "superuser" %}
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-red-soft px-3 py-1 text-xs font-semibold text-brand-red-dark"><i class="fa-solid fa-crown"></i>Superusuario</span>
                                 {% elif user.sami_role == "administrador" %}
@@ -52,23 +52,23 @@
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"><i class="fa-solid fa-headset"></i>Asesor</span>
                                 {% endif %}
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4">
+                            <td data-label="Estado" class="whitespace-nowrap px-6 py-4">
                                 {% if user.is_active %}
                                     <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800"><span class="size-2 rounded-full bg-emerald-500"></span>Activo</span>
                                 {% else %}
                                     <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"><span class="size-2 rounded-full bg-slate-400"></span>Inactivo</span>
                                 {% endif %}
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-slate-500">{{ user.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</td>
-                            <td class="whitespace-nowrap px-6 py-4">
-                                <div class="flex justify-end gap-2">
-                                    <a href="{% url 'sami_admin:user-update' user.id %}" class="grid size-9 place-items-center rounded-lg border border-slate-300 text-brand-navy transition hover:border-brand-navy hover:bg-brand-navy hover:text-white" title="Editar usuario" aria-label="Editar usuario {{ user.username }}">
+                            <td data-label="Último acceso" class="whitespace-nowrap px-6 py-4 text-slate-500">{{ user.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</td>
+                            <td data-label="Acciones" class="whitespace-nowrap px-6 py-4">
+                                <div class="table-actions flex justify-end gap-2">
+                                    <a href="{% url 'sami_admin:user-update' user.id %}" class="grid size-10 place-items-center rounded-lg border border-slate-300 text-brand-navy transition hover:border-brand-navy hover:bg-brand-navy hover:text-white" title="Editar usuario" aria-label="Editar usuario {{ user.username }}">
                                         <i class="fa-solid fa-pen" aria-hidden="true"></i>
                                     </a>
                                     {% if user.is_active %}
                                         <form method="post" action="{% url 'sami_admin:user-delete' user.id %}" onsubmit="return confirm('¿Inhabilitar la cuenta de {{ user.username|escapejs }}? El historial se conservará.');">
                                             {% csrf_token %}
-                                            <button type="submit" class="grid size-9 place-items-center rounded-lg border border-brand-red/30 text-brand-red transition hover:bg-brand-red hover:text-white {% if user.id == request.user.id %}cursor-not-allowed opacity-40{% endif %}" aria-label="Eliminar usuario {{ user.username }}" {% if user.id == request.user.id %}disabled title="No puedes desactivar tu propia cuenta"{% else %}title="Eliminar usuario"{% endif %}>
+                                            <button type="submit" class="grid size-10 place-items-center rounded-lg border border-brand-red/30 text-brand-red transition hover:bg-brand-red hover:text-white {% if user.id == request.user.id %}cursor-not-allowed opacity-40{% endif %}" aria-label="Eliminar usuario {{ user.username }}" {% if user.id == request.user.id %}disabled title="No puedes desactivar tu propia cuenta"{% else %}title="Eliminar usuario"{% endif %}>
                                                 <i class="fa-solid fa-user-slash" aria-hidden="true"></i>
                                             </button>
                                         </form>
@@ -77,7 +77,7 @@
                             </td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="5" class="px-6 py-16 text-center"><i class="fa-solid fa-users-slash text-3xl text-slate-300"></i><p class="mt-3 text-slate-500">No hay personal registrado.</p></td></tr>
+                        <tr><td colspan="5" class="table-empty px-6 py-16 text-center"><i class="fa-solid fa-users-slash text-3xl text-slate-300"></i><p class="mt-3 text-slate-500">No hay personal registrado.</p></td></tr>
                     {% endfor %}
                 </tbody>
             </table>

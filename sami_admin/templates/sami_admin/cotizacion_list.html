@@ -16,27 +16,27 @@
         </a>
     </div>
 
-    <div class="table-shell">
+    <div class="table-shell mobile-card-table">
         <div class="table-scroll">
-            <table class="sami-table">
+            <table class="sami-table responsive-table">
                 <thead class="bg-brand-navy text-left text-xs font-semibold uppercase tracking-wider text-slate-200">
                     <tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Destino</th>{% if can_view_all %}<th class="px-6 py-4">Asesor</th>{% endif %}<th class="px-6 py-4">Estimado</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4">Fecha</th><th class="px-6 py-4 text-right">Acciones</th></tr>
                 </thead>
                 <tbody>
                     {% for cotizacion in cotizaciones %}
                         <tr class="transition hover:bg-slate-50/80">
-                            <td class="px-6 py-4"><p class="font-semibold text-brand-navy">{{ cotizacion.cliente_nombre }}</p><p class="text-xs text-slate-500">{{ cotizacion.cliente_correo }}</p></td>
-                            <td class="px-6 py-4 text-slate-600"><p>{{ cotizacion.destino }}</p><span class="mt-1 inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy">{{ cotizacion.get_tipo_cotizacion_display }}</span></td>
-                            {% if can_view_all %}<td class="px-6 py-4 text-slate-600">{{ cotizacion.asesor.get_full_name|default:cotizacion.asesor.username }}</td>{% endif %}
-                            <td class="whitespace-nowrap px-6 py-4 font-semibold text-brand-navy">${{ cotizacion.precio_estimado|floatformat:2 }}</td>
-                            <td class="whitespace-nowrap px-6 py-4">
+                            <td data-label="Cliente" class="px-6 py-4"><div><p class="font-semibold text-brand-navy">{{ cotizacion.cliente_nombre }}</p><p class="mt-1 text-xs text-slate-500">{{ cotizacion.cliente_correo }}</p></div></td>
+                            <td data-label="Destino" class="px-6 py-4 text-slate-600"><div><p>{{ cotizacion.destino }}</p><span class="mt-1 inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy">{{ cotizacion.get_tipo_cotizacion_display }}</span></div></td>
+                            {% if can_view_all %}<td data-label="Asesor" class="px-6 py-4 text-slate-600">{{ cotizacion.asesor.get_full_name|default:cotizacion.asesor.username }}</td>{% endif %}
+                            <td data-label="Estimado" class="whitespace-nowrap px-6 py-4 font-semibold text-brand-navy">${{ cotizacion.precio_estimado|floatformat:2 }}</td>
+                            <td data-label="Estado" class="whitespace-nowrap px-6 py-4">
                                 {% if cotizacion.estado == "aprobada" %}<span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Aprobada</span>{% elif cotizacion.estado == "rechazada" %}<span class="rounded-full bg-brand-red-soft px-3 py-1 text-xs font-semibold text-brand-red-dark">Rechazada</span>{% else %}<span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Pendiente</span>{% endif %}
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-slate-500">{{ cotizacion.fecha_creacion|date:"d/m/Y" }}</td>
-                            <td class="whitespace-nowrap px-6 py-4"><div class="flex justify-end gap-2"><a href="{% url 'sami_admin:quotation-preview' cotizacion.id %}" class="grid size-9 place-items-center rounded-lg bg-brand-navy text-white transition hover:-translate-y-0.5 hover:bg-brand-navy-light" title="Ver documento" aria-label="Ver documento de la cotización {{ cotizacion.id }}"><i class="fa-solid fa-eye" aria-hidden="true"></i></a><a href="{% url 'sami_admin:quotation-pdf' cotizacion.id %}" class="grid size-9 place-items-center rounded-lg border border-emerald-200 text-emerald-700 transition hover:bg-emerald-600 hover:text-white" title="Descargar PDF" aria-label="Descargar cotización {{ cotizacion.id }} en PDF"><i class="fa-solid fa-download" aria-hidden="true"></i></a><a href="{% url 'sami_admin:quotation-update' cotizacion.id %}" class="grid size-9 place-items-center rounded-lg border border-slate-300 text-brand-navy transition hover:border-brand-navy hover:bg-brand-navy hover:text-white" title="Editar cotización" aria-label="Editar cotización {{ cotizacion.id }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></a><form method="post" action="{% url 'sami_admin:quotation-delete' cotizacion.id %}" onsubmit="return confirm('¿Eliminar esta cotización?');">{% csrf_token %}<button class="grid size-9 place-items-center rounded-lg border border-brand-red/30 text-brand-red transition hover:bg-brand-red hover:text-white" type="submit" title="Eliminar cotización" aria-label="Eliminar cotización {{ cotizacion.id }}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></form></div></td>
+                            <td data-label="Fecha" class="whitespace-nowrap px-6 py-4 text-slate-500">{{ cotizacion.fecha_creacion|date:"d/m/Y" }}</td>
+                            <td data-label="Acciones" class="whitespace-nowrap px-6 py-4"><div class="table-actions flex justify-end gap-2"><a href="{% url 'sami_admin:quotation-preview' cotizacion.id %}" class="grid size-10 place-items-center rounded-lg bg-brand-navy text-white transition hover:-translate-y-0.5 hover:bg-brand-navy-light" title="Ver documento" aria-label="Ver documento de la cotización {{ cotizacion.id }}"><i class="fa-solid fa-eye" aria-hidden="true"></i></a><a href="{% url 'sami_admin:quotation-pdf' cotizacion.id %}" class="grid size-10 place-items-center rounded-lg border border-emerald-200 text-emerald-700 transition hover:bg-emerald-600 hover:text-white" title="Descargar PDF" aria-label="Descargar cotización {{ cotizacion.id }} en PDF"><i class="fa-solid fa-download" aria-hidden="true"></i></a><a href="{% url 'sami_admin:quotation-update' cotizacion.id %}" class="grid size-10 place-items-center rounded-lg border border-slate-300 text-brand-navy transition hover:border-brand-navy hover:bg-brand-navy hover:text-white" title="Editar cotización" aria-label="Editar cotización {{ cotizacion.id }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></a><form method="post" action="{% url 'sami_admin:quotation-delete' cotizacion.id %}" onsubmit="return confirm('¿Eliminar esta cotización?');">{% csrf_token %}<button class="grid size-10 place-items-center rounded-lg border border-brand-red/30 text-brand-red transition hover:bg-brand-red hover:text-white" type="submit" title="Eliminar cotización" aria-label="Eliminar cotización {{ cotizacion.id }}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></form></div></td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="7" class="px-6 py-16 text-center"><i class="fa-regular fa-file-lines text-3xl text-slate-300"></i><p class="mt-3 text-slate-500">Todavía no hay cotizaciones registradas.</p></td></tr>
+                        <tr><td colspan="7" class="table-empty px-6 py-16 text-center"><i class="fa-regular fa-file-lines text-3xl text-slate-300"></i><p class="mt-3 text-slate-500">Todavía no hay cotizaciones registradas.</p></td></tr>
                     {% endfor %}
                 </tbody>
             </table>

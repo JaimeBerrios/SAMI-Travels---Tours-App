@@ -139,7 +139,7 @@
             <p class="mt-5 leading-7 text-slate-600">Completa tus datos y un asesor se comunicará contigo para preparar una propuesta personalizada.</p>
             <div class="mt-7 flex items-center gap-4 rounded-2xl border-l-4 border-brand-red bg-brand-navy p-5 text-white"><i class="fa-solid fa-shield-halved shrink-0 text-3xl text-brand-red"></i><span class="font-medium">Atención personalizada y sin compromiso.</span></div>
         </div>
-        <form method="post" class="rounded-3xl bg-white p-6 shadow-xl shadow-slate-300/50 sm:p-9 lg:col-span-3">
+        <form method="post" class="sami-form rounded-3xl bg-white p-6 shadow-xl shadow-slate-300/50 sm:p-9 lg:col-span-3">
             {% csrf_token %}
             <div class="grid gap-6 sm:grid-cols-2">
                 <div><label for="nombre" class="mb-2 block text-sm font-bold text-slate-700">Nombre completo</label><input type="text" id="nombre" name="nombre" required autocomplete="name" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-brand-red focus:ring-4 focus:ring-brand-red-soft"></div>
@@ -147,7 +147,7 @@
                 <div><label for="servicio" class="mb-2 block text-sm font-bold text-slate-700">Servicio</label><select id="servicio" name="servicio" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-brand-red focus:ring-4 focus:ring-brand-red-soft"><option value="vuelo">Cotización de vuelo</option><option value="tour">Cotización de tour</option><option value="vuelo y tour">Vuelo y tour</option></select></div>
                 <div><label for="destino" class="mb-2 block text-sm font-bold text-slate-700">Destino</label><input type="text" id="destino" name="destino" placeholder="Ej. Cancún" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-brand-red focus:ring-4 focus:ring-brand-red-soft"></div>
                 <div class="sm:col-span-2"><label for="detalles" class="mb-2 block text-sm font-bold text-slate-700">Detalles del viaje</label><textarea id="detalles" name="detalles" rows="4" placeholder="Fechas, número de viajeros y cualquier preferencia" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-brand-red focus:ring-4 focus:ring-brand-red-soft"></textarea></div>
-                <button type="submit" class="rounded-xl bg-brand-red px-6 py-3.5 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:ring-4 focus:ring-brand-red/25 sm:col-span-2">Enviar solicitud</button>
+                <button type="submit" class="btn-primary sm:col-span-2">Enviar solicitud</button>
             </div>
         </form>
     </div>
