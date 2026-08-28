@@ -6,3 +6,53 @@
 @source "../../core/templates/**/*.html";
 @source "../../**/templates/**/*.html";
 @source "../../**/*.py";
+
+@layer base {
+  html { overflow-x: hidden; }
+  body { overflow-x: hidden; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+}
+
+@layer components {
+  .app-container {
+    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8;
+  }
+
+  .page-stack { @apply space-y-8 lg:space-y-10; }
+  .page-intro { @apply space-y-2; }
+  .page-kicker { @apply text-xs font-bold uppercase tracking-[.16em] text-brand-red sm:text-sm; }
+  .page-title { @apply text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl; }
+  .page-description { @apply max-w-2xl text-sm leading-6 text-slate-500 sm:text-base; }
+
+  .surface-card { @apply rounded-2xl border border-slate-200 bg-white shadow-sm; }
+  .surface-card-raised { @apply rounded-2xl border border-slate-200 bg-white shadow-md; }
+  .section-card { @apply rounded-2xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6 lg:p-8; }
+  .section-legend { @apply px-2 text-base font-bold text-brand-navy sm:text-lg; }
+
+  .sami-form { @apply space-y-8; }
+  .sami-form-grid { @apply grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2 lg:gap-x-8; }
+  .sami-form label { @apply mb-2 block text-sm font-semibold leading-5 text-brand-navy; }
+  .sami-form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+  .sami-form select,
+  .sami-form textarea {
+    @apply block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20;
+    min-height: 48px;
+  }
+  .sami-form textarea { min-height: 112px; resize: vertical; }
+  .sami-form select { @apply cursor-pointer pr-10; }
+  .sami-form .relative > input { padding-left: 2.75rem; }
+  .form-actions { @apply flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-end; }
+
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3 text-sm font-semibold text-white shadow-md shadow-brand-red/15 transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2; }
+  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:ring-offset-2; }
+  .icon-button { @apply grid size-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:-translate-y-0.5 hover:border-brand-navy hover:text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-navy focus:ring-offset-2; }
+
+  .table-shell { @apply overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md; }
+  .table-scroll { @apply w-full overflow-x-auto; }
+  .sami-table { @apply min-w-full divide-y divide-slate-200 text-left text-sm; }
+  .sami-table thead { @apply bg-brand-navy text-xs font-semibold uppercase tracking-wider text-slate-200; }
+  .sami-table th { @apply whitespace-nowrap px-5 py-4 sm:px-6; }
+  .sami-table td { @apply px-5 py-5 align-middle sm:px-6; }
+  .sami-table tbody { @apply divide-y divide-slate-100; }
+  .sami-table tbody tr { @apply transition-colors hover:bg-slate-50; }
+}

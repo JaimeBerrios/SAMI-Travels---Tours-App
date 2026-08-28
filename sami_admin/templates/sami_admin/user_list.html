@@ -4,22 +4,22 @@
 {% block page_heading %}Gestión de usuarios{% endblock %}
 
 {% block content %}
-<section>
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+<section class="page-stack">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="text-sm font-semibold uppercase tracking-wider text-brand-red">Acceso restringido</p>
             <h2 class="mt-1 text-2xl font-bold text-brand-navy">Equipo SAMI</h2>
             <p class="mt-1 text-sm text-slate-500">Gestiona roles, acceso y datos del personal.</p>
         </div>
-        <a href="{% url 'sami_admin:user-create' %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-semibold text-white shadow-lg shadow-brand-red/15 transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/20">
+        <a href="{% url 'sami_admin:user-create' %}" class="btn-primary w-full sm:w-auto">
             <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
             Nuevo usuario
         </a>
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <div class="table-shell">
+        <div class="table-scroll">
+            <table class="sami-table">
                 <thead class="bg-brand-navy text-left text-xs font-semibold uppercase tracking-wider text-slate-200">
                     <tr>
                         <th class="px-6 py-4">Personal</th>
@@ -29,7 +29,7 @@
                         <th class="px-6 py-4 text-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     {% for user in users %}
                         <tr class="group transition hover:bg-slate-50/80 {% if not user.is_active %}bg-slate-50 opacity-70{% endif %}">
                             <td class="px-6 py-4">

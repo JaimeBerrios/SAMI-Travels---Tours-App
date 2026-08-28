@@ -4,8 +4,8 @@
 {% block page_heading %}{{ form_title }}{% endblock %}
 
 {% block content %}
-<section class="mx-auto max-w-3xl">
-    <div class="mb-6">
+<section class="mx-auto w-full max-w-2xl">
+    <div class="mb-8 space-y-2">
         <a href="{% url 'sami_admin:user-list' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-red transition hover:text-brand-red-dark">
             <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Volver al equipo
         </a>
@@ -13,19 +13,19 @@
         <p class="mt-1 text-slate-500">{% if is_editing %}Actualiza los datos y el nivel de acceso de esta cuenta.{% else %}Registra un integrante y selecciona su rol dentro del panel.{% endif %}</p>
     </div>
 
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="border-l-4 border-brand-red bg-brand-navy px-6 py-5 text-white">
+    <div class="surface-card-raised overflow-hidden">
+        <div class="border-l-4 border-brand-red bg-brand-navy px-6 py-6 text-white sm:px-8">
             <div class="flex items-center gap-3">
                 <span class="grid size-10 place-items-center rounded-xl bg-white/10"><i class="fa-solid {% if is_editing %}fa-user-pen{% else %}fa-user-plus{% endif %}"></i></span>
                 <div><h3 class="font-bold">Información del usuario</h3><p class="text-sm text-slate-300">Los campos con asterisco son obligatorios.</p></div>
             </div>
         </div>
 
-        <form method="post" class="space-y-6 p-6 sm:p-8">
+        <form method="post" class="sami-form p-5 sm:p-8">
             {% csrf_token %}
             {% if form.non_field_errors %}<div class="rounded-xl border border-brand-red/25 bg-brand-red-soft px-4 py-3 text-sm text-brand-red-dark" role="alert">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
 
-            <div class="grid gap-6 sm:grid-cols-2">
+            <div class="sami-form-grid">
                 {% for field in form %}
                     <div class="{% if field.name == 'username' or field.name == 'email' or field.name == 'role' or field.name == 'password1' or field.name == 'password2' %}sm:col-span-2{% endif %}">
                         <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %}<span class="text-brand-red"> *</span>{% endif %}</label>
@@ -36,9 +36,9 @@
                 {% endfor %}
             </div>
 
-            <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end">
-                <a href="{% url 'sami_admin:user-list' %}" class="rounded-xl border border-slate-300 px-5 py-3 text-center font-semibold text-slate-600 transition hover:bg-slate-50">Cancelar</a>
-                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-semibold text-white shadow-lg shadow-brand-red/15 transition hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/20">
+            <div class="form-actions">
+                <a href="{% url 'sami_admin:user-list' %}" class="btn-secondary">Cancelar</a>
+                <button type="submit" class="btn-primary">
                     <i class="fa-solid fa-floppy-disk"></i>{% if is_editing %}Guardar cambios{% else %}Crear usuario{% endif %}
                 </button>
             </div>

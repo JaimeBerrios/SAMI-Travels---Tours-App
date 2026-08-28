@@ -4,25 +4,25 @@
 {% block page_heading %}Cotizaciones{% endblock %}
 
 {% block content %}
-<section>
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+<section class="page-stack">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="text-sm font-semibold uppercase tracking-wider text-brand-red">Gestión comercial</p>
             <h2 class="mt-1 text-2xl font-bold text-brand-navy">{% if can_view_all %}Historial de la agencia{% else %}Mis cotizaciones{% endif %}</h2>
             <p class="mt-1 text-sm text-slate-500">Da seguimiento a las propuestas enviadas a los clientes.</p>
         </div>
-        <a href="{% url 'sami_admin:quotation-create' %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-semibold text-white shadow-lg shadow-brand-red/15 transition hover:-translate-y-0.5 hover:bg-brand-red-dark">
+        <a href="{% url 'sami_admin:quotation-create' %}" class="btn-primary w-full sm:w-auto">
             <i class="fa-solid fa-plus"></i>Nueva cotización
         </a>
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <div class="table-shell">
+        <div class="table-scroll">
+            <table class="sami-table">
                 <thead class="bg-brand-navy text-left text-xs font-semibold uppercase tracking-wider text-slate-200">
                     <tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Destino</th>{% if can_view_all %}<th class="px-6 py-4">Asesor</th>{% endif %}<th class="px-6 py-4">Estimado</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4">Fecha</th><th class="px-6 py-4 text-right">Acciones</th></tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     {% for cotizacion in cotizaciones %}
                         <tr class="transition hover:bg-slate-50/80">
                             <td class="px-6 py-4"><p class="font-semibold text-brand-navy">{{ cotizacion.cliente_nombre }}</p><p class="text-xs text-slate-500">{{ cotizacion.cliente_correo }}</p></td>
