@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -18,6 +19,9 @@ from .models import SolicitudContacto
     }
 )
 class BasicProductionViewsTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
     def test_public_portal_responds(self):
         response = self.client.get(reverse("core:portal-publico"))
 
@@ -63,3 +67,39 @@ class BasicProductionViewsTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(SolicitudContacto.objects.exists())
+
+    def test_public_form_rejects_honeypot_submissions(self):
+        response = self.client.post(
+            reverse("core:portal-publico"),
+            {
+                "nombre": "Robot",
+                "contacto": "robot@example.com",
+                "servicio": "vuelo",
+                "website": "https://spam.example",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SolicitudContacto.objects.exists())
+
+    @override_settings(PUBLIC_FORM_RATE_LIMIT=1)
+    def test_public_form_rate_limits_repeated_attempts(self):
+        payload = {
+            "nombre": "María López",
+            "contacto": "maria@example.com",
+            "servicio": "vuelo",
+        }
+        self.client.post(reverse("core:portal-publico"), payload)
+        response = self.client.post(reverse("core:portal-publico"), payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(SolicitudContacto.objects.count(), 1)
+
+    def test_security_headers_are_present(self):
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertIn("default-src 'self'", response["Content-Security-Policy"])
+        self.assertEqual(
+            response["Permissions-Policy"],
+            "camera=(), microphone=(), geolocation=(), payment=()",
+        )

@@ -3,9 +3,10 @@ from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.template.loader import get_template
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
 
 from .decorators import staff_required, superuser_required
@@ -142,12 +143,33 @@ class SamiAdminUrlTests(SimpleTestCase):
         self.assertEqual(settings.LOGIN_REDIRECT_URL, "sami_admin:dashboard")
 
 
+@override_settings(ADMIN_LOGIN_RATE_LIMIT=2)
+class LoginRateLimitTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        get_user_model().objects.create_user(
+            username="staff",
+            email="staff@example.com",
+            password="valid-password-123",
+            is_staff=True,
+        )
+
+    def test_repeated_invalid_logins_are_rate_limited(self):
+        url = reverse("sami_admin:login")
+        payload = {"username": "staff@example.com", "password": "incorrecta"}
+
+        self.client.post(url, payload)
+        self.client.post(url, payload)
+        response = self.client.post(url, payload)
+
+        self.assertContains(response, "Demasiados intentos de acceso")
+
+
 class DashboardTests(SimpleTestCase):
     @patch("sami_admin.views.Cotizacion.objects")
     def test_dashboard_renders_grouped_quotation_analytics(self, quotation_manager):
-        queryset = quotation_manager.all.return_value
-        filtered_queryset = queryset.filter.return_value
-        grouped_query = filtered_queryset.values.return_value
+        queryset = quotation_manager.select_related.return_value
+        grouped_query = queryset.values.return_value
         grouped_query.annotate.return_value = [
             {"estado": Cotizacion.Estado.PENDIENTE, "total": 5},
             {"estado": Cotizacion.Estado.APROBADA, "total": 3},
@@ -159,6 +181,7 @@ class DashboardTests(SimpleTestCase):
             first_name="SAMI",
             is_active=True,
             is_staff=True,
+            is_superuser=True,
         )
 
         response = dashboard(request)
@@ -181,8 +204,8 @@ class DashboardTests(SimpleTestCase):
             '<script id="quotation-rejected-data" type="application/json">1</script>',
             html=True,
         )
-        queryset.filter.assert_called_once_with(asesor=request.user)
-        filtered_queryset.values.assert_called_once_with("estado")
+        queryset.filter.assert_not_called()
+        queryset.values.assert_called_once_with("estado")
         grouped_query.annotate.assert_called_once()
 
 

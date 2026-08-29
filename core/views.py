@@ -1,42 +1,47 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
+from django.core.cache import cache
 from django.shortcuts import redirect, render
 
-from .models import SolicitudContacto
+from .forms import SolicitudContactoForm
+
+
+def _client_ip(request):
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    return forwarded.split(",", 1)[0].strip() or request.META.get(
+        "REMOTE_ADDR", "unknown"
+    )
 
 
 def portal_publico(request):
     """Display the public portal and receive provisional quote requests."""
+    form = SolicitudContactoForm(request.POST or None)
     if request.method == "POST":
-        nombre = request.POST.get("nombre", "").strip()
-        contacto = request.POST.get("contacto", "").strip()
-        servicio = request.POST.get("servicio", "").strip()
-        destino = request.POST.get("destino", "").strip()
-        detalles = request.POST.get("detalles", "").strip()
-
-        servicios_validos = {value for value, _ in SolicitudContacto.Servicio.choices}
-        if nombre and contacto and servicio in servicios_validos:
-            solicitud = SolicitudContacto.objects.create(
-                nombre=nombre,
-                contacto=contacto,
-                servicio=servicio,
-                destino=destino,
-                detalles=detalles,
+        rate_key = f"public-form:{_client_ip(request)}"
+        attempts = cache.get(rate_key, 0)
+        if attempts >= settings.PUBLIC_FORM_RATE_LIMIT:
+            messages.error(
+                request,
+                "Has enviado varias solicitudes. Inténtalo de nuevo más tarde.",
             )
+        elif form.is_valid():
+            cache.set(rate_key, attempts + 1, settings.PUBLIC_FORM_RATE_WINDOW)
+            solicitud = form.save()
             messages.success(
                 request,
                 f"¡Gracias, {solicitud.nombre}! Tu solicitud fue registrada. "
                 "Un asesor se pondrá en contacto contigo muy pronto.",
             )
             return redirect("core:portal-publico")
+        else:
+            cache.set(rate_key, attempts + 1, settings.PUBLIC_FORM_RATE_WINDOW)
+            messages.error(
+                request,
+                "Revisa los datos del formulario e inténtalo nuevamente.",
+            )
 
-        messages.error(
-            request,
-            "Completa tu nombre, contacto y selecciona un servicio válido.",
-        )
-
-    return render(request, "core/portal_publico.html")
+    return render(request, "core/portal_publico.html", {"form": form})
 
 
 def mantenimiento(request):

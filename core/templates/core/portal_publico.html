@@ -142,6 +142,10 @@
         </div>
         <form method="post" class="sami-form relative rounded-3xl border border-white bg-white/95 p-6 shadow-2xl shadow-brand-navy/15 backdrop-blur sm:p-9 lg:col-span-3">
             {% csrf_token %}
+            <div class="hidden" aria-hidden="true">
+                <label for="website">No completar este campo</label>
+                <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+            </div>
             <div class="grid gap-6 sm:grid-cols-2">
                 <div><label for="nombre" class="mb-2 block text-sm font-bold text-slate-700">Nombre completo</label><input type="text" id="nombre" name="nombre" required autocomplete="name" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-brand-red focus:ring-4 focus:ring-brand-red-soft"></div>
                 <div><label for="contacto" class="mb-2 block text-sm font-bold text-slate-700">Correo o teléfono</label><input type="text" id="contacto" name="contacto" required class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-brand-red focus:ring-4 focus:ring-brand-red-soft"></div>

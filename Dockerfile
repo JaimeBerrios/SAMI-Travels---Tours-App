@@ -12,6 +12,8 @@ COPY theme/static_src/tailwind.config.js ./theme/static_src/tailwind.config.js
 COPY theme/templates/ ./theme/templates/
 COPY core/templates/ ./core/templates/
 COPY core/*.py ./core/
+COPY sami_admin/templates/ ./sami_admin/templates/
+COPY sami_admin/*.py ./sami_admin/
 
 RUN npm run build:css
 

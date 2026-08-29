@@ -94,6 +94,18 @@ Activarlo en Windows PowerShell:
 .\venv\Scripts\Activate.ps1
 ```
 
+Configurar el entorno local en la misma terminal:
+
+```powershell
+$env:DJANGO_DEBUG="True"
+$env:DB_ENGINE="sqlite"
+```
+
+Con `DJANGO_DEBUG=True` se usa exclusivamente una clave de desarrollo local. No
+debe utilizarse esa configuración para publicar el sitio. Django no carga
+automáticamente `.env.example`; ese archivo sirve como plantilla para Docker o
+para configurar las variables en la terminal.
+
 Activarlo en Linux o macOS:
 
 ```bash
@@ -206,6 +218,12 @@ La configuración actual reconoce estas variables:
 | `GOOGLE_CLIENT_ID` | Identificador OAuth de Google. | Vacío |
 | `GOOGLE_CLIENT_SECRET` | Secreto OAuth de Google. | Vacío |
 | `CONTACT_EMAIL` | Correo mostrado en la página de mantenimiento. | `contacto@samitravelstours.com` |
+| `DJANGO_SECURE_SSL_REDIRECT` | Redirige las solicitudes de Django hacia HTTPS. | `False` |
+| `DJANGO_SECURE_HSTS_SECONDS` | Duración de HSTS; `0` lo desactiva. | `0` |
+| `PUBLIC_FORM_RATE_LIMIT` | Solicitudes públicas permitidas por IP y ventana. | `5` |
+| `PUBLIC_FORM_RATE_WINDOW` | Ventana del formulario público en segundos. | `3600` |
+| `ADMIN_LOGIN_RATE_LIMIT` | Intentos fallidos de acceso por IP y ventana. | `5` |
+| `ADMIN_LOGIN_RATE_WINDOW` | Ventana del acceso administrativo en segundos. | `900` |
 
 > [!IMPORTANT]
 > En producción se deben proporcionar una `DJANGO_SECRET_KEY` segura y `DJANGO_DEBUG=False`. Nunca se deben almacenar secretos reales en Git.
@@ -363,6 +381,9 @@ El archivo `/var/www/sami_app/.env.production` debe existir únicamente en el se
 ```dotenv
 DJANGO_SECRET_KEY=REEMPLAZAR_POR_UNA_CLAVE_SEGURA
 DJANGO_DEBUG=False
+DJANGO_SECURE_SSL_REDIRECT=True
+DJANGO_SECURE_HSTS_SECONDS=3600
+DJANGO_SECURE_HSTS_PRELOAD=False
 DB_ENGINE=mysql
 MYSQL_DATABASE=sami_db
 MYSQL_USER=jaifer08

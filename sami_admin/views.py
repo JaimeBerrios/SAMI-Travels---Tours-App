@@ -8,6 +8,7 @@ from django.contrib.auth import (
 )
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count
 from django.http import HttpResponse
@@ -29,13 +30,8 @@ from .forms import (
     get_user_role,
 )
 from .models import Cotizacion
-
-
-def generate_quotation_pdf(html, base_url):
-    """Generate a PDF while keeping WeasyPrint lazy-loaded for HTML requests."""
-    from weasyprint import HTML
-
-    return HTML(string=html, base_url=base_url).write_pdf()
+from .selectors import can_view_all_quotes, quotations_for
+from .services import generate_quotation_pdf
 
 
 def assign_user_role(user, role):
@@ -57,16 +53,31 @@ def login_view(request):
         return redirect("sami_admin:dashboard")
 
     form = SamiAdminAuthenticationForm(request, data=request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        login(request, form.get_user())
-        next_url = request.POST.get("next", "")
-        if next_url and url_has_allowed_host_and_scheme(
-            url=next_url,
-            allowed_hosts={request.get_host()},
-            require_https=request.is_secure(),
-        ):
-            return redirect(next_url)
-        return redirect(settings.LOGIN_REDIRECT_URL)
+    if request.method == "POST":
+        forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        client_ip = forwarded.split(",", 1)[0].strip() or request.META.get(
+            "REMOTE_ADDR", "unknown"
+        )
+        rate_key = f"admin-login:{client_ip}"
+        attempts = cache.get(rate_key, 0)
+        if attempts >= settings.ADMIN_LOGIN_RATE_LIMIT:
+            form.add_error(
+                None,
+                "Demasiados intentos de acceso. Inténtalo de nuevo más tarde.",
+            )
+        elif form.is_valid():
+            cache.delete(rate_key)
+            login(request, form.get_user())
+            next_url = request.POST.get("next", "")
+            if next_url and url_has_allowed_host_and_scheme(
+                url=next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+            return redirect(settings.LOGIN_REDIRECT_URL)
+        else:
+            cache.set(rate_key, attempts + 1, settings.ADMIN_LOGIN_RATE_WINDOW)
 
     return render(
         request,
@@ -87,9 +98,7 @@ def logout_view(request):
 @staff_required
 def dashboard(request):
     """Render the main workspace with a compact quotation status summary."""
-    quotations = Cotizacion.objects.all()
-    if not request.user.is_superuser:
-        quotations = quotations.filter(asesor=request.user)
+    quotations = quotations_for(request.user)
     counts_by_status = {
         row["estado"]: row["total"]
         for row in quotations.values("estado").annotate(total=Count("id"))
@@ -125,18 +134,6 @@ def dashboard(request):
             "ultimas_cotizaciones": quotations[:5],
         },
     )
-
-
-def can_view_all_quotes(user):
-    """Return whether a staff member can access agency-wide quotations."""
-    return user.is_superuser or user.groups.filter(name="Administrador").exists()
-
-
-def quotations_for(user):
-    queryset = Cotizacion.objects.select_related("asesor")
-    if not can_view_all_quotes(user):
-        queryset = queryset.filter(asesor=user)
-    return queryset
 
 
 @staff_required

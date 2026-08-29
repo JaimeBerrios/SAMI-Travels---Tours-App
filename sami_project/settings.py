@@ -9,21 +9,30 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in {
+    "1", "true", "yes", "on"
+}
+
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY and DEBUG:
+    SECRET_KEY = "django-insecure-local-development-key"
 if not SECRET_KEY:
     raise ImproperlyConfigured(
         "La variable de entorno DJANGO_SECRET_KEY es obligatoria."
     )
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "False").lower() in {
+    "1", "true", "yes", "on"
+}
+SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+SECURE_HSTS_PRELOAD = os.environ.get("DJANGO_SECURE_HSTS_PRELOAD", "False").lower() in {
+    "1", "true", "yes", "on"
+}
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 MAINTENANCE_MODE = os.environ.get("MAINTENANCE_MODE", "False").lower() in {
     "1",
@@ -79,6 +88,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "sami_project.middleware.SecurityHeadersMiddleware",
 ]
 
 ROOT_URLCONF = "sami_project.urls"
@@ -102,8 +112,16 @@ TEMPLATES = [
 WSGI_APPLICATION = "sami_project.wsgi.application"
 ASGI_APPLICATION = "sami_project.asgi.application"
 
-DATABASES = {
-    "default": {
+DB_ENGINE = os.environ.get("DB_ENGINE", "mysql").lower()
+if DB_ENGINE == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+elif DB_ENGINE == "mysql":
+    DATABASES = {"default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": os.environ.get("MYSQL_DATABASE"),
         "USER": os.environ.get("MYSQL_USER"),
@@ -115,23 +133,23 @@ DATABASES = {
             "charset": "utf8mb4",
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         },
+    }}
+    required_database_settings = {
+        "MYSQL_DATABASE": DATABASES["default"]["NAME"],
+        "MYSQL_USER": DATABASES["default"]["USER"],
+        "MYSQL_PASSWORD": DATABASES["default"]["PASSWORD"],
+        "MYSQL_HOST": DATABASES["default"]["HOST"],
     }
-}
-
-required_database_settings = {
-    "MYSQL_DATABASE": DATABASES["default"]["NAME"],
-    "MYSQL_USER": DATABASES["default"]["USER"],
-    "MYSQL_PASSWORD": DATABASES["default"]["PASSWORD"],
-    "MYSQL_HOST": DATABASES["default"]["HOST"],
-}
-missing_database_settings = [
-    key for key, value in required_database_settings.items() if not value
-]
-if missing_database_settings:
-    raise ImproperlyConfigured(
-        "Faltan variables de entorno obligatorias para MySQL: "
-        + ", ".join(missing_database_settings)
-    )
+    missing_database_settings = [
+        key for key, value in required_database_settings.items() if not value
+    ]
+    if missing_database_settings:
+        raise ImproperlyConfigured(
+            "Faltan variables de entorno obligatorias para MySQL: "
+            + ", ".join(missing_database_settings)
+        )
+else:
+    raise ImproperlyConfigured("DB_ENGINE debe ser 'mysql' o 'sqlite'.")
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -149,6 +167,10 @@ CONTACT_EMAIL = os.environ.get(
     "CONTACT_EMAIL",
     "contacto@samitravelstours.com",
 )
+PUBLIC_FORM_RATE_LIMIT = int(os.environ.get("PUBLIC_FORM_RATE_LIMIT", "5"))
+PUBLIC_FORM_RATE_WINDOW = int(os.environ.get("PUBLIC_FORM_RATE_WINDOW", "3600"))
+ADMIN_LOGIN_RATE_LIMIT = int(os.environ.get("ADMIN_LOGIN_RATE_LIMIT", "5"))
+ADMIN_LOGIN_RATE_WINDOW = int(os.environ.get("ADMIN_LOGIN_RATE_WINDOW", "900"))
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
