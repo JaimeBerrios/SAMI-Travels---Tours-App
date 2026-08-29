@@ -29,6 +29,8 @@ class BasicProductionViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/portal_publico.html")
         self.assertNotIn("X-Robots-Tag", response)
+        self.assertNotContains(response, reverse("sami_admin:dashboard"))
+        self.assertNotContains(response, "SAMI Admin")
 
     def test_robots_txt_only_allows_the_public_site(self):
         response = self.client.get(reverse("robots-txt"))
