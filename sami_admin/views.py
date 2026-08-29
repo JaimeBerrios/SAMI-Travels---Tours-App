@@ -93,6 +93,18 @@ def dashboard(request):
         row["estado"]: row["total"]
         for row in quotations.values("estado").annotate(total=Count("id"))
     }
+    total_cotizaciones = quotations.count()
+    total_clientes = (
+        quotations.order_by()
+        .values_list("cliente_correo", flat=True)
+        .distinct()
+        .count()
+    )
+    total_accesos = 1
+    if request.user.pk:
+        total_accesos = (
+            get_user_model().objects.filter(is_staff=True, is_active=True).count()
+        )
     return render(
         request,
         "sami_admin/dashboard.html",
@@ -106,6 +118,10 @@ def dashboard(request):
             "cotizaciones_rechazadas": counts_by_status.get(
                 Cotizacion.Estado.RECHAZADA, 0
             ),
+            "total_cotizaciones": total_cotizaciones,
+            "total_clientes": total_clientes,
+            "total_accesos": total_accesos,
+            "ultimas_cotizaciones": quotations[:5],
         },
     )
 

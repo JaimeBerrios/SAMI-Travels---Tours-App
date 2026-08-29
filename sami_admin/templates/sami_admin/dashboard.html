@@ -4,121 +4,34 @@
 {% block page_heading %}Panel principal{% endblock %}
 
 {% block content %}
-<section class="page-stack">
-    <div class="rounded-3xl bg-gradient-to-r from-brand-navy to-brand-navy-light p-6 text-white shadow-2xl shadow-brand-navy/20 sm:p-8">
-        <p class="text-sm font-semibold uppercase tracking-wider text-brand-red">Centro de operaciones</p>
-        <h2 class="mt-2 text-2xl font-bold text-white sm:text-3xl">
-            Bienvenido, {{ request.user.first_name|default:request.user.username }}
-        </h2>
-        <p class="mt-2 text-slate-200">Tu espacio seguro para gestionar las operaciones de la agencia.</p>
+<section class="space-y-6 lg:space-y-8">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <p class="text-xs font-bold uppercase tracking-[.18em] text-rose-600">Centro de operaciones</p>
+        <h2 class="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">Bienvenido, {{ request.user.first_name|default:request.user.username }}</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">Consulta la actividad comercial, gestiona propuestas y mantén al equipo al día desde un solo lugar.</p>
     </div>
 
-    <article class="rounded-3xl border border-white bg-white p-5 shadow-2xl shadow-slate-300/40 sm:p-6 lg:p-8">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div class="lg:max-w-sm">
-                <p class="text-sm font-semibold uppercase tracking-wider text-brand-red">Anal&iacute;tica comercial</p>
-                <h3 class="mt-1 text-xl font-bold text-brand-navy">Estado de cotizaciones</h3>
-                <p class="mt-2 text-sm leading-6 text-slate-500">Distribuci&oacute;n actual de las propuestas registradas por el equipo.</p>
-                <a href="{% url 'sami_admin:quotation-list' %}" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-navy transition hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2">
-                    Ver todas las cotizaciones <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
-                </a>
-            </div>
-            <div class="relative mx-auto h-72 w-full max-w-xl" role="img" aria-label="Gr&aacute;fico de anillo con cotizaciones aprobadas, pendientes y rechazadas">
-                <canvas id="quotation-status-chart">Tu navegador no puede mostrar el gr&aacute;fico de cotizaciones.</canvas>
-            </div>
-        </div>
-    </article>
-
-    <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        <article class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-xl">
-            <span class="grid size-10 place-items-center rounded-xl bg-brand-red-soft text-brand-red"><i class="fa-solid fa-calendar-check"></i></span>
-            <h3 class="mt-4 text-lg font-bold text-brand-navy">Reservas</h3>
-            <p class="mt-2 text-sm text-slate-500">Consulta y administra los viajes de los clientes.</p>
-        </article>
-
-        <article class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-xl">
-            <span class="grid size-10 place-items-center rounded-xl bg-blue-50 text-brand-navy-light"><i class="fa-solid fa-users"></i></span>
-            <h3 class="mt-4 text-lg font-bold text-brand-navy">Clientes</h3>
-            <p class="mt-2 text-sm text-slate-500">Mantén organizada la información de los viajeros.</p>
-        </article>
-
-        <article class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-xl">
-            <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><i class="fa-solid fa-suitcase-rolling"></i></span>
-            <h3 class="mt-4 text-lg font-bold text-brand-navy">Paquetes</h3>
-            <p class="mt-2 text-sm text-slate-500">Prepara la oferta de experiencias de SAMI.</p>
-        </article>
-
-        <article class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-xl">
-            <span class="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-700"><i class="fa-solid fa-map-location-dot"></i></span>
-            <h3 class="mt-4 text-lg font-bold text-brand-navy">Destinos</h3>
-            <p class="mt-2 text-sm text-slate-500">Organiza los lugares disponibles para viajar.</p>
-        </article>
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-start justify-between"><div><p class="text-sm font-medium text-slate-500">Cotizaciones</p><p class="mt-2 text-3xl font-bold text-slate-900">{{ total_cotizaciones }}</p><p class="mt-1 text-xs text-slate-500">Propuestas visibles</p></div><span class="grid size-11 place-items-center rounded-xl bg-rose-50 text-rose-600"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l4 4v16H6z"/><path d="M14 2v5h5M9 12h7M9 16h7"/></svg></span></div></article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-start justify-between"><div><p class="text-sm font-medium text-slate-500">Clientes</p><p class="mt-2 text-3xl font-bold text-slate-900">{{ total_clientes }}</p><p class="mt-1 text-xs text-slate-500">Contactos únicos</p></div><span class="grid size-11 place-items-center rounded-xl bg-blue-50 text-blue-900"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg></span></div></article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:col-span-2 xl:col-span-1"><div class="flex items-start justify-between"><div><p class="text-sm font-medium text-slate-500">Accesos</p><p class="mt-2 text-3xl font-bold text-slate-900">{{ total_accesos }}</p><p class="mt-1 text-xs text-slate-500">Cuentas activas</p></div><span class="grid size-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></span></div></article>
     </div>
 
-    <section class="rounded-2xl bg-brand-navy p-6 text-white shadow-lg sm:p-8">
-        <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <p class="text-sm font-semibold uppercase tracking-wider text-red-300">SAMI Travels & Tours</p>
-                <h3 class="mt-2 text-2xl font-bold">Panel administrativo listo</h3>
-                <p class="mt-2 max-w-2xl text-slate-300">Los módulos operativos se habilitarán progresivamente desde este espacio.</p>
-            </div>
-            <span class="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold">
-                <i class="fa-solid fa-shield-halved text-brand-red" aria-hidden="true"></i>
-                Sesión protegida
-            </span>
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,.65fr)]">
+        <div class="space-y-6">
+            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p class="text-xs font-bold uppercase tracking-[.16em] text-rose-600">Acciones rápidas</p><h3 class="mt-1 text-lg font-bold text-slate-900">Operación diaria</h3></div><a href="{% url 'sami_admin:quotation-create' %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Nueva cotización</a></div>
+                <div class="mt-5 grid gap-3 sm:grid-cols-2"><a href="{% url 'sami_admin:quotation-list' %}" class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"><span class="grid size-9 place-items-center rounded-lg bg-slate-100 text-slate-700"><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span>Ver cotizaciones</a><a href="{% url 'sami_admin:change-password' %}" class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"><span class="grid size-9 place-items-center rounded-lg bg-slate-100 text-slate-700"><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>Seguridad</a></div>
+            </section>
+            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6"><div><h3 class="font-bold text-slate-900">Últimas cotizaciones</h3><p class="mt-1 text-xs text-slate-500">Actividad comercial reciente</p></div><a href="{% url 'sami_admin:quotation-list' %}" class="text-sm font-semibold text-rose-600 hover:text-rose-700">Ver todas</a></div>
+                <div class="divide-y divide-slate-100">{% for cotizacion in ultimas_cotizaciones %}<a href="{% url 'sami_admin:quotation-update' cotizacion.id %}" class="grid gap-2 px-5 py-4 transition hover:bg-slate-50 sm:grid-cols-[1fr_auto] sm:items-center sm:px-6"><div class="min-w-0"><p class="truncate text-sm font-semibold text-slate-900">{{ cotizacion.cliente_nombre }}</p><p class="mt-1 truncate text-xs text-slate-500">{{ cotizacion.destino }} · {{ cotizacion.fecha_creacion|date:"d/m/Y" }}</p></div><span class="w-fit rounded-full px-2.5 py-1 text-xs font-semibold {% if cotizacion.estado == 'aprobada' %}bg-emerald-50 text-emerald-700{% elif cotizacion.estado == 'rechazada' %}bg-rose-50 text-rose-700{% else %}bg-amber-50 text-amber-700{% endif %}">{{ cotizacion.get_estado_display }}</span></a>{% empty %}<div class="px-6 py-10 text-center text-sm text-slate-500">Aún no hay cotizaciones registradas.</div>{% endfor %}</div>
+            </section>
         </div>
-    </section>
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="text-xs font-bold uppercase tracking-[.16em] text-rose-600">Analítica</p><h3 class="mt-1 text-lg font-bold text-slate-900">Estado de cotizaciones</h3><p class="mt-1 text-sm text-slate-500">Distribución de propuestas visibles.</p><div class="relative mt-6 h-72" role="img" aria-label="Gráfico de estados de cotizaciones"><canvas id="quotation-status-chart"></canvas></div></section>
+    </div>
 </section>
-
-{{ cotizaciones_aprobadas|json_script:"quotation-approved-data" }}
-{{ cotizaciones_pendientes|json_script:"quotation-pending-data" }}
-{{ cotizaciones_rechazadas|json_script:"quotation-rejected-data" }}
+{{ cotizaciones_aprobadas|json_script:"quotation-approved-data" }}{{ cotizaciones_pendientes|json_script:"quotation-pending-data" }}{{ cotizaciones_rechazadas|json_script:"quotation-rejected-data" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script>
-    (() => {
-        const canvas = document.getElementById('quotation-status-chart');
-        if (!canvas || typeof Chart === 'undefined') return;
-
-        const readCount = (id) => JSON.parse(document.getElementById(id).textContent);
-        const approved = readCount('quotation-approved-data');
-        const pending = readCount('quotation-pending-data');
-        const rejected = readCount('quotation-rejected-data');
-
-        new Chart(canvas, {
-            type: 'doughnut',
-            data: {
-                labels: ['Aprobadas', 'Pendientes', 'Rechazadas'],
-                datasets: [{
-                    data: [approved, pending, rejected],
-                    backgroundColor: ['#10b981', '#1e3a8a', '#e11d48'],
-                    borderColor: '#ffffff',
-                    borderWidth: 4,
-                    hoverOffset: 8,
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '68%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: 'circle',
-                            padding: 22,
-                            color: '#475569',
-                            font: { family: 'Arial, sans-serif', size: 12, weight: 600 },
-                        },
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => ` ${context.label}: ${context.parsed}`,
-                        },
-                    },
-                },
-            },
-        });
-    })();
-</script>
+<script>(()=>{const c=document.getElementById('quotation-status-chart');if(!c||typeof Chart==='undefined')return;const read=id=>JSON.parse(document.getElementById(id).textContent);new Chart(c,{type:'doughnut',data:{labels:['Aprobadas','Pendientes','Rechazadas'],datasets:[{data:[read('quotation-approved-data'),read('quotation-pending-data'),read('quotation-rejected-data')],backgroundColor:['#10b981','#f59e0b','#e11d48'],borderColor:'#fff',borderWidth:4,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:18,color:'#475569',font:{size:12,weight:600}}}}}})})();</script>
 {% endblock %}
