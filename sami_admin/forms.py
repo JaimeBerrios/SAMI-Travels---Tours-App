@@ -1,8 +1,14 @@
+from io import BytesIO
+from pathlib import Path
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.core.files.base import ContentFile
+from django.db.models import Q
+from PIL import Image, UnidentifiedImageError
 
-from .models import Cotizacion, Departamento, LugarTuristico, Pais
+from .models import Cotizacion, Departamento, LugarTuristico, Pais, Tour
 
 
 ROLE_SUPERUSER = "superuser"
@@ -173,6 +179,12 @@ class CotizacionForm(forms.ModelForm):
         required=False,
         empty_label="Selecciona un departamento",
     )
+    tour = forms.ModelChoiceField(
+        label="Tour o paquete",
+        queryset=Tour.objects.none(),
+        required=False,
+        empty_label="Selecciona un tour (opcional)",
+    )
     FLIGHT_FIELDS = (
         "ruta_vuelo",
         "cantidad_adultos",
@@ -200,11 +212,18 @@ class CotizacionForm(forms.ModelForm):
             "pais",
             "departamento",
             "lugar_turistico",
+            "tour",
             "duracion_tour",
             "punto_encuentro",
             "incluye",
             "no_incluye",
             "itinerario_resumido",
+            "recomendaciones_tour",
+            "que_llevar_tour",
+            "restricciones_tour",
+            "politica_cancelacion",
+            "notas_tour",
+            "vigencia_cotizacion",
             "ruta_vuelo",
             "cantidad_adultos",
             "cantidad_ninos",
@@ -231,6 +250,12 @@ class CotizacionForm(forms.ModelForm):
             "punto_encuentro": "Punto de encuentro",
             "no_incluye": "No incluye",
             "itinerario_resumido": "Itinerario resumido",
+            "recomendaciones_tour": "Recomendaciones al viajero",
+            "que_llevar_tour": "Qué llevar",
+            "restricciones_tour": "Restricciones",
+            "politica_cancelacion": "Política de cancelación",
+            "notas_tour": "Notas importantes del tour",
+            "vigencia_cotizacion": "Vigencia de la cotización",
             "ruta_vuelo": "Ruta del vuelo",
             "cantidad_ninos": "Cantidad de niños",
             "escala_ida": "Escala de ida",
@@ -261,6 +286,12 @@ class CotizacionForm(forms.ModelForm):
             "incluye": forms.Textarea(attrs={"rows": 4}),
             "no_incluye": forms.Textarea(attrs={"rows": 4}),
             "itinerario_resumido": forms.Textarea(attrs={"rows": 5}),
+            "recomendaciones_tour": forms.Textarea(attrs={"rows": 3}),
+            "que_llevar_tour": forms.Textarea(attrs={"rows": 3}),
+            "restricciones_tour": forms.Textarea(attrs={"rows": 3}),
+            "politica_cancelacion": forms.Textarea(attrs={"rows": 3}),
+            "notas_tour": forms.Textarea(attrs={"rows": 3}),
+            "vigencia_cotizacion": forms.DateInput(attrs={"type": "date"}),
             "ruta_vuelo": forms.TextInput(
                 attrs={"placeholder": "Ej. San Salvador a Guadalajara"}
             ),
@@ -287,22 +318,55 @@ class CotizacionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._original_lugar_id = self.instance.lugar_turistico_id
+        self._original_tour_id = self.instance.tour_id
         pais_id = self.data.get("pais") if self.is_bound else None
         departamento_id = self.data.get("departamento") if self.is_bound else None
+        lugar_id = self.data.get("lugar_turistico") if self.is_bound else None
         if self.instance and self.instance.lugar_turistico_id:
             lugar = self.instance.lugar_turistico
             pais_id = pais_id or lugar.departamento.pais_id
             departamento_id = departamento_id or lugar.departamento_id
+            lugar_id = lugar_id or lugar.pk
             self.fields["pais"].initial = pais_id
             self.fields["departamento"].initial = departamento_id
+        country_filter = Q(activo=True)
+        if not self.is_bound and pais_id:
+            country_filter |= Q(pk=pais_id)
+        self.fields["pais"].queryset = Pais.objects.filter(country_filter)
         if pais_id:
+            department_filter = Q(activo=True, pais__activo=True)
+            if not self.is_bound and departamento_id:
+                department_filter |= Q(pk=departamento_id)
             self.fields["departamento"].queryset = Departamento.objects.filter(
-                pais_id=pais_id
+                department_filter, pais_id=pais_id
             )
         self.fields["lugar_turistico"].queryset = LugarTuristico.objects.none()
         if departamento_id:
+            place_filter = Q(
+                activo=True,
+                departamento__activo=True,
+                departamento__pais__activo=True,
+            )
+            if not self.is_bound and lugar_id:
+                place_filter |= Q(pk=lugar_id)
             self.fields["lugar_turistico"].queryset = LugarTuristico.objects.filter(
-                departamento_id=departamento_id
+                place_filter,
+                departamento_id=departamento_id,
+            )
+        self.fields["tour"].queryset = Tour.objects.none()
+        if lugar_id:
+            tour_filter = Q(
+                activo=True,
+                lugar_turistico__activo=True,
+                lugar_turistico__departamento__activo=True,
+                lugar_turistico__departamento__pais__activo=True,
+            )
+            if not self.is_bound and self.instance and self.instance.tour_id:
+                tour_filter |= Q(pk=self.instance.tour_id)
+            self.fields["tour"].queryset = Tour.objects.filter(
+                tour_filter,
+                lugar_turistico_id=lugar_id,
             )
         input_class = (
             "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 "
@@ -320,12 +384,95 @@ class CotizacionForm(forms.ModelForm):
         cleaned_data = super().clean()
         lugar = cleaned_data.get("lugar_turistico")
         departamento = cleaned_data.get("departamento")
+        tour = cleaned_data.get("tour")
         if lugar and departamento and lugar.departamento_id != departamento.pk:
             self.add_error("lugar_turistico", "El lugar no pertenece al departamento seleccionado.")
-        if cleaned_data.get("tipo_cotizacion") == Cotizacion.TipoCotizacion.TOURS:
+        if tour and lugar and tour.lugar_turistico_id != lugar.pk:
+            self.add_error("tour", "El tour no pertenece al lugar seleccionado.")
+        tipo = cleaned_data.get("tipo_cotizacion")
+        includes_tour = tipo in (
+            Cotizacion.TipoCotizacion.TOURS,
+            Cotizacion.TipoCotizacion.VUELOS_TOURS,
+        )
+        includes_flight = tipo in (
+            Cotizacion.TipoCotizacion.VUELOS,
+            Cotizacion.TipoCotizacion.VUELOS_TOURS,
+        )
+        if tour:
+            defaults = {
+                "duracion_tour": tour.duracion,
+                "punto_encuentro": tour.punto_encuentro,
+                "incluye": tour.incluye,
+                "no_incluye": tour.no_incluye,
+                "itinerario_resumido": tour.itinerario,
+                "recomendaciones_tour": tour.recomendaciones,
+                "que_llevar_tour": tour.que_llevar,
+                "restricciones_tour": tour.restricciones,
+                "politica_cancelacion": tour.politica_cancelacion,
+            }
+            for name, value in defaults.items():
+                if name not in self.data:
+                    cleaned_data[name] = value
+        if includes_tour:
+            required_tour_fields = {
+                "lugar_turistico": "Selecciona un lugar turístico para la propuesta.",
+                "duracion_tour": "Indica la duración del tour.",
+                "incluye": "Detalla qué incluye el tour.",
+                "itinerario_resumido": "Agrega el itinerario resumido.",
+            }
+            for name, message in required_tour_fields.items():
+                if not cleaned_data.get(name):
+                    self.add_error(name, message)
+        else:
+            for name in (
+                "lugar_turistico", "tour", "duracion_tour", "punto_encuentro",
+                "incluye", "no_incluye", "itinerario_resumido",
+                "recomendaciones_tour", "que_llevar_tour", "restricciones_tour",
+                "politica_cancelacion", "notas_tour", "vigencia_cotizacion",
+            ):
+                cleaned_data[name] = None
+        if includes_flight:
+            for name, message in {
+                "ruta_vuelo": "Indica la ruta del vuelo.",
+                "cantidad_adultos": "Indica la cantidad de adultos.",
+                "fecha_ida": "Indica la fecha de ida.",
+            }.items():
+                if cleaned_data.get(name) in (None, ""):
+                    self.add_error(name, message)
+            if cleaned_data.get("cantidad_adultos") is not None and cleaned_data["cantidad_adultos"] < 1:
+                self.add_error("cantidad_adultos", "Debe viajar al menos un adulto.")
+        if tipo == Cotizacion.TipoCotizacion.TOURS:
             for field_name in self.FLIGHT_FIELDS:
                 cleaned_data[field_name] = None
         return cleaned_data
+
+    def save(self, commit=True):
+        quotation = super().save(commit=False)
+        lugar = self.cleaned_data.get("lugar_turistico")
+        if lugar:
+            quotation.destino = lugar.nombre
+            if not quotation.pk or lugar.pk != self._original_lugar_id:
+                quotation.nombre_destino_cotizado = lugar.nombre
+                quotation.ubicacion_destino_cotizada = (
+                    f"{lugar.departamento.nombre}, {lugar.departamento.pais.nombre}"
+                )
+                quotation.descripcion_historica_cotizada = lugar.descripcion_historica
+                quotation.imagen_destino_cotizada = lugar.imagen.name if lugar.imagen else ""
+            selected_tour = self.cleaned_data.get("tour")
+            if not quotation.pk or getattr(selected_tour, "pk", None) != self._original_tour_id:
+                quotation.nombre_tour_cotizado = (
+                    selected_tour.nombre_comercial if selected_tour else ""
+                )
+        else:
+            quotation.nombre_destino_cotizado = ""
+            quotation.ubicacion_destino_cotizada = ""
+            quotation.descripcion_historica_cotizada = ""
+            quotation.imagen_destino_cotizada = ""
+            quotation.nombre_tour_cotizado = ""
+        if commit:
+            quotation.save()
+            self.save_m2m()
+        return quotation
 
 
 class CatalogFormMixin:
@@ -343,7 +490,7 @@ class CatalogFormMixin:
 class PaisForm(CatalogFormMixin, forms.ModelForm):
     class Meta:
         model = Pais
-        fields = ("nombre",)
+        fields = ("nombre", "activo")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -353,19 +500,93 @@ class PaisForm(CatalogFormMixin, forms.ModelForm):
 class DepartamentoForm(CatalogFormMixin, forms.ModelForm):
     class Meta:
         model = Departamento
-        fields = ("pais", "nombre")
+        fields = ("pais", "nombre", "activo")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        queryset = Pais.objects.filter(activo=True)
+        if self.instance and self.instance.pais_id:
+            queryset = Pais.objects.filter(Q(activo=True) | Q(pk=self.instance.pais_id))
+        self.fields["pais"].queryset = queryset
         self.apply_tailwind_classes()
 
 
 class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
     class Meta:
         model = LugarTuristico
-        fields = ("departamento", "nombre", "imagen", "descripcion_historica")
+        fields = ("departamento", "nombre", "imagen", "descripcion_historica", "activo")
         widgets = {"descripcion_historica": forms.Textarea(attrs={"rows": 7})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        queryset = Departamento.objects.filter(activo=True, pais__activo=True)
+        if self.instance and self.instance.departamento_id:
+            queryset = Departamento.objects.filter(
+                Q(activo=True, pais__activo=True) | Q(pk=self.instance.departamento_id)
+            )
+        self.fields["departamento"].queryset = queryset
+        self.apply_tailwind_classes()
+
+    def clean_imagen(self):
+        image = self.cleaned_data.get("imagen")
+        uploaded = self.files.get("imagen")
+        if not image or not uploaded:
+            return image
+        if image.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("La imagen no puede superar 5 MB.")
+        try:
+            image.seek(0)
+            with Image.open(image) as source:
+                source.load()
+                if source.format not in {"JPEG", "PNG", "WEBP"}:
+                    raise forms.ValidationError("Usa una imagen JPG, PNG o WebP.")
+                source.thumbnail((1600, 1200))
+                if source.mode not in {"RGB", "L"}:
+                    background = Image.new("RGB", source.size, "white")
+                    if "A" in source.getbands():
+                        background.paste(source, mask=source.getchannel("A"))
+                    else:
+                        background.paste(source)
+                    source = background
+                elif source.mode == "L":
+                    source = source.convert("RGB")
+                output = BytesIO()
+                source.save(output, format="JPEG", quality=82, optimize=True)
+        except (UnidentifiedImageError, OSError):
+            raise forms.ValidationError("El archivo no es una imagen válida.")
+        filename = f"{Path(uploaded.name).stem}.jpg"
+        return ContentFile(output.getvalue(), name=filename)
+
+
+class TourForm(CatalogFormMixin, forms.ModelForm):
+    class Meta:
+        model = Tour
+        fields = (
+            "lugar_turistico", "nombre_comercial", "duracion", "punto_encuentro",
+            "incluye", "no_incluye", "itinerario", "recomendaciones", "que_llevar",
+            "restricciones", "politica_cancelacion", "precio_base", "activo",
+        )
+        widgets = {
+            name: forms.Textarea(attrs={"rows": 4})
+            for name in (
+                "incluye", "no_incluye", "itinerario", "recomendaciones",
+                "que_llevar", "restricciones", "politica_cancelacion",
+            )
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        queryset = LugarTuristico.objects.filter(
+            activo=True, departamento__activo=True, departamento__pais__activo=True
+        )
+        if self.instance and self.instance.lugar_turistico_id:
+            queryset = LugarTuristico.objects.filter(
+                Q(
+                    activo=True,
+                    departamento__activo=True,
+                    departamento__pais__activo=True,
+                )
+                | Q(pk=self.instance.lugar_turistico_id)
+            )
+        self.fields["lugar_turistico"].queryset = queryset
         self.apply_tailwind_classes()

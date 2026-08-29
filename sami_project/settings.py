@@ -218,7 +218,7 @@ USE_TZ = True
 STATIC_URL = "/assets/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", BASE_DIR / "media"))
 
 # Garantiza tipos MIME correctos incluso en imágenes Linux mínimas que no
 # incluyen una base de datos completa de tipos del sistema.
@@ -235,6 +235,24 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+# En producción puede activarse almacenamiento S3-compatible sin cambiar código.
+# Sin estas variables se conserva el almacenamiento local, que debe montarse como
+# volumen persistente y exponerse en Caddy bajo MEDIA_URL.
+AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
+if AWS_STORAGE_BUCKET_NAME:
+    INSTALLED_APPS.append("storages")
+    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME") or None
+    AWS_S3_ENDPOINT_URL = os.environ.get("AWS_S3_ENDPOINT_URL") or None
+    AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN") or None
+    AWS_QUERYSTRING_AUTH = False
+    AWS_DEFAULT_ACL = None
+    AWS_S3_FILE_OVERWRITE = False
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+    }
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN.rstrip('/')}/"
 
 TAILWIND_APP_NAME = "theme"
 NPM_BIN_PATH = os.environ.get(

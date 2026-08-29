@@ -13,6 +13,7 @@ urlpatterns = [
     path("cotizaciones/nueva/", views.quotation_create, name="quotation-create"),
     path("api/departamentos/", views.departments_json, name="departments-json"),
     path("api/lugares-turisticos/", views.tourist_places_json, name="tourist-places-json"),
+    path("api/tours/", views.tours_json, name="tours-json"),
     path("catalogo/<str:catalog>/", views.catalog_list, name="catalog-list"),
     path("catalogo/<str:catalog>/nuevo/", views.catalog_create, name="catalog-create"),
     path(
@@ -24,6 +25,11 @@ urlpatterns = [
         "catalogo/<str:catalog>/<int:item_id>/eliminar/",
         views.catalog_delete,
         name="catalog-delete",
+    ),
+    path(
+        "catalogo/<str:catalog>/<int:item_id>/estado/",
+        views.catalog_toggle,
+        name="catalog-toggle",
     ),
     path(
         "cotizaciones/<int:quotation_id>/editar/",

@@ -5,21 +5,27 @@
 <section class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div><p class="text-sm text-slate-500">Administra la información del catálogo utilizada en las cotizaciones de tours.</p></div>
-        <a href="{% url 'sami_admin:catalog-create' catalog %}" class="btn-primary">Agregar {{ singular }}</a>
+        {% if can_manage_catalog %}<a href="{% url 'sami_admin:catalog-create' catalog %}" class="btn-primary">Agregar {{ singular }}</a>{% endif %}
     </div>
+    <form method="get" class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_auto_auto]">
+        <input name="q" value="{{ query }}" placeholder="Buscar por nombre o ubicación" class="block w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-brand-red focus:ring-4 focus:ring-brand-red/10">
+        <select name="estado" class="rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="activos" {% if status == 'activos' %}selected{% endif %}>Activos</option><option value="inactivos" {% if status == 'inactivos' %}selected{% endif %}>Inactivos</option><option value="todos" {% if status == 'todos' %}selected{% endif %}>Todos</option></select>
+        <button class="btn-secondary" type="submit">Filtrar</button>
+    </form>
     <div class="surface-card-raised overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead class="bg-brand-navy text-xs uppercase tracking-wide text-white"><tr><th class="px-6 py-4">Nombre</th><th class="px-6 py-4">Ubicación</th><th class="px-6 py-4 text-right">Acciones</th></tr></thead>
                 <tbody class="divide-y divide-slate-200">
                     {% for item in items %}<tr class="bg-white hover:bg-slate-50">
-                        <td class="px-6 py-4 font-semibold text-brand-navy">{% if item.imagen %}<img src="{{ item.imagen.url }}" alt="" class="mr-3 inline-block size-12 rounded-lg object-cover">{% endif %}{{ item.nombre }}</td>
-                        <td class="px-6 py-4 text-slate-600">{% if catalog == 'departamentos' %}{{ item.pais.nombre }}{% elif catalog == 'lugares' %}{{ item.departamento.nombre }}, {{ item.departamento.pais.nombre }}{% else %}—{% endif %}</td>
-                        <td class="px-6 py-4"><div class="flex justify-end gap-2"><a href="{% url 'sami_admin:catalog-update' catalog item.id %}" class="btn-secondary">Editar</a><form method="post" action="{% url 'sami_admin:catalog-delete' catalog item.id %}" onsubmit="return confirm('¿Eliminar este elemento?');">{% csrf_token %}<button class="rounded-xl px-3 py-2 font-semibold text-rose-600 hover:bg-rose-50" type="submit">Eliminar</button></form></div></td>
+                        <td class="px-6 py-4 font-semibold text-brand-navy">{% if item.imagen %}<img src="{{ item.imagen.url }}" alt="" class="mr-3 inline-block size-12 rounded-lg object-cover">{% endif %}{% if catalog == 'tours' %}{{ item.nombre_comercial }}{% else %}{{ item.nombre }}{% endif %}{% if not item.activo %}<span class="ml-2 rounded-full bg-slate-200 px-2 py-1 text-[10px] uppercase text-slate-600">Inactivo</span>{% endif %}</td>
+                        <td class="px-6 py-4 text-slate-600">{% if catalog == 'departamentos' %}{{ item.pais.nombre }} · {{ item.total_lugares }} lugar{{ item.total_lugares|pluralize:"es" }}{% elif catalog == 'lugares' %}{{ item.departamento.nombre }}, {{ item.departamento.pais.nombre }} · {{ item.total_tours }} tour{{ item.total_tours|pluralize:"s" }}{% elif catalog == 'tours' %}{{ item.lugar_turistico.nombre }} · ${{ item.precio_base|floatformat:2 }}{% else %}{{ item.total_departamentos }} departamento{{ item.total_departamentos|pluralize:"s" }}{% endif %}</td>
+                        <td class="px-6 py-4"><div class="flex justify-end gap-2">{% if can_manage_catalog %}<a href="{% url 'sami_admin:catalog-update' catalog item.id %}" class="btn-secondary">Editar</a><form method="post" action="{% url 'sami_admin:catalog-toggle' catalog item.id %}">{% csrf_token %}<button class="rounded-xl px-3 py-2 font-semibold text-amber-700 hover:bg-amber-50" type="submit">{% if item.activo %}Desactivar{% else %}Activar{% endif %}</button></form>{% endif %}{% if request.user.is_superuser %}<form method="post" action="{% url 'sami_admin:catalog-delete' catalog item.id %}" onsubmit="return confirm('¿Eliminar definitivamente este elemento?');">{% csrf_token %}<button class="rounded-xl px-3 py-2 font-semibold text-rose-600 hover:bg-rose-50" type="submit">Eliminar</button></form>{% endif %}</div></td>
                     </tr>{% empty %}<tr><td colspan="3" class="px-6 py-12 text-center text-slate-500">Aún no hay elementos registrados.</td></tr>{% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+    {% if page_obj.paginator.num_pages > 1 %}<nav class="flex items-center justify-center gap-3 text-sm" aria-label="Paginación">{% if page_obj.has_previous %}<a class="btn-secondary" href="?q={{ query|urlencode }}&estado={{ status }}&page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}<span class="text-slate-600">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="btn-secondary" href="?q={{ query|urlencode }}&estado={{ status }}&page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}</nav>{% endif %}
 </section>
 {% endblock %}

@@ -23,8 +23,8 @@
                 <legend class="px-2 text-base font-bold text-brand-navy"><span class="inline-flex items-center gap-2"><svg class="size-5 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>Experiencia del tour</span></legend>
                 <p class="mt-2 text-sm text-slate-600">Selecciona la ubicación en orden y completa los detalles que aparecerán en la propuesta.</p>
                 <div class="mt-5 grid gap-6 sm:grid-cols-2">
-                    {% for field in form %}{% if field.name == 'pais' or field.name == 'departamento' or field.name == 'lugar_turistico' or field.name == 'duracion_tour' or field.name == 'punto_encuentro' or field.name == 'incluye' or field.name == 'no_incluye' or field.name == 'itinerario_resumido' %}
-                    <div class="{% if field.name == 'punto_encuentro' or field.name == 'itinerario_resumido' %}sm:col-span-2{% endif %}"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>
+                    {% for field in form %}{% if field.name == 'pais' or field.name == 'departamento' or field.name == 'lugar_turistico' or field.name == 'tour' or field.name == 'duracion_tour' or field.name == 'punto_encuentro' or field.name == 'incluye' or field.name == 'no_incluye' or field.name == 'itinerario_resumido' or field.name == 'recomendaciones_tour' or field.name == 'que_llevar_tour' or field.name == 'restricciones_tour' or field.name == 'politica_cancelacion' or field.name == 'notas_tour' or field.name == 'vigencia_cotizacion' %}
+                    <div class="{% if field.name == 'punto_encuentro' or field.name == 'itinerario_resumido' or field.name == 'politica_cancelacion' %}sm:col-span-2{% endif %}"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>
                     {% endif %}{% endfor %}
                 </div>
             </fieldset>
@@ -59,6 +59,7 @@
             <div class="form-actions -mx-5 bg-white/95 px-5 pb-0 backdrop-blur sm:sticky sm:bottom-0 sm:-mx-8 sm:px-8 sm:pb-4 lg:-mx-10 lg:px-10"><a href="{% url 'sami_admin:quotation-list' %}" class="btn-secondary">Cancelar</a><button type="submit" class="btn-primary"><svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>Guardar cotización</button></div>
         </form>
     </div>
+    {% if historial %}<section class="surface-card-raised mt-6 p-6"><h2 class="text-lg font-bold text-brand-navy">Historial reciente</h2><ol class="mt-4 divide-y divide-slate-200">{% for evento in historial %}<li class="flex flex-wrap justify-between gap-2 py-3 text-sm"><span><strong class="capitalize text-brand-navy">{{ evento.accion|cut:"_" }}</strong> por {{ evento.usuario.get_full_name|default:evento.usuario.username|default:"Sistema" }}</span><time class="text-slate-500">{{ evento.creado_en|date:"d/m/Y H:i" }}</time></li>{% endfor %}</ol></section>{% endif %}
 </section>
 <script>
     (() => {
@@ -76,6 +77,8 @@
         const countryField = document.getElementById('id_pais');
         const departmentField = document.getElementById('id_departamento');
         const placeField = document.getElementById('id_lugar_turistico');
+        const tourField = document.getElementById('id_tour');
+        let tourCatalog = [];
         const loadOptions = async (url, select, placeholder) => {
             select.disabled = true;
             try {
@@ -91,11 +94,40 @@
         countryField?.addEventListener('change', async () => {
             departmentField.replaceChildren(new Option('Selecciona un departamento', ''));
             placeField.replaceChildren(new Option('Selecciona un lugar turístico', ''));
+            tourField.replaceChildren(new Option('Selecciona un tour (opcional)', ''));
             if (countryField.value) await loadOptions(`{% url 'sami_admin:departments-json' %}?pais=${encodeURIComponent(countryField.value)}`, departmentField, 'Selecciona un departamento');
         });
         departmentField?.addEventListener('change', async () => {
             placeField.replaceChildren(new Option('Selecciona un lugar turístico', ''));
+            tourField.replaceChildren(new Option('Selecciona un tour (opcional)', ''));
             if (departmentField.value) await loadOptions(`{% url 'sami_admin:tourist-places-json' %}?departamento=${encodeURIComponent(departmentField.value)}`, placeField, 'Selecciona un lugar turístico');
+        });
+        placeField?.addEventListener('change', async () => {
+            tourField.replaceChildren(new Option('Selecciona un tour (opcional)', ''));
+            tourCatalog = [];
+            if (!placeField.value) return;
+            const response = await fetch(`{% url 'sami_admin:tours-json' %}?lugar=${encodeURIComponent(placeField.value)}`);
+            if (!response.ok) return;
+            const data = await response.json();
+            tourCatalog = data.results;
+            data.results.forEach(item => tourField.add(new Option(item.nombre, item.id)));
+            const selectedName = placeField.options[placeField.selectedIndex]?.text;
+            if (selectedName) document.getElementById('id_destino').value = selectedName;
+        });
+        tourField?.addEventListener('change', () => {
+            const tour = tourCatalog.find(item => String(item.id) === tourField.value);
+            if (!tour) return;
+            const mapping = {
+                duracion_tour: 'duracion', punto_encuentro: 'punto_encuentro', incluye: 'incluye',
+                no_incluye: 'no_incluye', itinerario_resumido: 'itinerario',
+                recomendaciones_tour: 'recomendaciones', que_llevar_tour: 'que_llevar',
+                restricciones_tour: 'restricciones', politica_cancelacion: 'politica_cancelacion',
+                precio_estimado: 'precio_base'
+            };
+            Object.entries(mapping).forEach(([field, key]) => {
+                const input = document.getElementById(`id_${field}`);
+                if (input) input.value = tour[key] || '';
+            });
         });
     })();
 </script>

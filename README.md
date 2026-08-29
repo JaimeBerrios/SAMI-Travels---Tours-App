@@ -200,6 +200,33 @@ El mapa muestra la zona desde la cual se brindan los servicios virtuales; no rep
 deactivate
 ```
 
+## Persistencia de imágenes y catálogo comercial
+
+Las fotografías del catálogo se validan, redimensionan a un máximo de
+1600×1200 y convierten a JPEG optimizado. En producción se debe montar
+`DJANGO_MEDIA_ROOT` como volumen persistente y hacer que Caddy sirva `/media/*`,
+o configurar las variables S3 compatibles de `.env.example`. No se recomienda
+servir archivos multimedia con Django en producción.
+
+Ejemplo conceptual para Caddy con almacenamiento local:
+
+```caddyfile
+handle_path /media/* {
+    root * /ruta/al/volumen/media
+    file_server
+}
+```
+
+El panel incluye países, departamentos, lugares turísticos y tours reutilizables.
+Los asesores consultan el catálogo; administradores y superusuarios lo modifican,
+y solo un superusuario elimina datos definitivamente. La operación habitual es
+activar o desactivar registros.
+
+Cada cotización conserva una copia del nombre, ubicación, reseña e imagen del
+destino y de los detalles comerciales editados. Los cambios posteriores del
+catálogo no alteran el documento ya cotizado. Las cotizaciones se archivan en
+lugar de borrarse y mantienen historial de creación, edición, PDF y archivo.
+
 ## Variables de entorno
 
 La configuración actual reconoce estas variables:

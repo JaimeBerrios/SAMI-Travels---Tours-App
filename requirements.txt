@@ -6,6 +6,7 @@ gunicorn
 whitenoise==6.7.0
 mysqlclient==2.2.8
 Pillow>=10.4,<13
+django-storages[s3]>=1.14.4,<2
 sqlparse==0.6.0
 tzdata==2026.3
 weasyprint==69.0

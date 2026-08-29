@@ -3,15 +3,23 @@ from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
 
 from .decorators import staff_required, superuser_required
-from .forms import ROLE_ADMIN, ROLE_SUPERUSER, CotizacionForm, StaffUserCreationForm
-from .models import AEROLINEAS_CHOICES, Cotizacion, Departamento, LugarTuristico, Pais
+from .forms import (
+    ROLE_ADMIN, ROLE_SUPERUSER, CotizacionForm, LugarTuristicoForm,
+    StaffUserCreationForm,
+)
+from .models import (
+    AEROLINEAS_CHOICES, Cotizacion, Departamento, HistorialCotizacion,
+    LugarTuristico, Pais, Tour,
+)
 from .views import (
     assign_user_role,
     can_view_all_quotes,
@@ -169,6 +177,7 @@ class DashboardTests(SimpleTestCase):
     @patch("sami_admin.views.Cotizacion.objects")
     def test_dashboard_renders_grouped_quotation_analytics(self, quotation_manager):
         queryset = quotation_manager.select_related.return_value
+        queryset.filter.return_value = queryset
         grouped_query = queryset.values.return_value
         grouped_query.annotate.return_value = [
             {"estado": Cotizacion.Estado.PENDIENTE, "total": 5},
@@ -204,7 +213,7 @@ class DashboardTests(SimpleTestCase):
             '<script id="quotation-rejected-data" type="application/json">1</script>',
             html=True,
         )
-        queryset.filter.assert_not_called()
+        queryset.filter.assert_any_call(archivada=False)
         queryset.values.assert_called_once_with("estado")
         grouped_query.annotate.assert_called_once()
 
@@ -285,7 +294,7 @@ class QuotationPermissionTests(SimpleTestCase):
 
         quotations_for(adviser)
 
-        queryset.filter.assert_called_once_with(asesor=adviser)
+        queryset.filter.return_value.filter.assert_called_once_with(asesor=adviser)
 
     def test_quotation_delete_rejects_get_requests(self):
         request = RequestFactory().get("/sami-admin/cotizaciones/9/eliminar/")
@@ -295,18 +304,32 @@ class QuotationPermissionTests(SimpleTestCase):
         self.assertEqual(response.status_code, 405)
 
 
-class CotizacionModelTests(SimpleTestCase):
+class CotizacionModelTests(TestCase):
     def test_string_representation(self):
         quotation = Cotizacion(pk=12, cliente_nombre="María López")
         self.assertEqual(str(quotation), "Cotización #12 - María López")
 
     def test_tour_form_clears_internal_flight_data(self):
+        pais = Pais.objects.create(nombre="Guatemala")
+        departamento = Departamento.objects.create(pais=pais, nombre="Sacatepéquez")
+        lugar = LugarTuristico.objects.create(
+            departamento=departamento,
+            nombre="Antigua Guatemala",
+            imagen="lugares_turisticos/antigua.jpg",
+            descripcion_historica="Ciudad colonial.",
+        )
         form = CotizacionForm(
             data={
                 "cliente_nombre": "Ana Pérez",
                 "cliente_correo": "ana@example.com",
                 "tipo_cotizacion": Cotizacion.TipoCotizacion.TOURS,
                 "destino": "Antigua Guatemala",
+                "pais": pais.pk,
+                "departamento": departamento.pk,
+                "lugar_turistico": lugar.pk,
+                "duracion_tour": "1 Día",
+                "incluye": "Guía",
+                "itinerario_resumido": "Recorrido por el centro histórico.",
                 "aerolinea": "avianca",
                 "precio_estimado": "500.00",
                 "estado": Cotizacion.Estado.PENDIENTE,
@@ -349,6 +372,14 @@ class DestinationCatalogTests(TestCase):
             imagen="lugares_turisticos/el-tunco.jpg",
             descripcion_historica="Destino costero emblemático.",
         )
+        self.tour = Tour.objects.create(
+            lugar_turistico=self.lugar,
+            nombre_comercial="Aventura costera",
+            duracion="1 Día",
+            incluye="Transporte y guía",
+            itinerario="Playa y atardecer",
+            precio_base=125,
+        )
 
     def test_department_and_place_endpoints_filter_the_catalog(self):
         response = self.client.get(
@@ -365,6 +396,12 @@ class DestinationCatalogTests(TestCase):
         self.assertEqual(response.json()["results"], [
             {"id": self.lugar.pk, "nombre": "El Tunco"}
         ])
+
+        response = self.client.get(
+            reverse("sami_admin:tours-json"), {"lugar": self.lugar.pk}
+        )
+        self.assertEqual(response.json()["results"][0]["nombre"], "Aventura costera")
+        self.assertEqual(response.json()["results"][0]["precio_base"], "125.00")
 
     def test_edit_form_initializes_the_full_location_hierarchy(self):
         quotation = Cotizacion(
@@ -384,6 +421,97 @@ class DestinationCatalogTests(TestCase):
         self.assertContains(response, "El Tunco")
         self.assertContains(response, "Catálogo de Destinos")
 
+    def test_adviser_can_read_but_cannot_mutate_catalog(self):
+        response = self.client.get(
+            reverse("sami_admin:catalog-create", args=["paises"])
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_administrator_can_deactivate_catalog_items(self):
+        self.user.groups.add(Group.objects.create(name="Administrador"))
+        response = self.client.post(
+            reverse("sami_admin:catalog-toggle", args=["lugares", self.lugar.pk])
+        )
+        self.assertRedirects(
+            response, reverse("sami_admin:catalog-list", args=["lugares"])
+        )
+        self.lugar.refresh_from_db()
+        self.assertFalse(self.lugar.activo)
+
+    def test_invalid_image_upload_is_rejected(self):
+        form = LugarTuristicoForm(
+            data={
+                "departamento": self.departamento.pk,
+                "nombre": "Archivo inválido",
+                "descripcion_historica": "Texto",
+                "activo": True,
+            },
+            files={
+                "imagen": SimpleUploadedFile(
+                    "falsa.jpg", b"esto no es una imagen", content_type="image/jpeg"
+                )
+            },
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("imagen", form.errors)
+
+    def test_quotation_freezes_catalog_and_tour_content(self):
+        form = CotizacionForm(data={
+            "cliente_nombre": "Cliente SAMI",
+            "cliente_correo": "cliente@example.com",
+            "tipo_cotizacion": Cotizacion.TipoCotizacion.TOURS,
+            "destino": "Texto reemplazado",
+            "pais": self.pais.pk,
+            "departamento": self.departamento.pk,
+            "lugar_turistico": self.lugar.pk,
+            "tour": self.tour.pk,
+            "duracion_tour": "1 Día",
+            "incluye": "Transporte y guía",
+            "itinerario_resumido": "Playa y atardecer",
+            "precio_estimado": "125.00",
+            "estado": Cotizacion.Estado.PENDIENTE,
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        quotation = form.save(commit=False)
+        self.assertEqual(quotation.destino, "El Tunco")
+        self.assertEqual(quotation.nombre_tour_cotizado, "Aventura costera")
+        self.assertEqual(quotation.descripcion_historica_cotizada, self.lugar.descripcion_historica)
+        quotation.asesor = self.user
+        quotation.save()
+        original_history = quotation.descripcion_historica_cotizada
+        self.lugar.descripcion_historica = "Reseña nueva que no debe alterar documentos previos."
+        self.lugar.save(update_fields=["descripcion_historica"])
+        edit_form = CotizacionForm(data=form.data, instance=quotation)
+        self.assertTrue(edit_form.is_valid(), edit_form.errors)
+        edited = edit_form.save()
+        self.assertEqual(edited.descripcion_historica_cotizada, original_history)
+
+
+class QuotationAuditTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="asesor-auditoria", password="password-123", is_staff=True
+        )
+        self.client.force_login(self.user)
+
+    def test_delete_action_archives_and_keeps_history(self):
+        quotation = Cotizacion.objects.create(
+            asesor=self.user,
+            cliente_nombre="Cliente",
+            cliente_correo="cliente@example.com",
+            tipo_cotizacion=Cotizacion.TipoCotizacion.VUELOS,
+            destino="Miami",
+            precio_estimado=500,
+        )
+        self.client.post(reverse("sami_admin:quotation-delete", args=[quotation.pk]))
+        quotation.refresh_from_db()
+        self.assertTrue(quotation.archivada)
+        self.assertTrue(
+            HistorialCotizacion.objects.filter(
+                cotizacion=quotation, accion="archivada", usuario=self.user
+            ).exists()
+        )
+
 
 class QuotationPdfTests(SimpleTestCase):
     def test_tour_document_renders_destination_experience(self):
@@ -398,6 +526,10 @@ class QuotationPdfTests(SimpleTestCase):
                 imagen=SimpleNamespace(url="/media/lugares_turisticos/el-tunco.jpg"),
                 descripcion_historica="Historia del destino costero.",
             ),
+            nombre_destino_documento="El Tunco",
+            ubicacion_destino_cotizada="La Libertad, El Salvador",
+            descripcion_destino_documento="Historia del destino costero.",
+            imagen_destino_documento="/media/lugares_turisticos/el-tunco.jpg",
             duracion_tour="1 Día",
             punto_encuentro="Hotel principal",
             incluye="Transporte y guía",
@@ -511,6 +643,7 @@ class QuotationPdfTests(SimpleTestCase):
         )
 
     @patch("sami_admin.views.generate_quotation_pdf", return_value=b"pdf-content")
+    @patch("sami_admin.views.HistorialCotizacion.objects.create")
     @patch("sami_admin.views.render_to_string", return_value="<html></html>")
     @patch("sami_admin.views.get_object_or_404")
     @patch("sami_admin.views.quotations_for")
@@ -519,6 +652,7 @@ class QuotationPdfTests(SimpleTestCase):
         quotations_for_mock,
         get_object_mock,
         render_mock,
+        history_mock,
         generate_mock,
     ):
         quotation = SimpleNamespace(pk=42)

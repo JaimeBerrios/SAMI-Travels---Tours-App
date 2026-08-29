@@ -11,15 +11,17 @@ from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count
+from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from django.http import Http404, HttpResponse, JsonResponse
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .decorators import staff_required, superuser_required
+from .decorators import catalog_manager_required, staff_required, superuser_required
 from .forms import (
     MANAGED_GROUPS,
     ROLE_SUPERUSER,
@@ -27,13 +29,14 @@ from .forms import (
     DepartamentoForm,
     LugarTuristicoForm,
     PaisForm,
+    TourForm,
     SamiAdminAuthenticationForm,
     StaffUserCreationForm,
     StaffUserUpdateForm,
     apply_error_attributes,
     get_user_role,
 )
-from .models import Cotizacion, Departamento, LugarTuristico, Pais
+from .models import Cotizacion, Departamento, HistorialCotizacion, LugarTuristico, Pais, Tour
 from .selectors import can_view_all_quotes, quotations_for
 from .services import generate_quotation_pdf
 
@@ -143,9 +146,7 @@ def dashboard(request):
 @staff_required
 def quotation_list(request):
     can_view_all = can_view_all_quotes(request.user)
-    quotations = Cotizacion.objects.select_related("asesor")
-    if not can_view_all:
-        quotations = quotations.filter(asesor=request.user)
+    quotations = quotations_for(request.user)
     return render(
         request,
         "sami_admin/cotizacion_list.html",
@@ -163,6 +164,13 @@ def quotation_create(request):
         quotation = form.save(commit=False)
         quotation.asesor = request.user
         quotation.save()
+        HistorialCotizacion.objects.create(
+            cotizacion=quotation,
+            usuario=request.user,
+            accion="creada",
+            estado=quotation.estado,
+            datos={"tipo": quotation.tipo_cotizacion, "precio": str(quotation.precio_estimado)},
+        )
         messages.success(request, "La cotización fue creada correctamente.")
         return redirect("sami_admin:quotation-list")
     return render(
@@ -177,7 +185,9 @@ def departments_json(request):
     pais_id = request.GET.get("pais", "")
     departments = Departamento.objects.none()
     if pais_id.isdigit():
-        departments = Departamento.objects.filter(pais_id=pais_id)
+        departments = Departamento.objects.filter(
+            pais_id=pais_id, activo=True, pais__activo=True
+        )
     departments = departments.values(
         "id", "nombre"
     )
@@ -189,9 +199,46 @@ def tourist_places_json(request):
     departamento_id = request.GET.get("departamento", "")
     places = LugarTuristico.objects.none()
     if departamento_id.isdigit():
-        places = LugarTuristico.objects.filter(departamento_id=departamento_id)
+        places = LugarTuristico.objects.filter(
+            departamento_id=departamento_id,
+            activo=True,
+            departamento__activo=True,
+            departamento__pais__activo=True,
+        )
     places = places.values("id", "nombre")
     return JsonResponse({"results": list(places)})
+
+
+@staff_required
+def tours_json(request):
+    lugar_id = request.GET.get("lugar", "")
+    tours = Tour.objects.none()
+    if lugar_id.isdigit():
+        tours = Tour.objects.filter(
+            lugar_turistico_id=lugar_id,
+            activo=True,
+            lugar_turistico__activo=True,
+            lugar_turistico__departamento__activo=True,
+            lugar_turistico__departamento__pais__activo=True,
+        )
+    results = [
+        {
+            "id": tour.pk,
+            "nombre": tour.nombre_comercial,
+            "duracion": tour.duracion,
+            "punto_encuentro": tour.punto_encuentro,
+            "incluye": tour.incluye,
+            "no_incluye": tour.no_incluye,
+            "itinerario": tour.itinerario,
+            "recomendaciones": tour.recomendaciones,
+            "que_llevar": tour.que_llevar,
+            "restricciones": tour.restricciones,
+            "politica_cancelacion": tour.politica_cancelacion,
+            "precio_base": str(tour.precio_base),
+        }
+        for tour in tours
+    ]
+    return JsonResponse({"results": results})
 
 
 CATALOG_CONFIG = {
@@ -213,6 +260,12 @@ CATALOG_CONFIG = {
         "title": "Lugares turísticos",
         "singular": "lugar turístico",
     },
+    "tours": {
+        "model": Tour,
+        "form": TourForm,
+        "title": "Tours y paquetes",
+        "singular": "tour",
+    },
 }
 
 
@@ -228,22 +281,60 @@ def catalog_list(request, catalog):
     config = _catalog_config(catalog)
     items = config["model"].objects.all()
     if catalog == "departamentos":
-        items = items.select_related("pais")
+        items = items.select_related("pais").annotate(total_lugares=Count("lugares_turisticos"))
+    elif catalog == "paises":
+        items = items.annotate(total_departamentos=Count("departamentos"))
     elif catalog == "lugares":
-        items = items.select_related("departamento__pais")
+        items = items.select_related("departamento__pais").annotate(total_tours=Count("tours"))
+    elif catalog == "tours":
+        items = items.select_related("lugar_turistico__departamento__pais")
+    query = request.GET.get("q", "").strip()
+    if query:
+        if catalog == "paises":
+            items = items.filter(nombre__icontains=query)
+        elif catalog == "departamentos":
+            items = items.filter(Q(nombre__icontains=query) | Q(pais__nombre__icontains=query))
+        elif catalog == "lugares":
+            items = items.filter(
+                Q(nombre__icontains=query) | Q(departamento__nombre__icontains=query)
+                | Q(departamento__pais__nombre__icontains=query)
+            )
+        else:
+            items = items.filter(
+                Q(nombre_comercial__icontains=query) | Q(lugar_turistico__nombre__icontains=query)
+            )
+    status = request.GET.get("estado", "activos")
+    if status in {"activos", "inactivos"}:
+        items = items.filter(activo=status == "activos")
+    if catalog == "tours":
+        items = items.order_by("lugar_turistico__nombre", "nombre_comercial")
+    elif catalog == "lugares":
+        items = items.order_by("departamento__pais__nombre", "departamento__nombre", "nombre")
+    elif catalog == "departamentos":
+        items = items.order_by("pais__nombre", "nombre")
+    else:
+        items = items.order_by("nombre")
+    page = Paginator(items, 15).get_page(request.GET.get("page"))
+    can_manage_catalog = request.user.is_superuser or request.user.groups.filter(
+        name="Administrador"
+    ).exists()
     return render(
         request,
         "sami_admin/catalogo_list.html",
-        {"items": items, "catalog": catalog, **config},
+        {"items": page, "page_obj": page, "catalog": catalog, "query": query,
+         "status": status, "can_manage_catalog": can_manage_catalog, **config},
     )
 
 
-@staff_required
+@catalog_manager_required
 def catalog_create(request, catalog):
     config = _catalog_config(catalog)
     form = config["form"](request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        item = form.save(commit=False)
+        item.creado_por = request.user
+        item.actualizado_por = request.user
+        item.save()
         messages.success(request, f"El {config['singular']} fue creado correctamente.")
         return redirect("sami_admin:catalog-list", catalog=catalog)
     return render(
@@ -253,13 +344,15 @@ def catalog_create(request, catalog):
     )
 
 
-@staff_required
+@catalog_manager_required
 def catalog_update(request, catalog, item_id):
     config = _catalog_config(catalog)
     item = get_object_or_404(config["model"], pk=item_id)
     form = config["form"](request.POST or None, request.FILES or None, instance=item)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        item = form.save(commit=False)
+        item.actualizado_por = request.user
+        item.save()
         messages.success(request, f"El {config['singular']} fue actualizado.")
         return redirect("sami_admin:catalog-list", catalog=catalog)
     return render(
@@ -270,7 +363,7 @@ def catalog_update(request, catalog, item_id):
 
 
 @require_POST
-@staff_required
+@superuser_required
 def catalog_delete(request, catalog, item_id):
     config = _catalog_config(catalog)
     item = get_object_or_404(config["model"], pk=item_id)
@@ -282,18 +375,42 @@ def catalog_delete(request, catalog, item_id):
     return redirect("sami_admin:catalog-list", catalog=catalog)
 
 
+@require_POST
+@catalog_manager_required
+def catalog_toggle(request, catalog, item_id):
+    config = _catalog_config(catalog)
+    item = get_object_or_404(config["model"], pk=item_id)
+    item.activo = not item.activo
+    item.actualizado_por = request.user
+    item.save(update_fields=["activo", "actualizado_por", "actualizado_en"])
+    action = "activado" if item.activo else "desactivado"
+    messages.success(request, f"El {config['singular']} fue {action}.")
+    return redirect("sami_admin:catalog-list", catalog=catalog)
+
+
 @staff_required
 def quotation_update(request, quotation_id):
     quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
     form = CotizacionForm(request.POST or None, instance=quotation)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        quotation = form.save()
+        HistorialCotizacion.objects.create(
+            cotizacion=quotation,
+            usuario=request.user,
+            accion="actualizada",
+            estado=quotation.estado,
+            datos={"tipo": quotation.tipo_cotizacion, "precio": str(quotation.precio_estimado)},
+        )
         messages.success(request, "La cotización fue actualizada.")
         return redirect("sami_admin:quotation-list")
     return render(
         request,
         "sami_admin/cotizacion_form.html",
-        {"form": form, "form_title": "Editar cotización"},
+        {
+            "form": form,
+            "form_title": "Editar cotización",
+            "historial": quotation.historial.select_related("usuario")[:12],
+        },
     )
 
 
@@ -325,6 +442,12 @@ def quotation_pdf(request, quotation_id):
     )
     base_url = request.build_absolute_uri("/")
     pdf = generate_quotation_pdf(html, base_url=base_url)
+    HistorialCotizacion.objects.create(
+        cotizacion=quotation,
+        usuario=request.user,
+        accion="pdf_generado",
+        estado=getattr(quotation, "estado", ""),
+    )
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="Cotizacion_SAMI_{quotation.pk}.pdf"'
@@ -336,8 +459,15 @@ def quotation_pdf(request, quotation_id):
 @staff_required
 def quotation_delete(request, quotation_id):
     quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
-    quotation.delete()
-    messages.success(request, "La cotización fue eliminada.")
+    quotation.archivada = True
+    quotation.save(update_fields=["archivada"])
+    HistorialCotizacion.objects.create(
+        cotizacion=quotation,
+        usuario=request.user,
+        accion="archivada",
+        estado=quotation.estado,
+    )
+    messages.success(request, "La cotización fue archivada y conserva su historial.")
     return redirect("sami_admin:quotation-list")
 
 
