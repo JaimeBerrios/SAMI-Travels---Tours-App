@@ -19,6 +19,16 @@
                 </div>
             </fieldset>
 
+            <fieldset id="tour-fields" class="rounded-2xl border border-rose-100 bg-rose-50/40 p-5 sm:p-6">
+                <legend class="px-2 text-base font-bold text-brand-navy"><span class="inline-flex items-center gap-2"><svg class="size-5 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>Experiencia del tour</span></legend>
+                <p class="mt-2 text-sm text-slate-600">Selecciona la ubicación en orden y completa los detalles que aparecerán en la propuesta.</p>
+                <div class="mt-5 grid gap-6 sm:grid-cols-2">
+                    {% for field in form %}{% if field.name == 'pais' or field.name == 'departamento' or field.name == 'lugar_turistico' or field.name == 'duracion_tour' or field.name == 'punto_encuentro' or field.name == 'incluye' or field.name == 'no_incluye' or field.name == 'itinerario_resumido' %}
+                    <div class="{% if field.name == 'punto_encuentro' or field.name == 'itinerario_resumido' %}sm:col-span-2{% endif %}"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>
+                    {% endif %}{% endfor %}
+                </div>
+            </fieldset>
+
             <div id="flight-fields" class="space-y-8">
                 <fieldset class="rounded-2xl border border-blue-100 bg-blue-50/50 p-5 sm:p-6">
                     <legend class="px-2 text-base font-bold text-brand-navy"><span class="inline-flex items-center gap-2"><svg class="size-4 shrink-0 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg>Pasajeros y ruta</span></legend>
@@ -54,10 +64,39 @@
     (() => {
         const typeField = document.getElementById('id_tipo_cotizacion');
         const flightFields = document.getElementById('flight-fields');
-        if (!typeField || !flightFields) return;
-        const syncFlightFields = () => flightFields.classList.toggle('hidden', typeField.value === 'tours');
-        typeField.addEventListener('change', syncFlightFields);
-        syncFlightFields();
+        const tourFields = document.getElementById('tour-fields');
+        if (!typeField || !flightFields || !tourFields) return;
+        const syncTypeFields = () => {
+            flightFields.classList.toggle('hidden', typeField.value === 'tours');
+            tourFields.classList.toggle('hidden', typeField.value === 'vuelos');
+        };
+        typeField.addEventListener('change', syncTypeFields);
+        syncTypeFields();
+
+        const countryField = document.getElementById('id_pais');
+        const departmentField = document.getElementById('id_departamento');
+        const placeField = document.getElementById('id_lugar_turistico');
+        const loadOptions = async (url, select, placeholder) => {
+            select.disabled = true;
+            try {
+                const response = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                if (!response.ok) throw new Error('No se pudo cargar el catálogo');
+                const data = await response.json();
+                select.replaceChildren(new Option(placeholder, ''));
+                data.results.forEach(item => select.add(new Option(item.nombre, item.id)));
+            } finally {
+                select.disabled = false;
+            }
+        };
+        countryField?.addEventListener('change', async () => {
+            departmentField.replaceChildren(new Option('Selecciona un departamento', ''));
+            placeField.replaceChildren(new Option('Selecciona un lugar turístico', ''));
+            if (countryField.value) await loadOptions(`{% url 'sami_admin:departments-json' %}?pais=${encodeURIComponent(countryField.value)}`, departmentField, 'Selecciona un departamento');
+        });
+        departmentField?.addEventListener('change', async () => {
+            placeField.replaceChildren(new Option('Selecciona un lugar turístico', ''));
+            if (departmentField.value) await loadOptions(`{% url 'sami_admin:tourist-places-json' %}?departamento=${encodeURIComponent(departmentField.value)}`, placeField, 'Selecciona un lugar turístico');
+        });
     })();
 </script>
 {% endblock %}

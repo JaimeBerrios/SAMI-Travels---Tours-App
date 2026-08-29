@@ -11,7 +11,7 @@ from django.urls import resolve, reverse
 
 from .decorators import staff_required, superuser_required
 from .forms import ROLE_ADMIN, ROLE_SUPERUSER, CotizacionForm, StaffUserCreationForm
-from .models import AEROLINEAS_CHOICES, Cotizacion
+from .models import AEROLINEAS_CHOICES, Cotizacion, Departamento, LugarTuristico, Pais
 from .views import (
     assign_user_role,
     can_view_all_quotes,
@@ -330,7 +330,91 @@ class CotizacionModelTests(SimpleTestCase):
         )
 
 
+class DestinationCatalogTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="asesor-catalogo",
+            password="password-seguro-123",
+            is_staff=True,
+        )
+        self.client.force_login(self.user)
+        self.pais = Pais.objects.create(nombre="El Salvador")
+        self.departamento = Departamento.objects.create(
+            pais=self.pais,
+            nombre="La Libertad",
+        )
+        self.lugar = LugarTuristico.objects.create(
+            departamento=self.departamento,
+            nombre="El Tunco",
+            imagen="lugares_turisticos/el-tunco.jpg",
+            descripcion_historica="Destino costero emblemático.",
+        )
+
+    def test_department_and_place_endpoints_filter_the_catalog(self):
+        response = self.client.get(
+            reverse("sami_admin:departments-json"), {"pais": self.pais.pk}
+        )
+        self.assertEqual(response.json()["results"], [
+            {"id": self.departamento.pk, "nombre": "La Libertad"}
+        ])
+
+        response = self.client.get(
+            reverse("sami_admin:tourist-places-json"),
+            {"departamento": self.departamento.pk},
+        )
+        self.assertEqual(response.json()["results"], [
+            {"id": self.lugar.pk, "nombre": "El Tunco"}
+        ])
+
+    def test_edit_form_initializes_the_full_location_hierarchy(self):
+        quotation = Cotizacion(
+            lugar_turistico=self.lugar,
+            asesor=self.user,
+            cliente_nombre="Cliente",
+        )
+        form = CotizacionForm(instance=quotation)
+        self.assertEqual(form.fields["pais"].initial, self.pais.pk)
+        self.assertEqual(form.fields["departamento"].initial, self.departamento.pk)
+        self.assertIn(self.lugar, form.fields["lugar_turistico"].queryset)
+
+    def test_catalog_is_available_to_staff(self):
+        response = self.client.get(
+            reverse("sami_admin:catalog-list", args=["lugares"])
+        )
+        self.assertContains(response, "El Tunco")
+        self.assertContains(response, "Catálogo de Destinos")
+
+
 class QuotationPdfTests(SimpleTestCase):
+    def test_tour_document_renders_destination_experience(self):
+        quotation = SimpleNamespace(
+            id=31,
+            cliente_nombre="Lucía Ramos",
+            cliente_correo="lucia@example.com",
+            tipo_cotizacion=Cotizacion.TipoCotizacion.TOURS,
+            destino="El Tunco",
+            lugar_turistico=SimpleNamespace(
+                nombre="El Tunco",
+                imagen=SimpleNamespace(url="/media/lugares_turisticos/el-tunco.jpg"),
+                descripcion_historica="Historia del destino costero.",
+            ),
+            duracion_tour="1 Día",
+            punto_encuentro="Hotel principal",
+            incluye="Transporte y guía",
+            no_incluye="Propinas",
+            itinerario_resumido="Salida, recorrido y regreso.",
+            fecha_creacion=None,
+            precio_estimado=150,
+            asesor=SimpleNamespace(get_full_name=lambda: "Asesor SAMI"),
+        )
+        html = get_template("sami_admin/cotizacion_documento.html").render(
+            {"cotizacion": quotation, "preview": False, "contact_email": "info@example.com"}
+        )
+        self.assertIn("Historia del destino costero", html)
+        self.assertIn("Transporte y guía", html)
+        self.assertIn("Itinerario resumido", html)
+        self.assertIn("/media/lugares_turisticos/el-tunco.jpg", html)
+
     def test_flight_document_shows_itinerary_but_never_airline(self):
         quotation = SimpleNamespace(
             id=21,

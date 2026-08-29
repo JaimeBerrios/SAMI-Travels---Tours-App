@@ -217,6 +217,8 @@ USE_TZ = True
 # mismo manifiesto versionado que genera collectstatic dentro de la imagen.
 STATIC_URL = "/assets/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Garantiza tipos MIME correctos incluso en imágenes Linux mínimas que no
 # incluyen una base de datos completa de tipos del sistema.

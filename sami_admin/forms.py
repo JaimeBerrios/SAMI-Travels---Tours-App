@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from .models import Cotizacion
+from .models import Cotizacion, Departamento, LugarTuristico, Pais
 
 
 ROLE_SUPERUSER = "superuser"
@@ -161,6 +161,18 @@ class StaffUserUpdateForm(StaffUserFieldsMixin, forms.ModelForm):
 
 
 class CotizacionForm(forms.ModelForm):
+    pais = forms.ModelChoiceField(
+        label="País",
+        queryset=Pais.objects.all(),
+        required=False,
+        empty_label="Selecciona un país",
+    )
+    departamento = forms.ModelChoiceField(
+        label="Departamento",
+        queryset=Departamento.objects.none(),
+        required=False,
+        empty_label="Selecciona un departamento",
+    )
     FLIGHT_FIELDS = (
         "ruta_vuelo",
         "cantidad_adultos",
@@ -185,6 +197,14 @@ class CotizacionForm(forms.ModelForm):
             "cliente_correo",
             "tipo_cotizacion",
             "destino",
+            "pais",
+            "departamento",
+            "lugar_turistico",
+            "duracion_tour",
+            "punto_encuentro",
+            "incluye",
+            "no_incluye",
+            "itinerario_resumido",
             "ruta_vuelo",
             "cantidad_adultos",
             "cantidad_ninos",
@@ -206,6 +226,11 @@ class CotizacionForm(forms.ModelForm):
             "cliente_nombre": "Nombre del cliente",
             "cliente_correo": "Correo del cliente",
             "tipo_cotizacion": "Tipo de cotización",
+            "lugar_turistico": "Lugar turístico",
+            "duracion_tour": "Duración del tour",
+            "punto_encuentro": "Punto de encuentro",
+            "no_incluye": "No incluye",
+            "itinerario_resumido": "Itinerario resumido",
             "ruta_vuelo": "Ruta del vuelo",
             "cantidad_ninos": "Cantidad de niños",
             "escala_ida": "Escala de ida",
@@ -227,6 +252,15 @@ class CotizacionForm(forms.ModelForm):
                 attrs={"placeholder": "cliente@correo.com"}
             ),
             "destino": forms.TextInput(attrs={"placeholder": "Destino del viaje"}),
+            "duracion_tour": forms.TextInput(
+                attrs={"placeholder": "Ej. 3 Días / 2 Noches"}
+            ),
+            "punto_encuentro": forms.TextInput(
+                attrs={"placeholder": "Ej. Recepción del hotel a las 8:00 a. m."}
+            ),
+            "incluye": forms.Textarea(attrs={"rows": 4}),
+            "no_incluye": forms.Textarea(attrs={"rows": 4}),
+            "itinerario_resumido": forms.Textarea(attrs={"rows": 5}),
             "ruta_vuelo": forms.TextInput(
                 attrs={"placeholder": "Ej. San Salvador a Guadalajara"}
             ),
@@ -253,6 +287,23 @@ class CotizacionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        pais_id = self.data.get("pais") if self.is_bound else None
+        departamento_id = self.data.get("departamento") if self.is_bound else None
+        if self.instance and self.instance.lugar_turistico_id:
+            lugar = self.instance.lugar_turistico
+            pais_id = pais_id or lugar.departamento.pais_id
+            departamento_id = departamento_id or lugar.departamento_id
+            self.fields["pais"].initial = pais_id
+            self.fields["departamento"].initial = departamento_id
+        if pais_id:
+            self.fields["departamento"].queryset = Departamento.objects.filter(
+                pais_id=pais_id
+            )
+        self.fields["lugar_turistico"].queryset = LugarTuristico.objects.none()
+        if departamento_id:
+            self.fields["lugar_turistico"].queryset = LugarTuristico.objects.filter(
+                departamento_id=departamento_id
+            )
         input_class = (
             "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 "
             "text-brand-navy shadow-sm outline-none transition "
@@ -267,7 +318,54 @@ class CotizacionForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        lugar = cleaned_data.get("lugar_turistico")
+        departamento = cleaned_data.get("departamento")
+        if lugar and departamento and lugar.departamento_id != departamento.pk:
+            self.add_error("lugar_turistico", "El lugar no pertenece al departamento seleccionado.")
         if cleaned_data.get("tipo_cotizacion") == Cotizacion.TipoCotizacion.TOURS:
             for field_name in self.FLIGHT_FIELDS:
                 cleaned_data[field_name] = None
         return cleaned_data
+
+
+class CatalogFormMixin:
+    def apply_tailwind_classes(self):
+        input_class = (
+            "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 "
+            "text-brand-navy shadow-sm outline-none transition focus:border-brand-red "
+            "focus:ring-4 focus:ring-brand-red/10"
+        )
+        for field in self.fields.values():
+            field.widget.attrs["class"] = input_class
+        apply_error_attributes(self)
+
+
+class PaisForm(CatalogFormMixin, forms.ModelForm):
+    class Meta:
+        model = Pais
+        fields = ("nombre",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.apply_tailwind_classes()
+
+
+class DepartamentoForm(CatalogFormMixin, forms.ModelForm):
+    class Meta:
+        model = Departamento
+        fields = ("pais", "nombre")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.apply_tailwind_classes()
+
+
+class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
+    class Meta:
+        model = LugarTuristico
+        fields = ("departamento", "nombre", "imagen", "descripcion_historica")
+        widgets = {"descripcion_historica": forms.Textarea(attrs={"rows": 7})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.apply_tailwind_classes()

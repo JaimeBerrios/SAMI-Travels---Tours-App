@@ -11,6 +11,20 @@ urlpatterns = [
     path("cambiar-password/", views.change_password, name="change-password"),
     path("cotizaciones/", views.quotation_list, name="quotation-list"),
     path("cotizaciones/nueva/", views.quotation_create, name="quotation-create"),
+    path("api/departamentos/", views.departments_json, name="departments-json"),
+    path("api/lugares-turisticos/", views.tourist_places_json, name="tourist-places-json"),
+    path("catalogo/<str:catalog>/", views.catalog_list, name="catalog-list"),
+    path("catalogo/<str:catalog>/nuevo/", views.catalog_create, name="catalog-create"),
+    path(
+        "catalogo/<str:catalog>/<int:item_id>/editar/",
+        views.catalog_update,
+        name="catalog-update",
+    ),
+    path(
+        "catalogo/<str:catalog>/<int:item_id>/eliminar/",
+        views.catalog_delete,
+        name="catalog-delete",
+    ),
     path(
         "cotizaciones/<int:quotation_id>/editar/",
         views.quotation_update,

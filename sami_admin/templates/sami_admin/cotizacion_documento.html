@@ -65,6 +65,19 @@
         .flight-extras { display: flex; gap: 10px; padding: 0 15px 12px; }
         .flight-extra { flex: 1; border-left: 3px solid var(--red); padding: 7px 9px; background: var(--soft); color: var(--muted); font-size: 9px; }
         .flight-extra strong { display: block; margin-bottom: 2px; color: var(--navy); font-size: 9px; text-transform: uppercase; }
+        .tour-hero { display: flex; margin-top: 18px; overflow: hidden; border-radius: 12px; background: var(--navy); color: white; }
+        .tour-image { width: 42%; min-height: 145px; object-fit: cover; }
+        .tour-copy { flex: 1; padding: 17px 19px; }
+        .tour-copy span { color: #fda4af; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+        .tour-copy h3 { margin: 3px 0 7px; font-size: 20px; line-height: 1.2; }
+        .tour-copy p { margin: 0; color: #dbe4ef; font-size: 9px; line-height: 1.55; }
+        .tour-meta { display: flex; gap: 8px; margin-top: 10px; }
+        .tour-meta div { flex: 1; border-radius: 8px; padding: 8px 10px; background: var(--soft); }
+        .tour-meta strong, .tour-block strong { display: block; margin-bottom: 3px; color: var(--navy); font-size: 8px; letter-spacing: .7px; text-transform: uppercase; }
+        .tour-meta span { color: var(--ink); font-size: 9px; }
+        .tour-grid { display: flex; flex-wrap: wrap; margin: 6px -4px -4px; }
+        .tour-block-wrap { width: 50%; padding: 4px; }
+        .tour-block { min-height: 64px; border: 1px solid var(--line); border-top: 3px solid var(--red); border-radius: 8px; padding: 10px 11px; color: var(--muted); font-size: 9px; }
         .investment { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; overflow: hidden; border-radius: 12px; background: var(--navy); color: white; }
         .investment-copy { display: flex; align-items: center; gap: 13px; padding: 18px 21px; }
         .investment-icon { display: flex; width: 42px; height: 42px; align-items: center; justify-content: center; border-radius: 11px; background: rgba(255,255,255,.1); color: white; }
@@ -83,7 +96,7 @@
         .social a { display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: 7px 9px; color: white; font-size: 9px; font-weight: 700; text-decoration: none; }
         .social svg { width: 14px; height: 14px; color: var(--red); }
         .footer-bottom { display: flex; justify-content: space-between; padding: 8px 2cm; background: #030d1d; color: #94a3b8; font-size: 8px; letter-spacing: .3px; }
-        @media screen and (max-width: 680px) { .actions { position: static; justify-content: stretch; padding: 10px 8px; } .button { flex: 1; justify-content: center; padding: 10px 7px; text-align: center; } .preview-shell { padding: 8px; } .document { min-height: auto; } .header, .intro, .investment, .footer-main, .flight-legs { display: block; } .header, .content, .footer-main, .footer-bottom { padding-left: 18px; padding-right: 18px; } .content { padding-top: 24px; padding-bottom: 24px; } h2 { font-size: 24px; } .agency { margin-top: 15px; text-align: left; } .quote-meta { margin-top: 17px; } .detail, .flight-leg { width: 100%; } .flight-leg + .flight-leg { border-top: 1px solid var(--line); border-left: 0; } .flight-extras { display: block; } .flight-extra + .flight-extra { margin-top: 8px; } .investment-price { min-width: 0; border-top: 4px solid var(--red); border-left: 0; text-align: left; } .footer { position: static; margin-top: 20px; } .social { flex-wrap: wrap; margin-top: 13px; } .footer-bottom { gap: 8px; } }
+        @media screen and (max-width: 680px) { .actions { position: static; justify-content: stretch; padding: 10px 8px; } .button { flex: 1; justify-content: center; padding: 10px 7px; text-align: center; } .preview-shell { padding: 8px; } .document { min-height: auto; } .header, .intro, .investment, .footer-main, .flight-legs, .tour-hero { display: block; } .header, .content, .footer-main, .footer-bottom { padding-left: 18px; padding-right: 18px; } .content { padding-top: 24px; padding-bottom: 24px; } h2 { font-size: 24px; } .agency { margin-top: 15px; text-align: left; } .quote-meta { margin-top: 17px; } .detail, .flight-leg, .tour-block-wrap, .tour-image { width: 100%; } .flight-leg + .flight-leg { border-top: 1px solid var(--line); border-left: 0; } .flight-extras { display: block; } .flight-extra + .flight-extra { margin-top: 8px; } .investment-price { min-width: 0; border-top: 4px solid var(--red); border-left: 0; text-align: left; } .footer { position: static; margin-top: 20px; } .social { flex-wrap: wrap; margin-top: 13px; } .footer-bottom { gap: 8px; } }
         @media print { body { background: white; } .actions { display: none; } .preview-shell { padding: 0; } .document { width: auto; min-height: auto; border-radius: 0; box-shadow: none; } }
     </style>
 </head>
@@ -125,6 +138,17 @@
                     <div class="detail"><div class="detail-card"><div class="detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5V3m10 2V3M3 10h18"/></svg></div><div><span class="detail-label">Fecha de propuesta</span><strong class="detail-value">{{ cotizacion.fecha_creacion|date:"d \d\e F \d\e Y" }}</strong><span class="detail-subvalue">Cotización #{{ cotizacion.id }}</span></div></div></div>
                     <div class="detail"><div class="detail-card"><div class="detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg></div><div><span class="detail-label">Tu asesor SAMI</span><strong class="detail-value">{{ cotizacion.asesor.get_full_name|default:"Equipo SAMI" }}</strong><span class="detail-subvalue">Acompañamiento personalizado</span></div></div></div>
                 </section>
+
+                {% if cotizacion.tipo_cotizacion == "tours" or cotizacion.tipo_cotizacion == "vuelos_tours" %}
+                    <section aria-label="Experiencia del tour">
+                        <div class="tour-hero">
+                            {% if cotizacion.lugar_turistico and cotizacion.lugar_turistico.imagen %}<img class="tour-image" src="{{ cotizacion.lugar_turistico.imagen.url }}" alt="{{ cotizacion.lugar_turistico.nombre }}">{% endif %}
+                            <div class="tour-copy"><span>Descubre tu destino</span><h3>{{ cotizacion.lugar_turistico.nombre|default:cotizacion.destino }}</h3>{% if cotizacion.lugar_turistico.descripcion_historica %}<p>{{ cotizacion.lugar_turistico.descripcion_historica|linebreaksbr }}</p>{% else %}<p>Una experiencia seleccionada especialmente para disfrutar lo mejor de este destino.</p>{% endif %}</div>
+                        </div>
+                        {% if cotizacion.duracion_tour or cotizacion.punto_encuentro %}<div class="tour-meta">{% if cotizacion.duracion_tour %}<div><strong>Duración</strong><span>{{ cotizacion.duracion_tour }}</span></div>{% endif %}{% if cotizacion.punto_encuentro %}<div><strong>Punto de encuentro</strong><span>{{ cotizacion.punto_encuentro }}</span></div>{% endif %}</div>{% endif %}
+                        {% if cotizacion.incluye or cotizacion.no_incluye or cotizacion.itinerario_resumido %}<div class="tour-grid">{% if cotizacion.incluye %}<div class="tour-block-wrap"><div class="tour-block"><strong>Incluye</strong>{{ cotizacion.incluye|linebreaksbr }}</div></div>{% endif %}{% if cotizacion.no_incluye %}<div class="tour-block-wrap"><div class="tour-block"><strong>No incluye</strong>{{ cotizacion.no_incluye|linebreaksbr }}</div></div>{% endif %}{% if cotizacion.itinerario_resumido %}<div class="tour-block-wrap" style="width:100%"><div class="tour-block"><strong>Itinerario resumido</strong>{{ cotizacion.itinerario_resumido|linebreaksbr }}</div></div>{% endif %}</div>{% endif %}
+                    </section>
+                {% endif %}
 
                 {% if cotizacion.tipo_cotizacion == "vuelos" or cotizacion.tipo_cotizacion == "vuelos_tours" %}
                     <section class="flight-summary">

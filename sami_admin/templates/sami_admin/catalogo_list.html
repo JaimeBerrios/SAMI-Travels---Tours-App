@@ -1,0 +1,25 @@
+{% extends "sami_admin/base.html" %}
+{% block title %}{{ title }} | SAMI Admin{% endblock %}
+{% block page_heading %}{{ title }}{% endblock %}
+{% block content %}
+<section class="space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div><p class="text-sm text-slate-500">Administra la información del catálogo utilizada en las cotizaciones de tours.</p></div>
+        <a href="{% url 'sami_admin:catalog-create' catalog %}" class="btn-primary">Agregar {{ singular }}</a>
+    </div>
+    <div class="surface-card-raised overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-brand-navy text-xs uppercase tracking-wide text-white"><tr><th class="px-6 py-4">Nombre</th><th class="px-6 py-4">Ubicación</th><th class="px-6 py-4 text-right">Acciones</th></tr></thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for item in items %}<tr class="bg-white hover:bg-slate-50">
+                        <td class="px-6 py-4 font-semibold text-brand-navy">{% if item.imagen %}<img src="{{ item.imagen.url }}" alt="" class="mr-3 inline-block size-12 rounded-lg object-cover">{% endif %}{{ item.nombre }}</td>
+                        <td class="px-6 py-4 text-slate-600">{% if catalog == 'departamentos' %}{{ item.pais.nombre }}{% elif catalog == 'lugares' %}{{ item.departamento.nombre }}, {{ item.departamento.pais.nombre }}{% else %}—{% endif %}</td>
+                        <td class="px-6 py-4"><div class="flex justify-end gap-2"><a href="{% url 'sami_admin:catalog-update' catalog item.id %}" class="btn-secondary">Editar</a><form method="post" action="{% url 'sami_admin:catalog-delete' catalog item.id %}" onsubmit="return confirm('¿Eliminar este elemento?');">{% csrf_token %}<button class="rounded-xl px-3 py-2 font-semibold text-rose-600 hover:bg-rose-50" type="submit">Eliminar</button></form></div></td>
+                    </tr>{% empty %}<tr><td colspan="3" class="px-6 py-12 text-center text-slate-500">Aún no hay elementos registrados.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

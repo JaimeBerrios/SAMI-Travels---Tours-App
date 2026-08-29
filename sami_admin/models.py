@@ -17,6 +17,64 @@ AEROLINEAS_CHOICES = [
 ]
 
 
+class Pais(models.Model):
+    nombre = models.CharField(max_length=120, unique=True)
+
+    class Meta:
+        ordering = ("nombre",)
+        verbose_name = "país"
+        verbose_name_plural = "países"
+
+    def __str__(self):
+        return self.nombre
+
+
+class Departamento(models.Model):
+    pais = models.ForeignKey(
+        Pais,
+        on_delete=models.PROTECT,
+        related_name="departamentos",
+    )
+    nombre = models.CharField(max_length=120)
+
+    class Meta:
+        ordering = ("pais__nombre", "nombre")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("pais", "nombre"),
+                name="departamento_unico_por_pais",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.nombre}, {self.pais.nombre}"
+
+
+class LugarTuristico(models.Model):
+    departamento = models.ForeignKey(
+        Departamento,
+        on_delete=models.PROTECT,
+        related_name="lugares_turisticos",
+    )
+    nombre = models.CharField(max_length=180)
+    imagen = models.ImageField(upload_to="lugares_turisticos/")
+    descripcion_historica = models.TextField()
+
+    class Meta:
+        ordering = ("departamento__pais__nombre", "departamento__nombre", "nombre")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("departamento", "nombre"),
+                name="lugar_turistico_unico_por_departamento",
+            )
+        ]
+        verbose_name = "lugar turístico"
+        verbose_name_plural = "lugares turísticos"
+
+    def __str__(self):
+        return f"{self.nombre} · {self.departamento}"
+
+
 class Cotizacion(models.Model):
     class TipoCotizacion(models.TextChoices):
         VUELOS = "vuelos", "Vuelos"
@@ -42,6 +100,18 @@ class Cotizacion(models.Model):
         db_index=True,
     )
     destino = models.CharField(max_length=180)
+    lugar_turistico = models.ForeignKey(
+        LugarTuristico,
+        on_delete=models.SET_NULL,
+        related_name="cotizaciones",
+        null=True,
+        blank=True,
+    )
+    duracion_tour = models.CharField(max_length=120, null=True, blank=True)
+    punto_encuentro = models.CharField(max_length=255, null=True, blank=True)
+    incluye = models.TextField(null=True, blank=True)
+    no_incluye = models.TextField(null=True, blank=True)
+    itinerario_resumido = models.TextField(null=True, blank=True)
     ruta_vuelo = models.CharField(max_length=255, null=True, blank=True)
     cantidad_adultos = models.IntegerField(null=True, blank=True)
     cantidad_ninos = models.IntegerField(null=True, blank=True)

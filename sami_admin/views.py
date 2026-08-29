@@ -11,7 +11,8 @@ from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count
-from django.http import HttpResponse
+from django.db.models.deletion import ProtectedError
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -23,13 +24,16 @@ from .forms import (
     MANAGED_GROUPS,
     ROLE_SUPERUSER,
     CotizacionForm,
+    DepartamentoForm,
+    LugarTuristicoForm,
+    PaisForm,
     SamiAdminAuthenticationForm,
     StaffUserCreationForm,
     StaffUserUpdateForm,
     apply_error_attributes,
     get_user_role,
 )
-from .models import Cotizacion
+from .models import Cotizacion, Departamento, LugarTuristico, Pais
 from .selectors import can_view_all_quotes, quotations_for
 from .services import generate_quotation_pdf
 
@@ -166,6 +170,116 @@ def quotation_create(request):
         "sami_admin/cotizacion_form.html",
         {"form": form, "form_title": "Nueva cotización"},
     )
+
+
+@staff_required
+def departments_json(request):
+    pais_id = request.GET.get("pais", "")
+    departments = Departamento.objects.none()
+    if pais_id.isdigit():
+        departments = Departamento.objects.filter(pais_id=pais_id)
+    departments = departments.values(
+        "id", "nombre"
+    )
+    return JsonResponse({"results": list(departments)})
+
+
+@staff_required
+def tourist_places_json(request):
+    departamento_id = request.GET.get("departamento", "")
+    places = LugarTuristico.objects.none()
+    if departamento_id.isdigit():
+        places = LugarTuristico.objects.filter(departamento_id=departamento_id)
+    places = places.values("id", "nombre")
+    return JsonResponse({"results": list(places)})
+
+
+CATALOG_CONFIG = {
+    "paises": {
+        "model": Pais,
+        "form": PaisForm,
+        "title": "Países",
+        "singular": "país",
+    },
+    "departamentos": {
+        "model": Departamento,
+        "form": DepartamentoForm,
+        "title": "Departamentos",
+        "singular": "departamento",
+    },
+    "lugares": {
+        "model": LugarTuristico,
+        "form": LugarTuristicoForm,
+        "title": "Lugares turísticos",
+        "singular": "lugar turístico",
+    },
+}
+
+
+def _catalog_config(catalog):
+    try:
+        return CATALOG_CONFIG[catalog]
+    except KeyError as exc:
+        raise Http404("Catálogo no encontrado") from exc
+
+
+@staff_required
+def catalog_list(request, catalog):
+    config = _catalog_config(catalog)
+    items = config["model"].objects.all()
+    if catalog == "departamentos":
+        items = items.select_related("pais")
+    elif catalog == "lugares":
+        items = items.select_related("departamento__pais")
+    return render(
+        request,
+        "sami_admin/catalogo_list.html",
+        {"items": items, "catalog": catalog, **config},
+    )
+
+
+@staff_required
+def catalog_create(request, catalog):
+    config = _catalog_config(catalog)
+    form = config["form"](request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"El {config['singular']} fue creado correctamente.")
+        return redirect("sami_admin:catalog-list", catalog=catalog)
+    return render(
+        request,
+        "sami_admin/catalogo_form.html",
+        {"form": form, "catalog": catalog, "form_title": f"Nuevo {config['singular']}"},
+    )
+
+
+@staff_required
+def catalog_update(request, catalog, item_id):
+    config = _catalog_config(catalog)
+    item = get_object_or_404(config["model"], pk=item_id)
+    form = config["form"](request.POST or None, request.FILES or None, instance=item)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"El {config['singular']} fue actualizado.")
+        return redirect("sami_admin:catalog-list", catalog=catalog)
+    return render(
+        request,
+        "sami_admin/catalogo_form.html",
+        {"form": form, "catalog": catalog, "form_title": f"Editar {config['singular']}"},
+    )
+
+
+@require_POST
+@staff_required
+def catalog_delete(request, catalog, item_id):
+    config = _catalog_config(catalog)
+    item = get_object_or_404(config["model"], pk=item_id)
+    try:
+        item.delete()
+        messages.success(request, f"El {config['singular']} fue eliminado.")
+    except ProtectedError:
+        messages.error(request, "No se puede eliminar porque tiene elementos relacionados.")
+    return redirect("sami_admin:catalog-list", catalog=catalog)
 
 
 @staff_required
