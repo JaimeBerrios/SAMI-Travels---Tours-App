@@ -57,8 +57,8 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://samitravelstours.com",
-    "https://www.samitravelstours.com",
+    'https://samitravelstours.com',
+    'https://www.samitravelstours.com',
 ]
 
 INSTALLED_APPS = [
