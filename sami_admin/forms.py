@@ -19,6 +19,27 @@ MANAGED_GROUPS = {
 }
 
 
+def apply_error_attributes(form):
+    """Expose bound field errors visually and to assistive technologies."""
+    if not form.is_bound:
+        return
+    for field_name in form.errors:
+        if field_name not in form.fields:
+            continue
+        field = form.fields[field_name]
+        current_class = field.widget.attrs.get("class", "")
+        field.widget.attrs["class"] = (
+            f"{current_class} border-rose-500 focus:border-rose-500 "
+            "focus:ring-rose-500/20"
+        ).strip()
+        field.widget.attrs["aria-invalid"] = "true"
+        described_by = field.widget.attrs.get("aria-describedby", "").split()
+        error_id = f"id_{field_name}_error"
+        if error_id not in described_by:
+            described_by.append(error_id)
+        field.widget.attrs["aria-describedby"] = " ".join(described_by)
+
+
 def get_user_role(user):
     if user.is_superuser:
         return ROLE_SUPERUSER
@@ -41,6 +62,7 @@ class StaffUserFieldsMixin:
         )
         for field in self.fields.values():
             field.widget.attrs["class"] = input_class
+        apply_error_attributes(self)
 
 
 class SamiAdminAuthenticationForm(AuthenticationForm):
@@ -52,7 +74,7 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
             attrs={
                 "autocomplete": "username",
                 "autofocus": True,
-                "placeholder": "Tu usuario de Django",
+                "placeholder": "Nombre de usuario",
                 "class": (
                     "block w-full rounded-xl border border-slate-300 bg-white "
                     "py-3 pl-11 pr-4 text-brand-navy shadow-sm outline-none transition "
@@ -71,13 +93,17 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
                 "placeholder": "Tu contraseña",
                 "class": (
                     "block w-full rounded-xl border border-slate-300 bg-white "
-                    "py-3 pl-11 pr-4 text-brand-navy shadow-sm outline-none transition "
+                    "py-3 pl-11 pr-12 text-brand-navy shadow-sm outline-none transition "
                     "placeholder:text-slate-400 focus:border-rose-500 "
                     "focus:ring-2 focus:ring-rose-500"
                 ),
             }
         ),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        apply_error_attributes(self)
 
     def confirm_login_allowed(self, user):
         super().confirm_login_allowed(user)
@@ -237,10 +263,7 @@ class CotizacionForm(forms.ModelForm):
             field.widget.attrs["class"] = input_class
             if field.help_text:
                 field.widget.attrs["aria-describedby"] = f"id_{field_name}_helptext"
-        if self.is_bound:
-            for field_name in self.errors:
-                if field_name in self.fields:
-                    self.fields[field_name].widget.attrs["aria-invalid"] = "true"
+        apply_error_attributes(self)
 
     def clean(self):
         cleaned_data = super().clean()

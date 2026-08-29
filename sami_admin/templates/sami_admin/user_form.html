@@ -7,7 +7,7 @@
 <section class="mx-auto w-full max-w-2xl">
     <div class="mb-8 space-y-2">
         <a href="{% url 'sami_admin:user-list' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-red transition hover:text-brand-red-dark">
-            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Volver al equipo
+            <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>Volver al equipo
         </a>
         <h2 class="mt-4 text-2xl font-bold text-brand-navy">{{ form_title }}</h2>
         <p class="mt-1 text-slate-500">{% if is_editing %}Actualiza los datos y el nivel de acceso de esta cuenta.{% else %}Registra un integrante y selecciona su rol dentro del panel.{% endif %}</p>
@@ -16,7 +16,7 @@
     <div class="surface-card-raised overflow-hidden">
         <div class="border-l-4 border-brand-red bg-brand-navy px-6 py-6 text-white sm:px-8">
             <div class="flex items-center gap-3">
-                <span class="grid size-10 place-items-center rounded-xl bg-white/10"><i class="fa-solid {% if is_editing %}fa-user-pen{% else %}fa-user-plus{% endif %}"></i></span>
+                <span class="grid size-10 place-items-center rounded-xl bg-white/10"><svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/>{% if is_editing %}<path d="m16 16 4-4 2 2-4 4-3 1 1-3Z"/>{% else %}<path d="M19 8v6m-3-3h6"/>{% endif %}</svg></span>
                 <div><h3 class="font-bold">Información del usuario</h3><p class="text-sm text-slate-300">Los campos con asterisco son obligatorios.</p></div>
             </div>
         </div>
@@ -28,10 +28,10 @@
             <div class="sami-form-grid">
                 {% for field in form %}
                     <div class="{% if field.name == 'username' or field.name == 'email' or field.name == 'role' or field.name == 'password1' or field.name == 'password2' %}sm:col-span-2{% endif %}">
-                        <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %}<span class="text-brand-red"> *</span>{% endif %}</label>
+                        <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %}<span class="text-rose-600"> *</span>{% endif %}</label>
                         {{ field }}
                         {% if field.name == "role" %}<p class="mt-2 text-xs text-slate-500">Superusuario: control total. Administrador y Asesor: acceso limitado mediante grupos.</p>{% elif field.help_text %}<div class="mt-2 text-xs leading-relaxed text-slate-500">{{ field.help_text|safe }}</div>{% endif %}
-                        {% for error in field.errors %}<p class="mt-2 text-sm font-medium text-brand-red">{{ error }}</p>{% endfor %}
+                        {% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}
                     </div>
                 {% endfor %}
             </div>
@@ -39,7 +39,7 @@
             <div class="form-actions">
                 <a href="{% url 'sami_admin:user-list' %}" class="btn-secondary">Cancelar</a>
                 <button type="submit" class="btn-primary">
-                    <i class="fa-solid fa-floppy-disk"></i>{% if is_editing %}Guardar cambios{% else %}Crear usuario{% endif %}
+                    <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>{% if is_editing %}Guardar cambios{% else %}Crear usuario{% endif %}
                 </button>
             </div>
         </form>

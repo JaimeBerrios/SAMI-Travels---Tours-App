@@ -25,6 +25,7 @@ from .forms import (
     SamiAdminAuthenticationForm,
     StaffUserCreationForm,
     StaffUserUpdateForm,
+    apply_error_attributes,
     get_user_role,
 )
 from .models import Cotizacion
@@ -240,6 +241,7 @@ def change_password(request):
     )
     for field in form.fields.values():
         field.widget.attrs["class"] = input_class
+    apply_error_attributes(form)
 
     if request.method == "POST" and form.is_valid():
         user = form.save()

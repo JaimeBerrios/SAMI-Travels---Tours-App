@@ -11,7 +11,7 @@
   html { overflow-x: hidden; }
   body { overflow-x: hidden; }
   button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
-  :focus-visible { outline: 2px solid #d71920; outline-offset: 3px; }
+  :focus-visible { outline: 2px solid #e11d48; outline-offset: 3px; }
   button:disabled, input:disabled, select:disabled, textarea:disabled { cursor: not-allowed; opacity: .55; }
 }
 
@@ -46,7 +46,7 @@
   .sami-form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
   .sami-form select,
   .sami-form textarea {
-    @apply block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20;
+    @apply block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20;
     min-height: 48px;
   }
   .sami-form textarea { min-height: 112px; resize: vertical; }
@@ -54,9 +54,9 @@
   .sami-form .relative > input { padding-left: 2.75rem; }
   .form-actions { @apply flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-end; }
 
-  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3 text-sm font-semibold text-white shadow-md shadow-brand-red/15 transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2; }
-  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:ring-offset-2; }
-  .icon-button { @apply grid size-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:-translate-y-0.5 hover:border-brand-navy hover:text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-navy focus:ring-offset-2; }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-rose-600/15 transition hover:-translate-y-0.5 hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white; }
+  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white; }
+  .icon-button { @apply grid size-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:-translate-y-0.5 hover:border-brand-navy hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white; }
 
   .table-shell { @apply overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md; }
   .table-scroll { @apply w-full overflow-x-auto; }

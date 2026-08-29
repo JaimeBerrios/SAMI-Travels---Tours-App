@@ -2,38 +2,73 @@
 <!doctype html>
 <html lang="es">
 <head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
     <title>{% block title %}SAMI Admin{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-rose-600 selection:text-white">
-<div class="min-h-screen lg:pl-72">
-    <aside class="bg-slate-900 text-white lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-slate-950/60 backdrop-blur-sm lg:hidden" aria-hidden="true"></div>
+
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-slate-900 text-white shadow-2xl transition-transform duration-300 ease-out lg:translate-x-0 lg:shadow-none" aria-label="Navegación administrativa">
         <div class="flex h-20 items-center justify-between border-b border-white/10 px-5 lg:px-6">
-            <a href="{% url 'sami_admin:dashboard' %}" class="flex items-center gap-3" aria-label="Ir al panel principal">
-                <span class="grid size-11 place-items-center rounded-xl bg-rose-600 shadow-lg shadow-rose-950/30" aria-hidden="true"><svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg></span>
+            <a href="{% url 'sami_admin:dashboard' %}" class="flex items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900" aria-label="Ir al panel principal">
+                <span class="grid size-11 place-items-center rounded-xl bg-rose-600 shadow-lg shadow-rose-950/30" aria-hidden="true"><svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg></span>
                 <span><span class="block text-lg font-bold tracking-wide">SAMI</span><span class="block text-xs text-slate-400">Travels &amp; Tours</span></span>
             </a>
-            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-300">Admin</span>
+            <button id="sidebar-close" type="button" class="grid size-11 place-items-center rounded-xl text-slate-300 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 lg:hidden" aria-label="Cerrar menú">
+                <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            </button>
         </div>
-        <nav class="flex gap-2 overflow-x-auto p-3 [scrollbar-width:none] lg:flex-1 lg:flex-col lg:gap-1 lg:overflow-y-auto lg:px-4 lg:py-6" aria-label="Navegación administrativa">
-            <a href="{% url 'sami_admin:dashboard' %}" class="relative flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {% if request.resolver_match.url_name == 'dashboard' %}bg-slate-800 text-white before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-rose-500{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Resumen</a>
-            <a href="{% url 'sami_admin:quotation-list' %}" class="relative flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {% if 'quotation' in request.resolver_match.url_name %}bg-slate-800 text-white before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-rose-500{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2h9l4 4v16H6z"/><path d="M14 2v5h5M9 12h7M9 16h7"/></svg>Cotizaciones</a>
-            {% if request.user.is_superuser %}<a href="{% url 'sami_admin:user-list' %}" class="relative flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {% if 'user' in request.resolver_match.url_name %}bg-slate-800 text-white before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-rose-500{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg>Usuarios</a>{% endif %}
-            <a href="{% url 'sami_admin:change-password' %}" class="relative flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {% if request.resolver_match.url_name == 'change-password' %}bg-slate-800 text-white before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-rose-500{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Seguridad</a>
+
+        <nav class="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-6">
+            <a href="{% url 'sami_admin:dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %} class="relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 {% if request.resolver_match.url_name == 'dashboard' %}bg-slate-800 text-white before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-rose-500{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Resumen</a>
+            <a href="{% url 'sami_admin:quotation-list' %}" {% if 'quotation' in request.resolver_match.url_name %}aria-current="page"{% endif %} class="relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 {% if 'quotation' in request.resolver_match.url_name %}bg-slate-800 text-white before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-rose-500{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M6 2h9l4 4v16H6z"/><path d="M14 2v5h5M9 12h7M9 16h7"/></svg>Cotizaciones</a>
+            {% if request.user.is_superuser %}<a href="{% url 'sami_admin:user-list' %}" {% if 'user' in request.resolver_match.url_name %}aria-current="page"{% endif %} class="relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 {% if 'user' in request.resolver_match.url_name %}bg-slate-800 text-white before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-rose-500{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg>Usuarios</a>{% endif %}
+            <a href="{% url 'sami_admin:change-password' %}" {% if request.resolver_match.url_name == 'change-password' %}aria-current="page"{% endif %} class="relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 {% if request.resolver_match.url_name == 'change-password' %}bg-slate-800 text-white before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-rose-500{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Seguridad</a>
         </nav>
-        <div class="hidden border-t border-white/10 p-4 lg:block"><div class="flex items-center gap-3 rounded-xl bg-white/5 p-3"><span class="grid size-9 shrink-0 place-items-center rounded-full bg-slate-700 text-sm font-bold">{{ request.user.first_name|first|default:request.user.username|first|upper }}</span><div class="min-w-0"><p class="truncate text-sm font-semibold">{{ request.user.get_full_name|default:request.user.username }}</p><p class="truncate text-xs text-slate-400">{{ request.user.email|default:"Personal SAMI" }}</p></div></div></div>
+
+        <div class="border-t border-white/10 p-4"><div class="flex items-center gap-3 rounded-xl bg-white/5 p-3"><span class="grid size-9 shrink-0 place-items-center rounded-full bg-slate-700 text-sm font-bold">{{ request.user.first_name|first|default:request.user.username|first|upper }}</span><div class="min-w-0"><p class="truncate text-sm font-semibold">{{ request.user.get_full_name|default:request.user.username }}</p><p class="truncate text-xs text-slate-400">{{ request.user.email|default:"Personal SAMI" }}</p></div></div></div>
     </aside>
-    <div class="flex min-h-screen min-w-0 flex-col">
-        <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur"><div class="flex min-h-20 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-            <div><h1 class="text-xl font-bold text-slate-900">{% block page_heading %}Panel administrativo{% endblock %}</h1><p class="hidden text-sm text-slate-500 sm:block">Centro de gestión de SAMI Travels &amp; Tours</p></div>
-            <div class="flex items-center gap-3"><span class="hidden rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-600 sm:inline-flex">{% if request.user.is_superuser %}Superusuario{% else %}Personal{% endif %}</span><form method="post" action="{% url 'sami_admin:logout' %}">{% csrf_token %}<button type="submit" class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:border-rose-600 hover:bg-rose-600 hover:text-white focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M15 3h5a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-5"/></svg>Salir</button></form></div>
+
+    <div class="flex min-h-screen min-w-0 flex-col lg:pl-72">
+        <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur"><div class="flex min-h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+            <div class="flex min-w-0 items-center gap-3"><button id="sidebar-open" type="button" class="grid size-11 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white lg:hidden" aria-label="Abrir menú" aria-controls="admin-sidebar" aria-expanded="false"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><div class="min-w-0"><h1 class="truncate text-xl font-bold text-slate-900">{% block page_heading %}Panel administrativo{% endblock %}</h1><p class="hidden text-sm text-slate-500 sm:block">Centro de gestión de SAMI Travels &amp; Tours</p></div></div>
+            <div class="flex shrink-0 items-center gap-3"><span class="hidden rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-600 sm:inline-flex">{% if request.user.is_superuser %}Superusuario{% else %}Personal{% endif %}</span><form method="post" action="{% url 'sami_admin:logout' %}">{% csrf_token %}<button type="submit" class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:border-rose-600 hover:bg-rose-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"><svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M15 3h5a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-5"/></svg>Salir</button></form></div>
         </div></header>
+
         <main class="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10"><div class="mx-auto w-full max-w-[1440px]">
-            {% if messages %}<div class="mb-6 space-y-3" aria-live="polite">{% for message in messages %}<div class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-700 shadow-sm">{{ message }}</div>{% endfor %}</div>{% endif %}
+            {% if messages %}<div class="mb-6 space-y-3" aria-live="polite">{% for message in messages %}<div class="flex items-start gap-3 rounded-xl border px-5 py-4 text-sm shadow-sm {% if 'error' in message.tags %}border-rose-200 bg-rose-50 text-rose-800{% elif 'success' in message.tags %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-blue-200 bg-blue-50 text-blue-800{% endif %}" {% if 'error' in message.tags %}role="alert"{% else %}role="status"{% endif %}><svg class="mt-0.5 size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">{% if 'success' in message.tags %}<path d="m5 12 4 4L19 6"/>{% elif 'error' in message.tags %}<path d="M12 9v4m0 4h.01"/><circle cx="12" cy="12" r="9"/>{% else %}<circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/>{% endif %}</svg><span>{{ message }}</span></div>{% endfor %}</div>{% endif %}
             {% block content %}{% endblock %}
         </div></main>
     </div>
-</div>
+
+    <script>
+        (() => {
+            const sidebar = document.getElementById('admin-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const openButton = document.getElementById('sidebar-open');
+            const closeButton = document.getElementById('sidebar-close');
+            if (!sidebar || !backdrop || !openButton || !closeButton) return;
+            const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+            let lastFocused = null;
+            const openSidebar = () => { lastFocused = document.activeElement; sidebar.classList.remove('-translate-x-full'); backdrop.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); openButton.setAttribute('aria-expanded', 'true'); closeButton.focus(); };
+            const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); backdrop.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); openButton.setAttribute('aria-expanded', 'false'); if (lastFocused) lastFocused.focus(); };
+            openButton.addEventListener('click', openSidebar);
+            closeButton.addEventListener('click', closeSidebar);
+            backdrop.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && openButton.getAttribute('aria-expanded') === 'true') closeSidebar();
+                if (event.key !== 'Tab' || openButton.getAttribute('aria-expanded') !== 'true' || window.matchMedia('(min-width: 1024px)').matches) return;
+                const focusable = [...sidebar.querySelectorAll(focusableSelector)];
+                if (!focusable.length) return;
+                const first = focusable[0]; const last = focusable[focusable.length - 1];
+                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+            });
+            window.addEventListener('resize', () => { if (window.matchMedia('(min-width: 1024px)').matches) { sidebar.classList.add('-translate-x-full'); backdrop.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); openButton.setAttribute('aria-expanded', 'false'); } });
+        })();
+    </script>
 </body>
 </html>
