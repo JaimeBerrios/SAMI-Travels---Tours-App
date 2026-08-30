@@ -275,6 +275,11 @@ CATALOG_CONFIG = {
 }
 
 
+def _catalog_home(catalog):
+    """Return the unified destination view for geographic catalog actions."""
+    return "paises" if catalog in {"paises", "departamentos", "lugares"} else catalog
+
+
 def _catalog_config(catalog):
     try:
         return CATALOG_CONFIG[catalog]
@@ -374,11 +379,11 @@ def catalog_create(request, catalog):
         item.actualizado_por = request.user
         item.save()
         messages.success(request, f"El {config['singular']} fue creado correctamente.")
-        return redirect("sami_admin:catalog-list", catalog=catalog)
+        return redirect("sami_admin:catalog-list", catalog=_catalog_home(catalog))
     return render(
         request,
         "sami_admin/catalogo_form.html",
-        {"form": form, "catalog": catalog, "form_title": f"Nuevo {config['singular']}"},
+        {"form": form, "catalog": catalog, "catalog_home": _catalog_home(catalog), "form_title": f"Nuevo {config['singular']}"},
     )
 
 
@@ -392,11 +397,11 @@ def catalog_update(request, catalog, item_id):
         item.actualizado_por = request.user
         item.save()
         messages.success(request, f"El {config['singular']} fue actualizado.")
-        return redirect("sami_admin:catalog-list", catalog=catalog)
+        return redirect("sami_admin:catalog-list", catalog=_catalog_home(catalog))
     return render(
         request,
         "sami_admin/catalogo_form.html",
-        {"form": form, "catalog": catalog, "form_title": f"Editar {config['singular']}"},
+        {"form": form, "catalog": catalog, "catalog_home": _catalog_home(catalog), "form_title": f"Editar {config['singular']}"},
     )
 
 
