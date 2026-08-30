@@ -12,6 +12,18 @@ urlpatterns = [
     path("cotizaciones/", views.quotation_list, name="quotation-list"),
     path("cotizaciones/nueva/", views.quotation_create, name="quotation-create"),
     path("solicitudes/", views.request_list, name="request-list"),
+    path("campanas/", views.campaign_list, name="campaign-list"),
+    path("campanas/nueva/", views.campaign_create, name="campaign-create"),
+    path(
+        "campanas/<int:campaign_id>/editar/",
+        views.campaign_update,
+        name="campaign-update",
+    ),
+    path(
+        "campanas/<int:campaign_id>/estado/",
+        views.campaign_toggle,
+        name="campaign-toggle",
+    ),
     path(
         "solicitudes/<int:request_id>/",
         views.request_detail,

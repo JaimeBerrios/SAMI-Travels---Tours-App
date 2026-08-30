@@ -189,6 +189,96 @@ class Tour(models.Model):
         super().save(*args, **kwargs)
 
 
+class CampanaPromocional(models.Model):
+    class TipoEnlace(models.TextChoices):
+        COTIZADOR = "cotizador", "Formulario de cotización"
+        DESTINO = "destino", "Destino turístico"
+        TOUR = "tour", "Tour o paquete"
+        PERSONALIZADO = "personalizado", "Enlace personalizado"
+
+    nombre = models.CharField(
+        max_length=120,
+        help_text="Nombre interno para identificar la campaña.",
+    )
+    etiqueta = models.CharField(
+        max_length=80,
+        default="Promoción especial",
+        help_text="Texto corto que aparece sobre el título.",
+    )
+    titulo = models.CharField(max_length=140)
+    descripcion = models.TextField(max_length=360)
+    imagen_escritorio = models.ImageField(upload_to="campanas/escritorio/")
+    imagen_movil = models.ImageField(upload_to="campanas/movil/")
+    texto_alternativo = models.CharField(
+        max_length=180,
+        help_text="Describe brevemente la imagen para accesibilidad.",
+    )
+    texto_boton = models.CharField(max_length=50, default="Solicitar cotización")
+    tipo_enlace = models.CharField(
+        max_length=20,
+        choices=TipoEnlace.choices,
+        default=TipoEnlace.COTIZADOR,
+    )
+    lugar_turistico = models.ForeignKey(
+        LugarTuristico,
+        on_delete=models.SET_NULL,
+        related_name="campanas",
+        null=True,
+        blank=True,
+    )
+    tour = models.ForeignKey(
+        Tour,
+        on_delete=models.SET_NULL,
+        related_name="campanas",
+        null=True,
+        blank=True,
+    )
+    url_personalizada = models.URLField(blank=True)
+    fecha_inicio = models.DateTimeField(db_index=True)
+    fecha_fin = models.DateTimeField(null=True, blank=True, db_index=True)
+    prioridad = models.PositiveSmallIntegerField(
+        default=10,
+        help_text="La campaña activa con el número más alto se mostrará primero.",
+    )
+    activo = models.BooleanField(default=True, db_index=True)
+    mostrar_avion = models.BooleanField(default=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="campanas_creadas",
+        null=True,
+        blank=True,
+    )
+    actualizado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="campanas_actualizadas",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ("-prioridad", "-fecha_inicio", "-id")
+        verbose_name = "campaña promocional"
+        verbose_name_plural = "campañas promocionales"
+
+    def __str__(self):
+        return self.nombre
+
+    @property
+    def estado_publicacion(self):
+        now = timezone.now()
+        if not self.activo:
+            return "Pausada"
+        if self.fecha_inicio > now:
+            return "Programada"
+        if self.fecha_fin and self.fecha_fin < now:
+            return "Finalizada"
+        return "Publicada"
+
+
 class Cotizacion(models.Model):
     class TipoCotizacion(models.TextChoices):
         VUELOS = "vuelos", "Vuelos"

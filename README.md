@@ -208,6 +208,13 @@ convertirlas en una cotización sin volver a capturar los datos del cliente.
 Los destinos y tours activos generan páginas públicas mediante slugs; los
 campos `destacado` y `en_promocion` controlan su presencia comercial en el portal.
 
+Los administradores gestionan el banner principal desde
+`/sami-admin/campanas/`. Cada campaña admite programación, prioridad, enlace a
+un destino, tour o cotizador y control de la animación del avión. Solo se publica
+la campaña vigente con mayor prioridad; si no existe una, el portal recupera el
+contenido corporativo. Las imágenes se normalizan a WebP en 1920×800 para
+escritorio y 1080×1350 para móvil.
+
 Las fotografías del catálogo se validan, redimensionan a un máximo de
 1600×1200 y convierten a JPEG optimizado. En producción se debe montar
 `DJANGO_MEDIA_ROOT` como volumen persistente y hacer que Caddy sirva `/media/*`,

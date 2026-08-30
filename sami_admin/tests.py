@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
+from datetime import timedelta
+from io import BytesIO
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -10,16 +12,18 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
+from django.utils import timezone
+from PIL import Image
 
 from core.models import SolicitudContacto
 
 from .decorators import administrator_required, staff_required
 from .forms import (
-    ROLE_ADMIN, ROLE_CHOICES, CotizacionForm, LugarTuristicoForm,
+    ROLE_ADMIN, ROLE_CHOICES, CampanaPromocionalForm, CotizacionForm, LugarTuristicoForm,
     StaffUserCreationForm,
 )
 from .models import (
-    AEROLINEAS_CHOICES, Cotizacion, Departamento, HistorialCotizacion,
+    AEROLINEAS_CHOICES, CampanaPromocional, Cotizacion, Departamento, HistorialCotizacion,
     LugarTuristico, Pais, Tour,
 )
 from .views import (
@@ -91,6 +95,84 @@ class AdministratorRequiredTests(SimpleTestCase):
         with self.assertRaises(PermissionDenied):
             self.protected_view(self.request)
 
+
+class CampaignManagementTests(TestCase):
+    def setUp(self):
+        self.administrator = get_user_model().objects.create_user(
+            username="admin-campanas",
+            password="password-seguro-123",
+            is_staff=True,
+        )
+        administrator_group, _ = Group.objects.get_or_create(name="Administrador")
+        self.administrator.groups.add(administrator_group)
+
+    @staticmethod
+    def image_upload(name, size):
+        output = BytesIO()
+        Image.new("RGB", size, "#173F6B").save(output, format="JPEG", quality=80)
+        return SimpleUploadedFile(name, output.getvalue(), content_type="image/jpeg")
+
+    def test_campaign_form_shows_dimensions_and_optimizes_both_images(self):
+        form = CampanaPromocionalForm(
+            data={
+                "nombre": "Black Friday",
+                "etiqueta": "Oferta especial",
+                "titulo": "Hasta 25 % de descuento",
+                "descripcion": "Promoción para destinos seleccionados.",
+                "texto_alternativo": "Familia viajando",
+                "texto_boton": "Cotizar ahora",
+                "tipo_enlace": CampanaPromocional.TipoEnlace.COTIZADOR,
+                "fecha_inicio": (timezone.now() + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
+                "fecha_fin": (timezone.now() + timedelta(days=3)).strftime("%Y-%m-%dT%H:%M"),
+                "prioridad": 20,
+                "activo": True,
+                "mostrar_avion": True,
+            },
+            files={
+                "imagen_escritorio": self.image_upload("desktop.jpg", (1920, 800)),
+                "imagen_movil": self.image_upload("mobile.jpg", (1080, 1350)),
+            },
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertTrue(form.cleaned_data["imagen_escritorio"].name.endswith(".webp"))
+        self.assertTrue(form.cleaned_data["imagen_movil"].name.endswith(".webp"))
+
+    def test_campaign_form_rejects_an_incorrect_image_ratio(self):
+        form = CampanaPromocionalForm(
+            data={
+                "nombre": "Navidad",
+                "titulo": "Viaja en Navidad",
+                "descripcion": "Oferta navideña.",
+                "texto_alternativo": "Destino navideño",
+                "texto_boton": "Cotizar",
+                "tipo_enlace": CampanaPromocional.TipoEnlace.COTIZADOR,
+                "fecha_inicio": timezone.now().strftime("%Y-%m-%dT%H:%M"),
+                "prioridad": 10,
+                "activo": True,
+            },
+            files={
+                "imagen_escritorio": self.image_upload("square.jpg", (800, 800)),
+                "imagen_movil": self.image_upload("mobile.jpg", (1080, 1350)),
+            },
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("imagen_escritorio", form.errors)
+
+    def test_only_administrators_can_manage_campaigns(self):
+        adviser = get_user_model().objects.create_user(
+            username="asesor-campanas", password="password", is_staff=True
+        )
+        self.client.force_login(adviser)
+        self.assertEqual(
+            self.client.get(reverse("sami_admin:campaign-list")).status_code, 403
+        )
+
+        self.client.force_login(self.administrator)
+        response = self.client.get(reverse("sami_admin:campaign-create"))
+        self.assertContains(response, "1920 × 800 px")
+        self.assertContains(response, "1080 × 1350 px")
 
 class SamiAdminUrlTests(SimpleTestCase):
     def test_dashboard_url(self):

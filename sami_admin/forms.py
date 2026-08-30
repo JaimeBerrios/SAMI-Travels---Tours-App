@@ -9,11 +9,14 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.files.base import ContentFile
 from django.db.models import Q
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from core.models import SolicitudContacto
 
-from .models import Cotizacion, CotizacionDestino, Departamento, LugarTuristico, Pais, Tour
+from .models import (
+    CampanaPromocional, Cotizacion, CotizacionDestino, Departamento,
+    LugarTuristico, Pais, Tour,
+)
 
 
 ROLE_ADMIN = "administrador"
@@ -50,6 +53,110 @@ class SolicitudGestionForm(forms.ModelForm):
         for field in self.fields.values():
             field.widget.attrs["class"] = input_class
         apply_error_attributes(self)
+
+
+class CampanaPromocionalForm(forms.ModelForm):
+    IMAGE_SPECS = {
+        "imagen_escritorio": ((1920, 800), "escritorio"),
+        "imagen_movil": ((1080, 1350), "móvil"),
+    }
+
+    class Meta:
+        model = CampanaPromocional
+        fields = (
+            "nombre", "etiqueta", "titulo", "descripcion",
+            "imagen_escritorio", "imagen_movil", "texto_alternativo",
+            "texto_boton", "tipo_enlace", "lugar_turistico", "tour",
+            "url_personalizada", "fecha_inicio", "fecha_fin", "prioridad",
+            "activo", "mostrar_avion",
+        )
+        widgets = {
+            "descripcion": forms.Textarea(attrs={"rows": 4}),
+            "fecha_inicio": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "fecha_fin": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["lugar_turistico"].queryset = LugarTuristico.objects.filter(
+            activo=True,
+            departamento__activo=True,
+            departamento__pais__activo=True,
+        )
+        self.fields["tour"].queryset = Tour.objects.filter(
+            activo=True,
+            lugar_turistico__activo=True,
+        )
+        input_class = (
+            "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 "
+            "text-brand-navy shadow-sm outline-none transition focus:border-brand-red "
+            "focus:ring-4 focus:ring-brand-red/10"
+        )
+        for field in self.fields.values():
+            field.widget.attrs["class"] = input_class
+        for name in ("activo", "mostrar_avion"):
+            self.fields[name].widget.attrs["class"] = "size-5 accent-rose-600"
+        for name in ("fecha_inicio", "fecha_fin"):
+            self.fields[name].widget.format = "%Y-%m-%dT%H:%M"
+            self.fields[name].input_formats = ["%Y-%m-%dT%H:%M"]
+        apply_error_attributes(self)
+
+    def _clean_campaign_image(self, field_name):
+        image = self.cleaned_data.get(field_name)
+        uploaded = self.files.get(field_name)
+        if not image or not uploaded:
+            return image
+        if image.size > 1536 * 1024:
+            raise forms.ValidationError("La imagen no puede superar 1.5 MB.")
+        target, label = self.IMAGE_SPECS[field_name]
+        try:
+            image.seek(0)
+            with Image.open(image) as source:
+                source.load()
+                if source.format not in {"JPEG", "PNG", "WEBP"}:
+                    raise forms.ValidationError("Usa una imagen JPG, PNG o WebP.")
+                ratio = source.width / source.height
+                target_ratio = target[0] / target[1]
+                if abs(ratio - target_ratio) / target_ratio > 0.10:
+                    raise forms.ValidationError(
+                        f"La proporción no corresponde a la imagen de {label}. "
+                        f"Utiliza {target[0]} × {target[1]} px."
+                    )
+                source = ImageOps.fit(
+                    source.convert("RGB"), target, method=Image.Resampling.LANCZOS
+                )
+                output = BytesIO()
+                source.save(output, format="WEBP", quality=84, method=6)
+        except forms.ValidationError:
+            raise
+        except (UnidentifiedImageError, OSError):
+            raise forms.ValidationError("El archivo no es una imagen válida.")
+        filename = f"{Path(uploaded.name).stem}.webp"
+        return ContentFile(output.getvalue(), name=filename)
+
+    def clean_imagen_escritorio(self):
+        return self._clean_campaign_image("imagen_escritorio")
+
+    def clean_imagen_movil(self):
+        return self._clean_campaign_image("imagen_movil")
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get("fecha_inicio")
+        end = cleaned.get("fecha_fin")
+        if start and end and end <= start:
+            self.add_error("fecha_fin", "Debe ser posterior al inicio de la campaña.")
+        link_type = cleaned.get("tipo_enlace")
+        requirements = {
+            CampanaPromocional.TipoEnlace.DESTINO: ("lugar_turistico", "Selecciona el destino de la campaña."),
+            CampanaPromocional.TipoEnlace.TOUR: ("tour", "Selecciona el tour de la campaña."),
+            CampanaPromocional.TipoEnlace.PERSONALIZADO: ("url_personalizada", "Escribe la dirección del enlace."),
+        }
+        if link_type in requirements:
+            field, error = requirements[link_type]
+            if not cleaned.get(field):
+                self.add_error(field, error)
+        return cleaned
 
 
 def apply_error_attributes(form):

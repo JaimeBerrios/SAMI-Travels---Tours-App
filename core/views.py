@@ -1,9 +1,12 @@
 from django.contrib import messages
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 
-from sami_admin.models import LugarTuristico, Tour
+from sami_admin.models import CampanaPromocional, LugarTuristico, Tour
 
 from .forms import SolicitudContactoForm
 from .models import SolicitudContacto
@@ -87,6 +90,29 @@ def portal_publico(request):
     featured_tours = tours.filter(destacado=True)[:6]
     if not featured_tours:
         featured_tours = tours[:6]
+    now = timezone.now()
+    campaign = CampanaPromocional.objects.filter(
+        activo=True,
+        fecha_inicio__lte=now,
+    ).filter(Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=now)).select_related(
+        "lugar_turistico", "tour"
+    ).order_by("-prioridad", "-fecha_inicio", "-id").first()
+    campaign_url = ""
+    if campaign:
+        if campaign.tipo_enlace == CampanaPromocional.TipoEnlace.DESTINO:
+            campaign_url = (
+                reverse("core:portal-publico")
+                + f"?lugar={campaign.lugar_turistico_id}#cotizar"
+            )
+        elif campaign.tipo_enlace == CampanaPromocional.TipoEnlace.TOUR:
+            campaign_url = (
+                reverse("core:portal-publico")
+                + f"?tour={campaign.tour_id}#cotizar"
+            )
+        elif campaign.tipo_enlace == CampanaPromocional.TipoEnlace.PERSONALIZADO:
+            campaign_url = campaign.url_personalizada
+        else:
+            campaign_url = reverse("core:portal-publico") + "#cotizar"
     return render(
         request,
         "core/portal_publico.html",
@@ -94,6 +120,8 @@ def portal_publico(request):
             "form": form,
             "featured_destinations": featured_destinations,
             "featured_tours": featured_tours,
+            "campaign": campaign,
+            "campaign_url": campaign_url,
         },
     )
 

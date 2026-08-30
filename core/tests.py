@@ -3,8 +3,12 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils import timezone
+from datetime import timedelta
 
-from sami_admin.models import Departamento, LugarTuristico, Pais, Tour
+from sami_admin.models import (
+    CampanaPromocional, Departamento, LugarTuristico, Pais, Tour,
+)
 
 from .models import SolicitudContacto
 
@@ -33,6 +37,49 @@ class BasicProductionViewsTests(TestCase):
         self.assertNotIn("X-Robots-Tag", response)
         self.assertNotContains(response, reverse("sami_admin:dashboard"))
         self.assertNotContains(response, "SAMI Admin")
+
+    def test_current_campaign_replaces_the_default_hero_and_keeps_plane(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="Black Friday",
+            etiqueta="Oferta limitada",
+            titulo="Viaja con descuento",
+            descripcion="Promoción especial para destinos seleccionados.",
+            imagen_escritorio="campanas/escritorio/black-friday.webp",
+            imagen_movil="campanas/movil/black-friday.webp",
+            texto_alternativo="Viajeros durante Black Friday",
+            fecha_inicio=timezone.now() - timedelta(hours=1),
+            fecha_fin=timezone.now() + timedelta(days=1),
+            mostrar_avion=True,
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, campaign.titulo)
+        self.assertContains(response, campaign.imagen_escritorio.url)
+        self.assertContains(response, campaign.imagen_movil.url)
+        self.assertContains(response, 'id="flight-animation-toggle"')
+        self.assertNotContains(
+            response, "Tu próximo destino está más cerca de lo que imaginas."
+        )
+
+    def test_expired_campaign_falls_back_to_the_corporate_hero(self):
+        CampanaPromocional.objects.create(
+            nombre="Navidad pasada",
+            titulo="Oferta finalizada",
+            descripcion="Esta campaña ya no debe aparecer.",
+            imagen_escritorio="campanas/escritorio/navidad.webp",
+            imagen_movil="campanas/movil/navidad.webp",
+            texto_alternativo="Promoción navideña",
+            fecha_inicio=timezone.now() - timedelta(days=2),
+            fecha_fin=timezone.now() - timedelta(days=1),
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertNotContains(response, "Oferta finalizada")
+        self.assertContains(
+            response, "Tu próximo destino está más cerca de lo que imaginas."
+        )
 
     def test_robots_txt_only_allows_the_public_site(self):
         response = self.client.get(reverse("robots-txt"))

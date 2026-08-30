@@ -30,17 +30,26 @@
 {% endblock %}
 {% block content %}
 <section class="relative isolate overflow-hidden bg-brand-navy text-white">
+    {% if campaign %}
+    <picture class="absolute inset-0 -z-20">
+        <source media="(max-width: 639px)" srcset="{{ campaign.imagen_movil.url }}">
+        <img src="{{ campaign.imagen_escritorio.url }}" alt="{{ campaign.texto_alternativo }}" class="h-full w-full object-cover">
+    </picture>
+    <div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-navy via-brand-navy/90 to-brand-navy/35"></div>
+    {% else %}
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(215,25,32,.28),transparent_35%),linear-gradient(110deg,#06152B_20%,#173F6B_100%)]"></div>
+    {% endif %}
     <div class="mx-auto grid min-h-[70vh] max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-28">
         <div>
-            <span class="inline-flex rounded-full bg-brand-red px-4 py-2 text-xs font-extrabold uppercase tracking-[.2em] text-white">Explora · Descubre · Disfruta</span>
-            <h1 class="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">Tu próximo destino está más cerca de lo que imaginas.</h1>
-            <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-200">Encontramos vuelos, tours y experiencias diseñadas para ti, con acompañamiento antes, durante y después de tu viaje.</p>
+            <span class="inline-flex rounded-full bg-brand-red px-4 py-2 text-xs font-extrabold uppercase tracking-[.2em] text-white">{% if campaign %}{{ campaign.etiqueta }}{% else %}Explora · Descubre · Disfruta{% endif %}</span>
+            <h1 class="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">{% if campaign %}{{ campaign.titulo }}{% else %}Tu próximo destino está más cerca de lo que imaginas.{% endif %}</h1>
+            <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-200">{% if campaign %}{{ campaign.descripcion }}{% else %}Encontramos vuelos, tours y experiencias diseñadas para ti, con acompañamiento antes, durante y después de tu viaje.{% endif %}</p>
             <div class="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a href="#cotizar" class="rounded-xl bg-brand-red px-6 py-3.5 text-center font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:ring-4 focus:ring-white/30">Solicitar cotización</a>
+                <a href="{% if campaign %}{{ campaign_url }}{% else %}#cotizar{% endif %}" class="rounded-xl bg-brand-red px-6 py-3.5 text-center font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:ring-4 focus:ring-white/30"{% if campaign.tipo_enlace == 'personalizado' %} target="_blank" rel="noopener noreferrer"{% endif %}>{% if campaign %}{{ campaign.texto_boton }}{% else %}Solicitar cotización{% endif %}</a>
                 <a href="#servicios" class="rounded-xl border border-white/40 px-6 py-3.5 text-center font-bold transition hover:bg-white/10">Ver servicios</a>
             </div>
         </div>
+        {% if not campaign or campaign.mostrar_avion %}
         <div class="hidden justify-center lg:flex">
             <button id="flight-animation-toggle" type="button" class="flight-animation rounded-3xl border border-white/15 bg-white/5 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-4 focus:ring-offset-brand-navy" aria-label="Pausar animación del avión" aria-pressed="false">
                 <svg class="flight-animation__route" viewBox="0 0 420 280" role="img" aria-labelledby="flight-route-title flight-route-description">
@@ -83,6 +92,7 @@
                 <span class="absolute bottom-4 left-0 right-0 text-center text-xs font-bold uppercase tracking-[.18em] text-white/70">Haz clic para pausar</span>
             </button>
         </div>
+        {% endif %}
     </div>
 </section>
 

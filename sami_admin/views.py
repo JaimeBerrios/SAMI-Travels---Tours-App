@@ -30,6 +30,7 @@ from .decorators import (
 from .forms import (
     MANAGED_GROUPS,
     ROLE_ADMIN,
+    CampanaPromocionalForm,
     CotizacionForm,
     DepartamentoForm,
     LugarTuristicoForm,
@@ -45,7 +46,7 @@ from .forms import (
 from core.models import SolicitudContacto
 
 from .models import (
-    Cotizacion, CotizacionDestino, Departamento, HistorialCotizacion,
+    CampanaPromocional, Cotizacion, CotizacionDestino, Departamento, HistorialCotizacion,
     LugarTuristico, Pais, Tour,
 )
 from .selectors import can_view_all_quotes, quotations_for
@@ -63,6 +64,67 @@ def assign_user_role(user, role):
     if group_name:
         group, _ = Group.objects.get_or_create(name=group_name)
         user.groups.add(group)
+
+
+@administrator_required
+def campaign_list(request):
+    campaigns = CampanaPromocional.objects.select_related(
+        "lugar_turistico", "tour", "actualizado_por"
+    )
+    return render(
+        request,
+        "sami_admin/campana_list.html",
+        {"campaigns": campaigns, "now": timezone.now()},
+    )
+
+
+@administrator_required
+def campaign_create(request):
+    form = CampanaPromocionalForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        campaign = form.save(commit=False)
+        campaign.creado_por = request.user
+        campaign.actualizado_por = request.user
+        campaign.save()
+        messages.success(request, "La campaña fue creada correctamente.")
+        return redirect("sami_admin:campaign-list")
+    return render(
+        request,
+        "sami_admin/campana_form.html",
+        {"form": form, "form_title": "Nueva campaña"},
+    )
+
+
+@administrator_required
+def campaign_update(request, campaign_id):
+    campaign = get_object_or_404(CampanaPromocional, pk=campaign_id)
+    form = CampanaPromocionalForm(
+        request.POST or None, request.FILES or None, instance=campaign
+    )
+    if request.method == "POST" and form.is_valid():
+        campaign = form.save(commit=False)
+        campaign.actualizado_por = request.user
+        campaign.save()
+        messages.success(request, "La campaña fue actualizada.")
+        return redirect("sami_admin:campaign-list")
+    return render(
+        request,
+        "sami_admin/campana_form.html",
+        {"form": form, "form_title": "Editar campaña", "campaign": campaign},
+    )
+
+
+@require_POST
+@administrator_required
+def campaign_toggle(request, campaign_id):
+    campaign = get_object_or_404(CampanaPromocional, pk=campaign_id)
+    campaign.activo = not campaign.activo
+    campaign.actualizado_por = request.user
+    campaign.save(update_fields=("activo", "actualizado_por", "actualizado_en"))
+    messages.success(
+        request, f"La campaña fue {'activada' if campaign.activo else 'pausada'}."
+    )
+    return redirect("sami_admin:campaign-list")
 
 
 def login_view(request):
