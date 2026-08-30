@@ -57,3 +57,26 @@ def catalog_manager_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return wrapped_view
+
+
+def administrator_required(view_func):
+    """Allow user management to administrators and technical superusers."""
+
+    @wraps(view_func)
+    def wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+        is_administrator = request.user.is_superuser or request.user.groups.filter(
+            name="Administrador"
+        ).exists()
+        if (
+            not request.user.is_active
+            or not request.user.is_staff
+            or not is_administrator
+        ):
+            raise PermissionDenied(
+                "Solo administradores pueden gestionar las cuentas del personal."
+            )
+        return view_func(request, *args, **kwargs)
+
+    return wrapped_view

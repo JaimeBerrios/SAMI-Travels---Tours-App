@@ -11,9 +11,9 @@ from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
 
-from .decorators import staff_required, superuser_required
+from .decorators import administrator_required, staff_required, superuser_required
 from .forms import (
-    ROLE_ADMIN, ROLE_SUPERUSER, CotizacionForm, LugarTuristicoForm,
+    ROLE_ADMIN, ROLE_CHOICES, CotizacionForm, LugarTuristicoForm,
     StaffUserCreationForm,
 )
 from .models import (
@@ -84,6 +84,37 @@ class SuperuserRequiredTests(SimpleTestCase):
         )
 
         self.assertEqual(self.protected_view(self.request), "allowed")
+
+
+class AdministratorRequiredTests(SimpleTestCase):
+    def setUp(self):
+        self.request = RequestFactory().get("/sami-admin/usuarios/")
+        self.protected_view = administrator_required(lambda request: "allowed")
+
+    def test_administrator_group_is_allowed(self):
+        groups = MagicMock()
+        groups.filter.return_value.exists.return_value = True
+        self.request.user = SimpleNamespace(
+            is_authenticated=True,
+            is_active=True,
+            is_staff=True,
+            is_superuser=False,
+            groups=groups,
+        )
+        self.assertEqual(self.protected_view(self.request), "allowed")
+
+    def test_adviser_is_denied(self):
+        groups = MagicMock()
+        groups.filter.return_value.exists.return_value = False
+        self.request.user = SimpleNamespace(
+            is_authenticated=True,
+            is_active=True,
+            is_staff=True,
+            is_superuser=False,
+            groups=groups,
+        )
+        with self.assertRaises(PermissionDenied):
+            self.protected_view(self.request)
 
 
 class SamiAdminUrlTests(SimpleTestCase):
@@ -252,15 +283,19 @@ class RoleAssignmentTests(SimpleTestCase):
         user.groups.add.assert_called_once_with(administrator_group)
 
     @patch("sami_admin.views.Group.objects")
-    def test_superuser_role_does_not_add_a_limited_group(self, group_manager):
+    def test_only_administrator_and_adviser_roles_are_available(self, group_manager):
         user = MagicMock()
+        administrator_group = object()
         group_manager.filter.return_value = []
+        group_manager.get_or_create.return_value = (administrator_group, True)
 
-        assign_user_role(user, ROLE_SUPERUSER)
+        assign_user_role(user, ROLE_ADMIN)
 
-        self.assertTrue(user.is_superuser)
-        group_manager.get_or_create.assert_not_called()
-        user.groups.add.assert_not_called()
+        self.assertFalse(user.is_superuser)
+        self.assertEqual(
+            ROLE_CHOICES,
+            (("administrador", "Administrador"), ("asesor", "Asesor")),
+        )
 
 
 class UserDeactivateTests(SimpleTestCase):
@@ -270,6 +305,49 @@ class UserDeactivateTests(SimpleTestCase):
         response = user_deactivate(request, user_id=7)
 
         self.assertEqual(response.status_code, 405)
+
+
+class AdministratorUserManagementTests(TestCase):
+    def setUp(self):
+        administrator_group = Group.objects.create(name="Administrador")
+        self.administrator = get_user_model().objects.create_user(
+            username="administrador",
+            email="admin@example.com",
+            password="password-123",
+            is_staff=True,
+        )
+        self.administrator.groups.add(administrator_group)
+        self.adviser = get_user_model().objects.create_user(
+            username="asesor-eliminable",
+            email="asesor@example.com",
+            password="password-123",
+            is_staff=True,
+        )
+        self.adviser.groups.add(Group.objects.create(name="Asesor"))
+        self.client.force_login(self.administrator)
+
+    def test_administrator_can_open_user_management_and_sees_menu_link(self):
+        response = self.client.get(reverse("sami_admin:user-list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Nuevo usuario")
+        self.assertContains(response, reverse("sami_admin:user-list"))
+        self.assertNotContains(response, "Superusuario")
+
+    def test_administrator_can_delete_an_adviser_access(self):
+        response = self.client.post(
+            reverse("sami_admin:user-delete", args=[self.adviser.pk])
+        )
+        self.assertRedirects(response, reverse("sami_admin:user-list"))
+        self.assertFalse(
+            get_user_model().objects.filter(pk=self.adviser.pk).exists()
+        )
+
+    def test_administrator_cannot_delete_own_access(self):
+        self.client.post(
+            reverse("sami_admin:user-delete", args=[self.administrator.pk])
+        )
+        self.administrator.refresh_from_db()
+        self.assertTrue(self.administrator.is_active)
 
 
 class QuotationPermissionTests(SimpleTestCase):

@@ -61,7 +61,7 @@ urlpatterns = [
     ),
     path(
         "usuarios/<int:user_id>/eliminar/",
-        views.user_deactivate,
+        views.user_delete,
         name="user-delete",
     ),
     path("", views.dashboard, name="dashboard"),

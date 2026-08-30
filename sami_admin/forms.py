@@ -11,11 +11,9 @@ from PIL import Image, UnidentifiedImageError
 from .models import Cotizacion, Departamento, LugarTuristico, Pais, Tour
 
 
-ROLE_SUPERUSER = "superuser"
 ROLE_ADMIN = "administrador"
 ROLE_ADVISER = "asesor"
 ROLE_CHOICES = (
-    (ROLE_SUPERUSER, "Superusuario"),
     (ROLE_ADMIN, "Administrador"),
     (ROLE_ADVISER, "Asesor"),
 )
@@ -47,8 +45,6 @@ def apply_error_attributes(form):
 
 
 def get_user_role(user):
-    if user.is_superuser:
-        return ROLE_SUPERUSER
     group_names = {group.name for group in user.groups.all()}
     if MANAGED_GROUPS[ROLE_ADMIN] in group_names:
         return ROLE_ADMIN
@@ -121,7 +117,7 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
 
 
 class StaffUserCreationForm(StaffUserFieldsMixin, UserCreationForm):
-    """Create a staff account with a role selected by a superuser."""
+    """Create a staff account with an administrator or adviser role."""
 
     role = forms.ChoiceField(label="Rol", choices=ROLE_CHOICES)
 

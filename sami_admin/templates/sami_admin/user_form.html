@@ -30,7 +30,7 @@
                     <div class="{% if field.name == 'username' or field.name == 'email' or field.name == 'role' or field.name == 'password1' or field.name == 'password2' %}sm:col-span-2{% endif %}">
                         <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %}<span class="text-rose-600"> *</span>{% endif %}</label>
                         {{ field }}
-                        {% if field.name == "role" %}<p class="mt-2 text-xs text-slate-500">Superusuario: control total. Administrador y Asesor: acceso limitado mediante grupos.</p>{% elif field.help_text %}<div class="mt-2 text-xs leading-relaxed text-slate-500">{{ field.help_text|safe }}</div>{% endif %}
+                        {% if field.name == "role" %}<p class="mt-2 text-xs text-slate-500">Administrador: gestiona usuarios y operación. Asesor: cotizaciones y consulta del catálogo.</p>{% elif field.help_text %}<div class="mt-2 text-xs leading-relaxed text-slate-500">{{ field.help_text|safe }}</div>{% endif %}
                         {% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}
                     </div>
                 {% endfor %}

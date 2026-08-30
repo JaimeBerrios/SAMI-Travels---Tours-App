@@ -21,10 +21,15 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .decorators import catalog_manager_required, staff_required, superuser_required
+from .decorators import (
+    administrator_required,
+    catalog_manager_required,
+    staff_required,
+    superuser_required,
+)
 from .forms import (
     MANAGED_GROUPS,
-    ROLE_SUPERUSER,
+    ROLE_ADMIN,
     CotizacionForm,
     DepartamentoForm,
     LugarTuristicoForm,
@@ -44,7 +49,7 @@ from .services import generate_quotation_pdf
 def assign_user_role(user, role):
     """Persist one of SAMI's managed roles without removing unrelated groups."""
     user.is_staff = True
-    user.is_superuser = role == ROLE_SUPERUSER
+    user.is_superuser = False
     user.save()
 
     user.groups.remove(*Group.objects.filter(name__in=MANAGED_GROUPS.values()))
@@ -497,12 +502,12 @@ def change_password(request):
     )
 
 
-@superuser_required
+@administrator_required
 def user_list(request):
     """List current and deactivated staff accounts for auditability."""
     users = list(
         get_user_model()
-        .objects.filter(is_staff=True)
+        .objects.filter(is_staff=True, is_superuser=False)
         .prefetch_related("groups")
         .order_by("-is_active", "-is_superuser", "first_name", "username")
     )
@@ -511,7 +516,7 @@ def user_list(request):
     return render(request, "sami_admin/user_list.html", {"users": users})
 
 
-@superuser_required
+@administrator_required
 def user_create(request):
     """Create a limited staff account without superuser privileges."""
     form = StaffUserCreationForm(request.POST or None)
@@ -532,25 +537,30 @@ def user_create(request):
     )
 
 
-@superuser_required
+@administrator_required
 def user_update(request, user_id):
     """Update identity and role fields for a staff account."""
-    user = get_object_or_404(get_user_model(), pk=user_id, is_staff=True)
+    user = get_object_or_404(
+        get_user_model(), pk=user_id, is_staff=True, is_superuser=False
+    )
     form = StaffUserUpdateForm(request.POST or None, instance=user)
 
     if request.method == "POST" and form.is_valid():
         new_role = form.cleaned_data["role"]
-        active_superusers = get_user_model().objects.filter(
-            is_superuser=True, is_active=True
-        )
+        active_administrators = get_user_model().objects.filter(
+            is_active=True,
+            is_staff=True,
+            is_superuser=False,
+            groups__name=MANAGED_GROUPS[ROLE_ADMIN],
+        ).distinct()
         if (
-            user.is_superuser
-            and new_role != ROLE_SUPERUSER
-            and active_superusers.count() <= 1
+            user.groups.filter(name=MANAGED_GROUPS[ROLE_ADMIN]).exists()
+            and new_role != ROLE_ADMIN
+            and active_administrators.count() <= 1
         ):
             form.add_error(
                 "role",
-                "Debe permanecer al menos un superusuario activo.",
+                "Debe permanecer al menos un administrador activo.",
             )
         else:
             with transaction.atomic():
@@ -567,22 +577,68 @@ def user_update(request, user_id):
 
 
 @require_POST
-@superuser_required
+@administrator_required
 def user_deactivate(request, user_id):
     """Soft-delete a staff account while retaining its historical relations."""
-    user = get_object_or_404(get_user_model(), pk=user_id, is_staff=True)
+    user = get_object_or_404(
+        get_user_model(), pk=user_id, is_staff=True, is_superuser=False
+    )
     if user.pk == request.user.pk:
         messages.error(request, "No puedes desactivar tu propia cuenta.")
     elif (
-        user.is_superuser
+        user.groups.filter(name=MANAGED_GROUPS[ROLE_ADMIN]).exists()
         and get_user_model().objects.filter(
-            is_superuser=True, is_active=True
-        ).count()
+            is_superuser=False,
+            is_staff=True,
+            is_active=True,
+            groups__name=MANAGED_GROUPS[ROLE_ADMIN],
+        ).distinct().count()
         <= 1
     ):
-        messages.error(request, "Debe permanecer al menos un superusuario activo.")
+        messages.error(request, "Debe permanecer al menos un administrador activo.")
     else:
         user.is_active = False
         user.save(update_fields=["is_active"])
-        messages.success(request, f"El usuario {user.username} fue desactivado.")
+        messages.success(
+            request,
+            f"El usuario {user.username} fue eliminado del acceso al panel.",
+        )
+    return redirect("sami_admin:user-list")
+
+
+@require_POST
+@administrator_required
+def user_delete(request, user_id):
+    """Delete unused accounts; preserve referenced accounts by revoking access."""
+    user = get_object_or_404(
+        get_user_model(), pk=user_id, is_staff=True, is_superuser=False
+    )
+    if user.pk == request.user.pk:
+        messages.error(request, "No puedes eliminar tu propia cuenta.")
+        return redirect("sami_admin:user-list")
+
+    is_administrator = user.groups.filter(
+        name=MANAGED_GROUPS[ROLE_ADMIN]
+    ).exists()
+    active_administrators = get_user_model().objects.filter(
+        is_superuser=False,
+        is_staff=True,
+        is_active=True,
+        groups__name=MANAGED_GROUPS[ROLE_ADMIN],
+    ).distinct()
+    if is_administrator and active_administrators.count() <= 1:
+        messages.error(request, "Debe permanecer al menos un administrador activo.")
+        return redirect("sami_admin:user-list")
+
+    username = user.username
+    try:
+        user.delete()
+        messages.success(request, f"El usuario {username} fue eliminado.")
+    except ProtectedError:
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        messages.warning(
+            request,
+            f"El acceso de {username} fue eliminado. La cuenta se conservó porque tiene historial relacionado.",
+        )
     return redirect("sami_admin:user-list")
