@@ -11,6 +11,8 @@ from django.core.files.base import ContentFile
 from django.db.models import Q
 from PIL import Image, UnidentifiedImageError
 
+from core.models import SolicitudContacto
+
 from .models import Cotizacion, CotizacionDestino, Departamento, LugarTuristico, Pais, Tour
 
 
@@ -24,6 +26,30 @@ MANAGED_GROUPS = {
     ROLE_ADMIN: "Administrador",
     ROLE_ADVISER: "Asesor",
 }
+
+
+class SolicitudGestionForm(forms.ModelForm):
+    class Meta:
+        model = SolicitudContacto
+        fields = (
+            "correo", "telefono", "estado", "asignada_a", "notas_internas"
+        )
+        widgets = {"notas_internas": forms.Textarea(attrs={"rows": 5})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["asignada_a"].queryset = get_user_model().objects.filter(
+            is_active=True,
+            is_staff=True,
+        ).order_by("first_name", "username")
+        input_class = (
+            "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 "
+            "text-brand-navy shadow-sm outline-none transition focus:border-brand-red "
+            "focus:ring-4 focus:ring-brand-red/10"
+        )
+        for field in self.fields.values():
+            field.widget.attrs["class"] = input_class
+        apply_error_attributes(self)
 
 
 def apply_error_attributes(form):
@@ -701,7 +727,10 @@ class DepartamentoForm(CatalogFormMixin, forms.ModelForm):
 class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
     class Meta:
         model = LugarTuristico
-        fields = ("departamento", "nombre", "imagen", "descripcion_historica", "activo")
+        fields = (
+            "departamento", "nombre", "imagen", "resumen_publico",
+            "descripcion_historica", "destacado", "activo",
+        )
         widgets = {"descripcion_historica": forms.Textarea(attrs={"rows": 7})}
 
     def __init__(self, *args, **kwargs):
@@ -751,7 +780,8 @@ class TourForm(CatalogFormMixin, forms.ModelForm):
         fields = (
             "lugar_turistico", "nombre_comercial", "duracion", "punto_encuentro",
             "incluye", "no_incluye", "itinerario", "recomendaciones", "que_llevar",
-            "restricciones", "politica_cancelacion", "precio_base", "activo",
+            "restricciones", "politica_cancelacion", "precio_base", "destacado",
+            "en_promocion", "activo",
         )
         widgets = {
             name: forms.Textarea(attrs={"rows": 4})

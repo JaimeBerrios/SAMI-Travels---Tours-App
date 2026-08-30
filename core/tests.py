@@ -4,6 +4,8 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 
+from sami_admin.models import Departamento, LugarTuristico, Pais, Tour
+
 from .models import SolicitudContacto
 
 
@@ -134,7 +136,7 @@ class BasicProductionViewsTests(TestCase):
             reverse("core:portal-publico"),
             {
                 "nombre": "María López",
-                "contacto": "maria@example.com",
+                "correo": "maria@example.com",
                 "servicio": "vuelo y tour",
                 "destino": "Madrid",
                 "detalles": "Dos adultos, salida en diciembre.",
@@ -144,6 +146,7 @@ class BasicProductionViewsTests(TestCase):
         self.assertRedirects(response, reverse("core:portal-publico"))
         solicitud = SolicitudContacto.objects.get()
         self.assertEqual(solicitud.nombre, "María López")
+        self.assertEqual(solicitud.correo, "maria@example.com")
         self.assertEqual(solicitud.contacto, "maria@example.com")
         self.assertEqual(solicitud.destino, "Madrid")
         self.assertEqual(solicitud.detalles, "Dos adultos, salida en diciembre.")
@@ -162,7 +165,7 @@ class BasicProductionViewsTests(TestCase):
             reverse("core:portal-publico"),
             {
                 "nombre": "Robot",
-                "contacto": "robot@example.com",
+                "correo": "robot@example.com",
                 "servicio": "vuelo",
                 "website": "https://spam.example",
             },
@@ -175,7 +178,7 @@ class BasicProductionViewsTests(TestCase):
     def test_public_form_rate_limits_repeated_attempts(self):
         payload = {
             "nombre": "María López",
-            "contacto": "maria@example.com",
+            "correo": "maria@example.com",
             "servicio": "vuelo",
         }
         self.client.post(reverse("core:portal-publico"), payload)
@@ -192,3 +195,41 @@ class BasicProductionViewsTests(TestCase):
             response["Permissions-Policy"],
             "camera=(), microphone=(), geolocation=(), payment=()",
         )
+
+    def test_public_catalog_pages_and_quote_prefill(self):
+        country = Pais.objects.create(nombre="El Salvador")
+        department = Departamento.objects.create(
+            pais=country,
+            nombre="La Libertad",
+        )
+        place = LugarTuristico.objects.create(
+            departamento=department,
+            nombre="El Tunco",
+            imagen="lugares_turisticos/el-tunco.jpg",
+            descripcion_historica="Destino de playa reconocido por sus olas.",
+            destacado=True,
+        )
+        tour = Tour.objects.create(
+            lugar_turistico=place,
+            nombre_comercial="Atardecer en El Tunco",
+            duracion="6 horas",
+            incluye="Transporte y guía",
+            itinerario="Recorrido por la costa",
+            precio_base=75,
+            destacado=True,
+        )
+
+        destination_response = self.client.get(
+            reverse("core:destination-detail", args=[place.slug])
+        )
+        tour_response = self.client.get(
+            reverse("core:tour-detail", args=[tour.slug])
+        )
+        portal_response = self.client.get(
+            reverse("core:portal-publico"), {"tour": tour.pk}
+        )
+
+        self.assertContains(destination_response, "El Tunco")
+        self.assertContains(tour_response, "Atardecer en El Tunco")
+        self.assertContains(portal_response, "Atardecer en El Tunco")
+        self.assertContains(portal_response, 'value="tour" selected')

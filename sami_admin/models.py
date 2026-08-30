@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator
 from django.core.files.storage import default_storage
 from django.db import models
 from django.utils import timezone
+from django.utils.text import slugify
 
 
 AEROLINEAS_CHOICES = [
@@ -81,8 +82,11 @@ class LugarTuristico(models.Model):
         related_name="lugares_turisticos",
     )
     nombre = models.CharField(max_length=180)
+    slug = models.SlugField(max_length=220, unique=True)
     imagen = models.ImageField(upload_to="lugares_turisticos/")
     descripcion_historica = models.TextField()
+    resumen_publico = models.CharField(max_length=280, blank=True)
+    destacado = models.BooleanField(default=False, db_index=True)
     activo = models.BooleanField(default=True, db_index=True)
     creado_en = models.DateTimeField(default=timezone.now, editable=False)
     actualizado_en = models.DateTimeField(auto_now=True, null=True)
@@ -109,6 +113,19 @@ class LugarTuristico(models.Model):
     def __str__(self):
         return f"{self.nombre} · {self.departamento}"
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(f"{self.nombre}-{self.departamento.nombre}")[:200]
+            candidate = base
+            suffix = 2
+            while LugarTuristico.objects.exclude(pk=self.pk).filter(
+                slug=candidate
+            ).exists():
+                candidate = f"{base[:214]}-{suffix}"
+                suffix += 1
+            self.slug = candidate
+        super().save(*args, **kwargs)
+
 
 class Tour(models.Model):
     lugar_turistico = models.ForeignKey(
@@ -117,6 +134,7 @@ class Tour(models.Model):
         related_name="tours",
     )
     nombre_comercial = models.CharField(max_length=180)
+    slug = models.SlugField(max_length=220, unique=True)
     duracion = models.CharField(max_length=120)
     punto_encuentro = models.CharField(max_length=255, blank=True)
     incluye = models.TextField()
@@ -131,6 +149,8 @@ class Tour(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)],
     )
+    destacado = models.BooleanField(default=False, db_index=True)
+    en_promocion = models.BooleanField(default=False, db_index=True)
     activo = models.BooleanField(default=True, db_index=True)
     creado_en = models.DateTimeField(default=timezone.now, editable=False)
     actualizado_en = models.DateTimeField(auto_now=True, null=True)
@@ -154,6 +174,19 @@ class Tour(models.Model):
 
     def __str__(self):
         return f"{self.nombre_comercial} · {self.lugar_turistico.nombre}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(
+                f"{self.nombre_comercial}-{self.lugar_turistico.nombre}"
+            )[:200]
+            candidate = base
+            suffix = 2
+            while Tour.objects.exclude(pk=self.pk).filter(slug=candidate).exists():
+                candidate = f"{base[:214]}-{suffix}"
+                suffix += 1
+            self.slug = candidate
+        super().save(*args, **kwargs)
 
 
 class Cotizacion(models.Model):

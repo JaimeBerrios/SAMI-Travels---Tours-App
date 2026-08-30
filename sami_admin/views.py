@@ -19,6 +19,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .decorators import (
@@ -37,10 +38,16 @@ from .forms import (
     SamiAdminAuthenticationForm,
     StaffUserCreationForm,
     StaffUserUpdateForm,
+    SolicitudGestionForm,
     apply_error_attributes,
     get_user_role,
 )
-from .models import Cotizacion, Departamento, HistorialCotizacion, LugarTuristico, Pais, Tour
+from core.models import SolicitudContacto
+
+from .models import (
+    Cotizacion, CotizacionDestino, Departamento, HistorialCotizacion,
+    LugarTuristico, Pais, Tour,
+)
 from .selectors import can_view_all_quotes, quotations_for
 from .services import generate_quotation_pdf
 
@@ -126,6 +133,12 @@ def dashboard(request):
         total_accesos = (
             get_user_model().objects.filter(is_staff=True, is_active=True).count()
         )
+    solicitudes_pendientes = SolicitudContacto.objects.exclude(
+        estado__in=(
+            SolicitudContacto.Estado.CONVERTIDA,
+            SolicitudContacto.Estado.DESCARTADA,
+        )
+    ).count()
     return render(
         request,
         "sami_admin/dashboard.html",
@@ -142,9 +155,172 @@ def dashboard(request):
             "total_cotizaciones": total_cotizaciones,
             "total_clientes": total_clientes,
             "total_accesos": total_accesos,
+            "solicitudes_pendientes": solicitudes_pendientes,
             "ultimas_cotizaciones": quotations[:5],
         },
     )
+
+
+@staff_required
+def request_list(request):
+    status = request.GET.get("estado", "pendientes")
+    query = request.GET.get("q", "").strip()
+    requests = SolicitudContacto.objects.select_related(
+        "asignada_a", "lugar_turistico", "tour", "cotizacion"
+    )
+    if status == "pendientes":
+        requests = requests.exclude(
+            estado__in=(
+                SolicitudContacto.Estado.CONVERTIDA,
+                SolicitudContacto.Estado.DESCARTADA,
+            )
+        )
+    elif status in SolicitudContacto.Estado.values:
+        requests = requests.filter(estado=status)
+    if query:
+        requests = requests.filter(
+            Q(nombre__icontains=query)
+            | Q(correo__icontains=query)
+            | Q(telefono__icontains=query)
+            | Q(destino__icontains=query)
+        )
+    page = Paginator(requests, 20).get_page(request.GET.get("page"))
+    return render(
+        request,
+        "sami_admin/solicitud_list.html",
+        {"page_obj": page, "query": query, "status": status},
+    )
+
+
+@staff_required
+def request_detail(request, request_id):
+    solicitud = get_object_or_404(
+        SolicitudContacto.objects.select_related(
+            "asignada_a", "lugar_turistico", "tour", "cotizacion"
+        ),
+        pk=request_id,
+    )
+    form = SolicitudGestionForm(request.POST or None, instance=solicitud)
+    if request.method == "POST" and form.is_valid():
+        solicitud = form.save(commit=False)
+        solicitud.atendida = solicitud.estado != SolicitudContacto.Estado.NUEVA
+        solicitud.save()
+        messages.success(request, "La solicitud fue actualizada.")
+        return redirect("sami_admin:request-detail", request_id=solicitud.pk)
+    return render(
+        request,
+        "sami_admin/solicitud_detail.html",
+        {"solicitud": solicitud, "form": form},
+    )
+
+
+@require_POST
+@staff_required
+def request_convert(request, request_id):
+    solicitud = get_object_or_404(
+        SolicitudContacto.objects.select_related("lugar_turistico", "tour"),
+        pk=request_id,
+    )
+    if solicitud.cotizacion_id:
+        return redirect(
+            "sami_admin:quotation-update", quotation_id=solicitud.cotizacion_id
+        )
+    if not solicitud.correo:
+        messages.error(
+            request,
+            "Agrega un correo válido a la solicitud antes de convertirla.",
+        )
+        return redirect("sami_admin:request-detail", request_id=solicitud.pk)
+
+    type_mapping = {
+        SolicitudContacto.Servicio.VUELO: Cotizacion.TipoCotizacion.VUELOS,
+        SolicitudContacto.Servicio.TOUR: Cotizacion.TipoCotizacion.TOURS,
+        SolicitudContacto.Servicio.VUELO_TOUR: Cotizacion.TipoCotizacion.VUELOS_TOURS,
+    }
+    adviser = solicitud.asignada_a or request.user
+    place = solicitud.lugar_turistico
+    tour = solicitud.tour
+    with transaction.atomic():
+        quotation = Cotizacion.objects.create(
+            asesor=adviser,
+            cliente_nombre=solicitud.nombre,
+            cliente_correo=solicitud.correo,
+            tipo_cotizacion=type_mapping[solicitud.servicio],
+            destino=solicitud.destino or (place.nombre if place else "Por definir"),
+            lugar_turistico=place,
+            tour=tour,
+            nombre_destino_cotizado=place.nombre if place else solicitud.destino,
+            nombre_tour_cotizado=tour.nombre_comercial if tour else "",
+            ubicacion_destino_cotizada=(
+                f"{place.departamento.nombre}, {place.departamento.pais.nombre}"
+                if place else ""
+            ),
+            descripcion_historica_cotizada=(
+                place.descripcion_historica if place else ""
+            ),
+            imagen_destino_cotizada=(place.imagen.name if place and place.imagen else ""),
+            duracion_tour=tour.duracion if tour else None,
+            punto_encuentro=tour.punto_encuentro if tour else None,
+            incluye=tour.incluye if tour else None,
+            no_incluye=tour.no_incluye if tour else None,
+            itinerario_resumido=tour.itinerario if tour else None,
+            recomendaciones_tour=tour.recomendaciones if tour else None,
+            que_llevar_tour=tour.que_llevar if tour else None,
+            restricciones_tour=tour.restricciones if tour else None,
+            politica_cancelacion=tour.politica_cancelacion if tour else None,
+            ruta_vuelo=(
+                " - ".join(filter(None, (solicitud.origen, solicitud.destino)))
+                or None
+            ),
+            cantidad_adultos=solicitud.adultos,
+            cantidad_ninos=solicitud.ninos,
+            edades_ninos=solicitud.edades_ninos or None,
+            fecha_ida=solicitud.fecha_ida,
+            fecha_vuelta=solicitud.fecha_regreso,
+            notas_importantes=solicitud.detalles or None,
+            precio_estimado=solicitud.presupuesto or 0,
+        )
+        if place and quotation.tipo_cotizacion != Cotizacion.TipoCotizacion.VUELOS:
+            CotizacionDestino.objects.create(
+                cotizacion=quotation,
+                lugar_turistico=place,
+                tour=tour,
+                fecha_visita=solicitud.fecha_ida or timezone.localdate(),
+                nombre_destino=place.nombre,
+                ubicacion_destino=(
+                    f"{place.departamento.nombre}, {place.departamento.pais.nombre}"
+                ),
+                descripcion_historica=place.descripcion_historica,
+                imagen_destino=place.imagen.name if place.imagen else "",
+                nombre_tour=tour.nombre_comercial if tour else "",
+                duracion_tour=tour.duracion if tour else "",
+                punto_encuentro=tour.punto_encuentro if tour else "",
+                incluye=tour.incluye if tour else "",
+                no_incluye=tour.no_incluye if tour else "",
+                itinerario=tour.itinerario if tour else "",
+                recomendaciones=tour.recomendaciones if tour else "",
+                que_llevar=tour.que_llevar if tour else "",
+                restricciones=tour.restricciones if tour else "",
+                politica_cancelacion=tour.politica_cancelacion if tour else "",
+            )
+        HistorialCotizacion.objects.create(
+            cotizacion=quotation,
+            usuario=request.user,
+            accion="convertida_solicitud",
+            estado=quotation.estado,
+            datos={"solicitud_id": solicitud.pk},
+        )
+        solicitud.cotizacion = quotation
+        solicitud.asignada_a = adviser
+        solicitud.estado = SolicitudContacto.Estado.CONVERTIDA
+        solicitud.atendida = True
+        solicitud.save(
+            update_fields=(
+                "cotizacion", "asignada_a", "estado", "atendida", "actualizado_en"
+            )
+        )
+    messages.success(request, "Solicitud convertida en cotización.")
+    return redirect("sami_admin:quotation-update", quotation_id=quotation.pk)
 
 
 @staff_required

@@ -6,8 +6,8 @@ Aplicación web desarrollada con Django para **Sami Travels & Tours**, como part
 
 La aplicación está compuesta por dos áreas principales:
 
-- **Portal público (`/`)**: página principal de la agencia y formulario provisional para solicitudes de cotización.
-- **Panel administrativo (`/sami-admin/`)**: gestión interna de cotizaciones, catálogos y usuarios autorizados.
+- **Portal público (`/`)**: cotizador guiado, catálogo dinámico y páginas públicas de destinos y tours.
+- **Panel administrativo (`/sami-admin/`)**: gestión de solicitudes, cotizaciones, catálogos y usuarios autorizados.
 
 El proyecto utiliza la aplicación Django `core` para las vistas, rutas, plantillas y recursos estáticos de la interfaz. La configuración general, así como los puntos de entrada WSGI y ASGI, se encuentran en `sami_project`.
 
@@ -16,7 +16,7 @@ El proyecto utiliza la aplicación Django `core` para las vistas, rutas, plantil
 ```text
 SAMI/
 ├── core/
-│   ├── static/core/css/       # Estilos propios de la aplicación
+│   ├── static/core/images/    # Recursos gráficos públicos
 │   ├── templates/core/        # Plantillas del portal público
 │   ├── apps.py
 │   ├── urls.py                # Rutas de la aplicación core
@@ -38,7 +38,7 @@ SAMI/
 
 - **Python 3.11** en la imagen de producción.
 - **Django 4.2+** (limitado a versiones anteriores a Django 5.0).
-- **MySQL 8.0** como base de datos principal; SQLite queda disponible para tareas locales opcionales.
+- **MySQL 8.0** como base de datos persistente; las pruebas usan SQLite únicamente en memoria.
 - **Gunicorn** como servidor WSGI de producción.
 - **Docker** para construir y ejecutar la aplicación de forma aislada.
 - **Caddy Server** como proxy inverso, encargado de publicar la aplicación y administrar automáticamente los certificados SSL/TLS mediante Let's Encrypt.
@@ -201,6 +201,12 @@ deactivate
 ```
 
 ## Persistencia de imágenes y catálogo comercial
+
+Las solicitudes recibidas desde el cotizador aparecen en
+`/sami-admin/solicitudes/`. El equipo puede asignarlas, registrar seguimiento y
+convertirlas en una cotización sin volver a capturar los datos del cliente.
+Los destinos y tours activos generan páginas públicas mediante slugs; los
+campos `destacado` y `en_promocion` controlan su presencia comercial en el portal.
 
 Las fotografías del catálogo se validan, redimensionan a un máximo de
 1600×1200 y convierten a JPEG optimizado. En producción se debe montar

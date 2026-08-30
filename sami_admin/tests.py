@@ -11,6 +11,8 @@ from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
 
+from core.models import SolicitudContacto
+
 from .decorators import administrator_required, staff_required
 from .forms import (
     ROLE_ADMIN, ROLE_CHOICES, CotizacionForm, LugarTuristicoForm,
@@ -177,7 +179,7 @@ class LoginRateLimitTests(TestCase):
         self.assertContains(response, "Demasiados intentos de acceso")
 
 
-class DashboardTests(SimpleTestCase):
+class DashboardTests(TestCase):
     @patch("sami_admin.views.Cotizacion.objects")
     def test_dashboard_renders_grouped_quotation_analytics(self, quotation_manager):
         queryset = quotation_manager.select_related.return_value
@@ -225,6 +227,49 @@ class DashboardTests(SimpleTestCase):
         queryset.filter.assert_any_call(archivada=False)
         queryset.values.assert_called_once_with("estado")
         grouped_query.annotate.assert_called_once()
+
+
+class PublicRequestWorkflowTests(TestCase):
+    def setUp(self):
+        self.adviser = get_user_model().objects.create_user(
+            username="asesor-solicitudes",
+            password="password-123",
+            is_staff=True,
+        )
+        self.adviser.groups.add(Group.objects.create(name="Asesor"))
+        self.client.force_login(self.adviser)
+        self.request_record = SolicitudContacto.objects.create(
+            nombre="Cliente del portal",
+            contacto="cliente@example.com",
+            correo="cliente@example.com",
+            servicio=SolicitudContacto.Servicio.VUELO,
+            origen="San Salvador",
+            destino="Madrid",
+            adultos=2,
+        )
+
+    def test_staff_can_open_request_inbox(self):
+        response = self.client.get(reverse("sami_admin:request-list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Cliente del portal")
+
+    def test_request_can_be_converted_to_quotation(self):
+        response = self.client.post(
+            reverse("sami_admin:request-convert", args=[self.request_record.pk])
+        )
+
+        self.request_record.refresh_from_db()
+        self.assertEqual(self.request_record.estado, SolicitudContacto.Estado.CONVERTIDA)
+        self.assertIsNotNone(self.request_record.cotizacion_id)
+        quotation = self.request_record.cotizacion
+        self.assertEqual(quotation.asesor, self.adviser)
+        self.assertEqual(quotation.cliente_correo, "cliente@example.com")
+        self.assertEqual(quotation.tipo_cotizacion, Cotizacion.TipoCotizacion.VUELOS)
+        self.assertRedirects(
+            response,
+            reverse("sami_admin:quotation-update", args=[quotation.pk]),
+        )
 
 
 class StaffUserCreationFormTests(SimpleTestCase):
