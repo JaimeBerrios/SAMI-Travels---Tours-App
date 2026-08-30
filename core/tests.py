@@ -68,6 +68,8 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, 'href="https://example.com/black-friday"')
         self.assertContains(response, ">Ver oferta</a>")
         self.assertContains(response, 'id="flight-animation-toggle"')
+        self.assertContains(response, 'id="quick-quote"')
+        self.assertContains(response, 'id="btn-quick-quote"')
         self.assertNotContains(
             response, "Tu próximo destino está más cerca de lo que imaginas."
         )
@@ -125,6 +127,11 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, 'id="btn-cta-whatsapp"')
         self.assertContains(response, 'data-track-action="whatsapp_click"')
         self.assertContains(response, 'id="form-public-quote"')
+        self.assertContains(response, 'id="quick-quote"')
+        self.assertContains(response, 'data-quick-service="vuelo"')
+        self.assertContains(response, 'data-quick-service="tour"')
+        self.assertContains(response, 'data-quick-service="vuelo y tour"')
+        self.assertContains(response, 'event: "quick_quote_continue"')
         self.assertContains(response, 'id="btn-submit-quote"')
         self.assertContains(response, 'id="link-social-facebook"')
         self.assertContains(response, 'id="link-social-instagram"')
