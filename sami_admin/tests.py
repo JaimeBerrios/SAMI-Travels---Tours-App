@@ -173,6 +173,33 @@ class CampaignManagementTests(TestCase):
         response = self.client.get(reverse("sami_admin:campaign-create"))
         self.assertContains(response, "1920 × 800 px")
         self.assertContains(response, "1080 × 1350 px")
+        self.assertContains(response, "Destino del botón")
+
+        place_response = self.client.get(
+            reverse("sami_admin:catalog-create", args=["lugares"])
+        )
+        self.assertContains(place_response, "1600 × 1200 px")
+
+    def test_campaign_list_exposes_the_saved_link_for_verification(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="Oferta externa",
+            titulo="Promoción especial",
+            descripcion="Consulta todos los detalles.",
+            imagen_escritorio="campanas/escritorio/oferta.webp",
+            imagen_movil="campanas/movil/oferta.webp",
+            texto_alternativo="Promoción de viajes",
+            texto_boton="Conocer promoción",
+            tipo_enlace=CampanaPromocional.TipoEnlace.PERSONALIZADO,
+            url_personalizada="https://example.com/oferta",
+            fecha_inicio=timezone.now(),
+        )
+        self.client.force_login(self.administrator)
+
+        response = self.client.get(reverse("sami_admin:campaign-list"))
+
+        self.assertContains(response, campaign.url_personalizada)
+        self.assertContains(response, "Probar enlace")
+        self.assertContains(response, "Visible ahora")
 
 class SamiAdminUrlTests(SimpleTestCase):
     def test_dashboard_url(self):

@@ -47,6 +47,9 @@ class BasicProductionViewsTests(TestCase):
             imagen_escritorio="campanas/escritorio/black-friday.webp",
             imagen_movil="campanas/movil/black-friday.webp",
             texto_alternativo="Viajeros durante Black Friday",
+            texto_boton="Ver oferta",
+            tipo_enlace=CampanaPromocional.TipoEnlace.PERSONALIZADO,
+            url_personalizada="https://example.com/black-friday",
             fecha_inicio=timezone.now() - timedelta(hours=1),
             fecha_fin=timezone.now() + timedelta(days=1),
             mostrar_avion=True,
@@ -57,6 +60,8 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, campaign.titulo)
         self.assertContains(response, campaign.imagen_escritorio.url)
         self.assertContains(response, campaign.imagen_movil.url)
+        self.assertContains(response, 'href="https://example.com/black-friday"')
+        self.assertContains(response, ">Ver oferta</a>")
         self.assertContains(response, 'id="flight-animation-toggle"')
         self.assertNotContains(
             response, "Tu próximo destino está más cerca de lo que imaginas."

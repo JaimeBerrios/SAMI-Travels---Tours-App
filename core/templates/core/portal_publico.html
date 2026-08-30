@@ -23,6 +23,14 @@
         width: 44px;
         will-change: transform;
     }
+    .campaign-overlay {
+        background: linear-gradient(180deg, rgb(6 21 43 / 28%) 0%, rgb(6 21 43 / 92%) 72%);
+    }
+    @media (min-width: 640px) {
+        .campaign-overlay {
+            background: linear-gradient(90deg, rgb(6 21 43 / 98%) 0%, rgb(6 21 43 / 90%) 38%, rgb(6 21 43 / 42%) 62%, rgb(6 21 43 / 5%) 86%);
+        }
+    }
     @media (prefers-reduced-motion: reduce) {
         .flight-animation__plane { will-change: auto; }
     }
@@ -35,7 +43,7 @@
         <source media="(max-width: 639px)" srcset="{{ campaign.imagen_movil.url }}">
         <img src="{{ campaign.imagen_escritorio.url }}" alt="{{ campaign.texto_alternativo }}" class="h-full w-full object-cover">
     </picture>
-    <div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-navy via-brand-navy/90 to-brand-navy/35"></div>
+    <div class="campaign-overlay absolute inset-0 -z-10"></div>
     {% else %}
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(215,25,32,.28),transparent_35%),linear-gradient(110deg,#06152B_20%,#173F6B_100%)]"></div>
     {% endif %}
@@ -51,7 +59,7 @@
         </div>
         {% if not campaign or campaign.mostrar_avion %}
         <div class="hidden justify-center lg:flex">
-            <button id="flight-animation-toggle" type="button" class="flight-animation rounded-3xl border border-white/15 bg-white/5 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-4 focus:ring-offset-brand-navy" aria-label="Pausar animación del avión" aria-pressed="false">
+            <button id="flight-animation-toggle" type="button" class="flight-animation rounded-3xl border border-white/20 bg-brand-navy/10 shadow-2xl shadow-brand-navy/20 backdrop-blur-[2px] focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-4 focus:ring-offset-brand-navy" aria-label="Pausar animación del avión" aria-pressed="false">
                 <svg class="flight-animation__route" viewBox="0 0 420 280" role="img" aria-labelledby="flight-route-title flight-route-description">
                     <title id="flight-route-title">Ruta de vuelo de Sami Travels & Tours</title>
                     <desc id="flight-route-description">Un avión rojo viaja alrededor de un globo terráqueo siguiendo una ruta animada.</desc>

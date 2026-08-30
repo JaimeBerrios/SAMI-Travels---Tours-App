@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.core.files.storage import default_storage
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -277,6 +278,26 @@ class CampanaPromocional(models.Model):
         if self.fecha_fin and self.fecha_fin < now:
             return "Finalizada"
         return "Publicada"
+
+    def get_target_url(self):
+        portal = reverse("core:portal-publico")
+        if self.tipo_enlace == self.TipoEnlace.DESTINO and self.lugar_turistico_id:
+            return f"{portal}?lugar={self.lugar_turistico_id}#cotizar"
+        if self.tipo_enlace == self.TipoEnlace.TOUR and self.tour_id:
+            return f"{portal}?tour={self.tour_id}#cotizar"
+        if self.tipo_enlace == self.TipoEnlace.PERSONALIZADO:
+            return self.url_personalizada
+        return f"{portal}#cotizar"
+
+    @property
+    def descripcion_enlace(self):
+        if self.tipo_enlace == self.TipoEnlace.DESTINO and self.lugar_turistico_id:
+            return f"Cotizador con destino: {self.lugar_turistico.nombre}"
+        if self.tipo_enlace == self.TipoEnlace.TOUR and self.tour_id:
+            return f"Cotizador con tour: {self.tour.nombre_comercial}"
+        if self.tipo_enlace == self.TipoEnlace.PERSONALIZADO:
+            return self.url_personalizada or "Enlace pendiente"
+        return "Formulario de cotización"
 
 
 class Cotizacion(models.Model):

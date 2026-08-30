@@ -71,10 +71,19 @@ def campaign_list(request):
     campaigns = CampanaPromocional.objects.select_related(
         "lugar_turistico", "tour", "actualizado_por"
     )
+    now = timezone.now()
+    current_campaign = campaigns.filter(
+        activo=True,
+        fecha_inicio__lte=now,
+    ).filter(Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=now)).first()
     return render(
         request,
         "sami_admin/campana_list.html",
-        {"campaigns": campaigns, "now": timezone.now()},
+        {
+            "campaigns": campaigns,
+            "now": now,
+            "current_campaign_id": current_campaign.pk if current_campaign else None,
+        },
     )
 
 

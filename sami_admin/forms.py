@@ -96,6 +96,11 @@ class CampanaPromocionalForm(forms.ModelForm):
             field.widget.attrs["class"] = input_class
         for name in ("activo", "mostrar_avion"):
             self.fields[name].widget.attrs["class"] = "size-5 accent-rose-600"
+        for name in ("imagen_escritorio", "imagen_movil"):
+            self.fields[name].widget.attrs["accept"] = "image/jpeg,image/png,image/webp"
+        self.fields["url_personalizada"].widget.attrs["placeholder"] = (
+            "https://ejemplo.com/promocion"
+        )
         for name in ("fecha_inicio", "fecha_fin"):
             self.fields[name].widget.format = "%Y-%m-%dT%H:%M"
             self.fields[name].input_formats = ["%Y-%m-%dT%H:%M"]
@@ -849,6 +854,7 @@ class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
             )
         self.fields["departamento"].queryset = queryset
         self.apply_tailwind_classes()
+        self.fields["imagen"].widget.attrs["accept"] = "image/jpeg,image/png,image/webp"
 
     def clean_imagen(self):
         image = self.cleaned_data.get("imagen")
