@@ -83,7 +83,7 @@ class BasicProductionViewsTests(TestCase):
 
         self.assertNotContains(response, "Oferta finalizada")
         self.assertContains(
-            response, "Tu próximo destino está más cerca de lo que imaginas."
+            response, "Tu agencia de viajes en El Salvador para descubrir el mundo"
         )
 
     def test_robots_txt_only_allows_the_public_site(self):
@@ -102,6 +102,15 @@ class BasicProductionViewsTests(TestCase):
     def test_public_portal_contains_seo_and_conversion_markup(self):
         response = self.client.get(reverse("core:portal-publico"))
 
+        self.assertContains(
+            response,
+            "Agencia de viajes en El Salvador | SAMI Travels & Tours",
+        )
+        self.assertContains(response, "Asesoría de viajes para San Miguel")
+        self.assertContains(
+            response,
+            reverse("core:agencia-san-miguel"),
+        )
         self.assertContains(response, "https://www.googletagmanager.com/gtag/js?id=G-N92HCL999R")
         self.assertContains(response, "gtag('config', 'G-N92HCL999R');")
         self.assertContains(
@@ -124,6 +133,23 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, 'analytics_storage: "denied"')
         self.assertContains(response, 'ad_storage: "denied"')
         self.assertContains(response, 'id="btn-cookie-preferences"')
+
+    def test_san_miguel_landing_has_local_seo_markup(self):
+        response = self.client.get(reverse("core:agencia-san-miguel"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/agencia_san_miguel.html")
+        self.assertContains(
+            response,
+            '<link rel="canonical" href="https://samitravelstours.com/agencia-de-viajes-san-miguel/">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            "Agencia de viajes en San Miguel con atención personalizada",
+        )
+        self.assertContains(response, '"@type": "FAQPage"')
+        self.assertContains(response, 'name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"')
 
     def test_privacy_policy_is_public_and_has_its_own_metadata(self):
         response = self.client.get(reverse("core:privacy-policy"))
@@ -152,6 +178,10 @@ class BasicProductionViewsTests(TestCase):
         self.assertIn("https://samitravelstours.com/", content)
         self.assertIn(
             "https://samitravelstours.com/politica-de-privacidad/",
+            content,
+        )
+        self.assertIn(
+            "https://samitravelstours.com/agencia-de-viajes-san-miguel/",
             content,
         )
         self.assertNotIn("/sami-admin/", content)
