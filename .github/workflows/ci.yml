@@ -10,7 +10,6 @@ jobs:
     env:
       DJANGO_DEBUG: "False"
       DJANGO_SECRET_KEY: ci-only-7f91a2c8-4d63-40b5-9e17-strong-verification-key
-      DB_ENGINE: sqlite
       DJANGO_SECURE_SSL_REDIRECT: "True"
       DJANGO_SECURE_HSTS_SECONDS: "3600"
       DJANGO_SECURE_HSTS_PRELOAD: "True"
@@ -27,6 +26,6 @@ jobs:
       - run: pip install -r requirements.txt
       - run: npm ci
       - run: npm run build:css
-      - run: python manage.py check --deploy
-      - run: python manage.py makemigrations --check --dry-run
-      - run: python manage.py test
+      - run: python manage.py check --deploy --settings=sami_project.test_settings
+      - run: python manage.py makemigrations --check --dry-run --settings=sami_project.test_settings
+      - run: python manage.py test --settings=sami_project.test_settings

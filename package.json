@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build:css": "tailwindcss -i ./theme/src/input.css -o ./theme/static/css/dist/styles.css -c ./theme/static_src/tailwind.config.js --minify"
+    "build:css": "tailwindcss -i ./theme/src/input.css -o ./theme/static/css/dist/styles.css -c ./theme/tailwind.config.js --minify",
+    "dev:css": "tailwindcss -i ./theme/src/input.css -o ./theme/static/css/dist/styles.css -c ./theme/tailwind.config.js --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",

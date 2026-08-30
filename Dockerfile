@@ -8,8 +8,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY theme/src/ ./theme/src/
-COPY theme/static_src/tailwind.config.js ./theme/static_src/tailwind.config.js
-COPY theme/templates/ ./theme/templates/
+COPY theme/tailwind.config.js ./theme/tailwind.config.js
 COPY core/templates/ ./core/templates/
 COPY core/*.py ./core/
 COPY sami_admin/templates/ ./sami_admin/templates/

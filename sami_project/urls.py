@@ -1,16 +1,18 @@
 """URL configuration for sami_project."""
 
-from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.urls import include, path
 
+from core.sitemaps import PublicSitemap
+
 
 ROBOTS_TXT = """User-agent: *
 Disallow: /sami-admin/
-Disallow: /admin/
 Allow: /
+Sitemap: https://samitravelstours.com/sitemap.xml
 """
 
 
@@ -20,9 +22,13 @@ def robots_txt(request):
 
 urlpatterns = [
     path("robots.txt", robots_txt, name="robots-txt"),
-    path("admin/", admin.site.urls),
+    path(
+        "sitemap.xml",
+        sitemap,
+        {"sitemaps": {"public": PublicSitemap}},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
     path("sami-admin/", include("sami_admin.urls")),
-    path("accounts/", include("allauth.urls")),
     path("", include("core.urls")),
 ]
 

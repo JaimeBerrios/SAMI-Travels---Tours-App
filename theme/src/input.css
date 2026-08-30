@@ -1,4 +1,4 @@
-@config "../static_src/tailwind.config.js";
+@config "../tailwind.config.js";
 @import "tailwindcss";
 
 /* Plantillas y módulos Django que pueden contener clases de Tailwind. */

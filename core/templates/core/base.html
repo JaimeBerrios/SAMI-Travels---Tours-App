@@ -4,7 +4,59 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Sami Travels & Tours: vuelos, tours y experiencias inolvidables.">
+    <meta name="description" content="{% block meta_description %}SAMI Travels & Tours: agencia de viajes en El Salvador especializada en vuelos, tours y experiencias personalizadas.{% endblock %}">
+    <meta name="keywords" content="agencia de viajes El Salvador, vuelos, tours, paquetes turísticos, viajes personalizados, SAMI Travels & Tours">
+    <link rel="canonical" href="{% block canonical_url %}https://samitravelstours.com/{% endblock %}">
+
+    <meta property="og:title" content="{% block social_title %}SAMI Travels & Tours | Vuelos, tours y experiencias{% endblock %}">
+    <meta property="og:description" content="{% block social_description %}Planea tu próximo viaje con asesoría personalizada, vuelos, tours y experiencias desde El Salvador.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{% block social_url %}https://samitravelstours.com/{% endblock %}">
+    <meta property="og:image" content="https://samitravelstours.com/assets/core/images/sami-social-card.svg">
+    <meta property="og:site_name" content="SAMI Travels & Tours">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}SAMI Travels & Tours | Vuelos, tours y experiencias{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Planea tu próximo viaje con asesoría personalizada, vuelos, tours y experiencias desde El Salvador.{% endblock %}">
+    <meta name="twitter:image" content="https://samitravelstours.com/assets/core/images/sami-social-card.svg">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TravelAgency",
+        "name": "SAMI Travels & Tours",
+        "url": "https://samitravelstours.com/",
+        "logo": "https://samitravelstours.com/assets/core/images/sami-social-card.svg",
+        "image": "https://samitravelstours.com/assets/core/images/sami-social-card.svg",
+        "email": "contacto@samitravelstours.com",
+        "areaServed": {
+            "@type": "Country",
+            "name": "El Salvador"
+        },
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "email": "contacto@samitravelstours.com",
+            "availableLanguage": "Spanish"
+        },
+        "sameAs": [
+            "https://www.facebook.com/samitravelstours",
+            "https://www.instagram.com/sami.travelstours/"
+        ]
+    }
+    </script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag("consent", "default", {
+            analytics_storage: "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+            functionality_storage: "granted",
+            security_storage: "granted",
+            wait_for_update: 500
+        });
+    </script>
     <title>{% block title %}Sami Travels & Tours{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -57,16 +109,47 @@
         <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
             <p class="font-bold">Sami Travels & Tours</p>
             <div class="mt-5 flex justify-center gap-3" aria-label="Redes sociales">
-                <a href="https://www.facebook.com/samitravelstours" target="_blank" rel="noopener noreferrer" class="grid size-11 place-items-center rounded-full border border-white/20 text-lg transition hover:border-brand-red hover:bg-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Visitar Sami Travels & Tours en Facebook">
+                <a id="link-social-facebook" href="https://www.facebook.com/samitravelstours" target="_blank" rel="noopener noreferrer" class="grid size-11 place-items-center rounded-full border border-white/20 text-lg transition hover:border-brand-red hover:bg-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Visitar Sami Travels & Tours en Facebook">
                     <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
                 </a>
-                <a href="https://www.instagram.com/sami.travelstours/" target="_blank" rel="noopener noreferrer" class="grid size-11 place-items-center rounded-full border border-white/20 text-lg transition hover:border-brand-red hover:bg-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Visitar Sami Travels & Tours en Instagram">
+                <a id="link-social-instagram" href="https://www.instagram.com/sami.travelstours/" target="_blank" rel="noopener noreferrer" class="grid size-11 place-items-center rounded-full border border-white/20 text-lg transition hover:border-brand-red hover:bg-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Visitar Sami Travels & Tours en Instagram">
                     <i class="fa-brands fa-instagram" aria-hidden="true"></i>
                 </a>
+            </div>
+            <div class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-slate-300">
+                <a class="transition hover:text-white" href="{% url 'core:privacy-policy' %}">Política de privacidad</a>
+                <button id="btn-cookie-preferences" type="button" class="transition hover:text-white">Preferencias de cookies</button>
             </div>
             <p class="mt-1 text-sm text-slate-400">Tu próxima aventura comienza con nosotros.</p>
         </div>
     </footer>
+    <a id="btn-cta-whatsapp" data-track-action="whatsapp_click" href="https://wa.me/?text=Hola%20SAMI%20Travels%20%26%20Tours%2C%20quiero%20cotizar%20un%20viaje." target="_blank" rel="noopener noreferrer" class="fixed bottom-5 right-5 z-50 grid size-14 place-items-center rounded-full bg-emerald-500 text-2xl text-white shadow-xl transition hover:-translate-y-1 hover:bg-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-300" aria-label="Contactar a SAMI Travels & Tours por WhatsApp">
+        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+    </a>
+    <section id="cookie-consent" class="fixed inset-x-4 bottom-4 z-[60] hidden rounded-2xl border border-slate-200 bg-white p-5 text-brand-navy shadow-2xl sm:left-auto sm:max-w-xl" role="dialog" aria-labelledby="cookie-consent-title" aria-describedby="cookie-consent-description">
+        <div id="cookie-consent-summary">
+            <h2 id="cookie-consent-title" class="text-lg font-black">Tu privacidad importa</h2>
+            <p id="cookie-consent-description" class="mt-2 text-sm leading-6 text-slate-600">Usamos cookies necesarias para que el sitio funcione. Con tu permiso también podemos usar cookies de analítica para entender el uso del sitio y de marketing para medir campañas. Puedes cambiar tu elección cuando quieras.</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+                <button id="btn-cookie-accept" type="button" class="rounded-lg bg-brand-red px-4 py-2 text-sm font-bold text-white hover:bg-brand-red-dark">Aceptar todas</button>
+                <button id="btn-cookie-reject" type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold hover:bg-slate-100">Solo necesarias</button>
+                <button id="btn-cookie-customize" type="button" class="rounded-lg px-4 py-2 text-sm font-bold text-brand-red hover:bg-brand-red-soft">Configurar</button>
+            </div>
+        </div>
+        <div id="cookie-consent-settings" class="hidden">
+            <h2 class="text-lg font-black">Configurar cookies</h2>
+            <div class="mt-4 space-y-4">
+                <div class="flex items-start justify-between gap-5"><div><h3 class="font-bold">Necesarias</h3><p class="mt-1 text-sm text-slate-600">Seguridad, formulario y almacenamiento de tus preferencias. Siempre activas.</p></div><span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">Activas</span></div>
+                <label class="flex cursor-pointer items-start justify-between gap-5"><span><strong class="block">Analítica</strong><span class="mt-1 block text-sm text-slate-600">Ayuda a medir visitas y mejorar el sitio mediante herramientas como GA4.</span></span><input id="cookie-analytics" type="checkbox" class="mt-1 size-5 accent-red-600"></label>
+                <label class="flex cursor-pointer items-start justify-between gap-5"><span><strong class="block">Marketing</strong><span class="mt-1 block text-sm text-slate-600">Permite medir campañas y conversiones mediante herramientas como Meta Pixel.</span></span><input id="cookie-marketing" type="checkbox" class="mt-1 size-5 accent-red-600"></label>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2">
+                <button id="btn-cookie-save" type="button" class="rounded-lg bg-brand-red px-4 py-2 text-sm font-bold text-white hover:bg-brand-red-dark">Guardar preferencias</button>
+                <button id="btn-cookie-back" type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold hover:bg-slate-100">Volver</button>
+            </div>
+        </div>
+        <a href="{% url 'core:privacy-policy' %}" class="mt-4 inline-block text-xs font-semibold text-brand-red underline">Consulta la Política de Privacidad</a>
+    </section>
     <script>
         const menuButton = document.getElementById("menu-button");
         const mobileMenu = document.getElementById("mobile-menu");
@@ -87,6 +170,60 @@
             menuButton.setAttribute("aria-expanded", "false");
         }));
         document.querySelectorAll(".message-close").forEach((button) => button.addEventListener("click", () => button.parentElement.remove()));
+
+        (() => {
+            const storageKey = "sami_cookie_consent_v1";
+            const consentPanel = document.getElementById("cookie-consent");
+            const summary = document.getElementById("cookie-consent-summary");
+            const settings = document.getElementById("cookie-consent-settings");
+            const analyticsInput = document.getElementById("cookie-analytics");
+            const marketingInput = document.getElementById("cookie-marketing");
+
+            const applyConsent = (preferences) => {
+                const analytics = preferences.analytics === true;
+                const marketing = preferences.marketing === true;
+                gtag("consent", "update", {
+                    analytics_storage: analytics ? "granted" : "denied",
+                    ad_storage: marketing ? "granted" : "denied",
+                    ad_user_data: marketing ? "granted" : "denied",
+                    ad_personalization: marketing ? "granted" : "denied"
+                });
+                if (typeof window.fbq === "function") {
+                    window.fbq("consent", marketing ? "grant" : "revoke");
+                }
+                window.dispatchEvent(new CustomEvent("sami:consent-updated", { detail: { analytics, marketing } }));
+            };
+
+            const readConsent = () => {
+                try { return JSON.parse(localStorage.getItem(storageKey)); }
+                catch (error) { return null; }
+            };
+            const openPanel = (showSettings = false) => {
+                const current = readConsent() || {};
+                analyticsInput.checked = current.analytics === true;
+                marketingInput.checked = current.marketing === true;
+                summary.classList.toggle("hidden", showSettings);
+                settings.classList.toggle("hidden", !showSettings);
+                consentPanel.classList.remove("hidden");
+            };
+            const saveConsent = (analytics, marketing) => {
+                const preferences = { analytics, marketing, updatedAt: new Date().toISOString() };
+                localStorage.setItem(storageKey, JSON.stringify(preferences));
+                applyConsent(preferences);
+                consentPanel.classList.add("hidden");
+            };
+
+            const existing = readConsent();
+            if (existing) applyConsent(existing);
+            else openPanel();
+
+            document.getElementById("btn-cookie-accept")?.addEventListener("click", () => saveConsent(true, true));
+            document.getElementById("btn-cookie-reject")?.addEventListener("click", () => saveConsent(false, false));
+            document.getElementById("btn-cookie-customize")?.addEventListener("click", () => openPanel(true));
+            document.getElementById("btn-cookie-save")?.addEventListener("click", () => saveConsent(analyticsInput.checked, marketingInput.checked));
+            document.getElementById("btn-cookie-back")?.addEventListener("click", () => openPanel(false));
+            document.getElementById("btn-cookie-preferences")?.addEventListener("click", () => openPanel(true));
+        })();
     </script>
     {% block extra_js %}{% endblock %}
 </body>

@@ -34,13 +34,6 @@ SECURE_HSTS_PRELOAD = os.environ.get("DJANGO_SECURE_HSTS_PRELOAD", "False").lowe
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-MAINTENANCE_MODE = os.environ.get("MAINTENANCE_MODE", "False").lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-
 ALLOWED_HOSTS = [
     "samitravelstours.com",
     "www.samitravelstours.com",
@@ -62,18 +55,13 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.sitemaps",
     "django.contrib.staticfiles",
-    "tailwind",
     "theme",
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "allauth.socialaccount.providers.google",
     "core",
     "sami_admin",
 ]
@@ -85,7 +73,6 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "sami_project.middleware.SecurityHeadersMiddleware",
@@ -113,53 +100,38 @@ TEMPLATES = [
 WSGI_APPLICATION = "sami_project.wsgi.application"
 ASGI_APPLICATION = "sami_project.asgi.application"
 
-DB_ENGINE = os.environ.get("DB_ENGINE", "mysql").lower()
-if DB_ENGINE == "sqlite":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-elif DB_ENGINE == "mysql":
-    DATABASES = {"default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.environ.get("MYSQL_DATABASE"),
-        "USER": os.environ.get("MYSQL_USER"),
-        "PASSWORD": os.environ.get("MYSQL_PASSWORD"),
-        "HOST": os.environ.get("MYSQL_HOST"),
-        "PORT": os.environ.get("MYSQL_PORT", "3306"),
-        "CONN_MAX_AGE": int(os.environ.get("MYSQL_CONN_MAX_AGE", "60")),
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
-    }}
-    required_database_settings = {
-        "MYSQL_DATABASE": DATABASES["default"]["NAME"],
-        "MYSQL_USER": DATABASES["default"]["USER"],
-        "MYSQL_PASSWORD": DATABASES["default"]["PASSWORD"],
-        "MYSQL_HOST": DATABASES["default"]["HOST"],
-    }
-    missing_database_settings = [
-        key for key, value in required_database_settings.items() if not value
-    ]
-    if missing_database_settings:
-        raise ImproperlyConfigured(
-            "Faltan variables de entorno obligatorias para MySQL: "
-            + ", ".join(missing_database_settings)
-        )
-else:
-    raise ImproperlyConfigured("DB_ENGINE debe ser 'mysql' o 'sqlite'.")
+DATABASES = {"default": {
+    "ENGINE": "django.db.backends.mysql",
+    "NAME": os.environ.get("MYSQL_DATABASE"),
+    "USER": os.environ.get("MYSQL_USER"),
+    "PASSWORD": os.environ.get("MYSQL_PASSWORD"),
+    "HOST": os.environ.get("MYSQL_HOST"),
+    "PORT": os.environ.get("MYSQL_PORT", "3306"),
+    "CONN_MAX_AGE": int(os.environ.get("MYSQL_CONN_MAX_AGE", "60")),
+    "OPTIONS": {
+        "charset": "utf8mb4",
+        "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+    },
+}}
+required_database_settings = {
+    "MYSQL_DATABASE": DATABASES["default"]["NAME"],
+    "MYSQL_USER": DATABASES["default"]["USER"],
+    "MYSQL_PASSWORD": DATABASES["default"]["PASSWORD"],
+    "MYSQL_HOST": DATABASES["default"]["HOST"],
+}
+missing_database_settings = [
+    key for key, value in required_database_settings.items() if not value
+]
+if missing_database_settings:
+    raise ImproperlyConfigured(
+        "Faltan variables de entorno obligatorias para MySQL: "
+        + ", ".join(missing_database_settings)
+    )
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = os.environ.get("ACCOUNT_EMAIL_VERIFICATION", "none")
 LOGIN_URL = "/sami-admin/login/"
 LOGIN_REDIRECT_URL = "sami_admin:dashboard"
 LOGOUT_REDIRECT_URL = "/"
@@ -172,26 +144,6 @@ PUBLIC_FORM_RATE_LIMIT = int(os.environ.get("PUBLIC_FORM_RATE_LIMIT", "5"))
 PUBLIC_FORM_RATE_WINDOW = int(os.environ.get("PUBLIC_FORM_RATE_WINDOW", "3600"))
 ADMIN_LOGIN_RATE_LIMIT = int(os.environ.get("ADMIN_LOGIN_RATE_LIMIT", "5"))
 ADMIN_LOGIN_RATE_WINDOW = int(os.environ.get("ADMIN_LOGIN_RATE_WINDOW", "900"))
-
-SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "SCOPE": ["profile", "email"],
-        "AUTH_PARAMS": {"access_type": "online"},
-        "OAUTH_PKCE_ENABLED": True,
-    }
-}
-
-# No configure Google simultáneamente aquí y mediante SocialApp en /admin/.
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
-    SOCIALACCOUNT_PROVIDERS["google"]["APPS"] = [
-        {
-            "client_id": GOOGLE_CLIENT_ID,
-            "secret": GOOGLE_CLIENT_SECRET,
-            "key": "",
-        }
-    ]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -254,11 +206,5 @@ if AWS_STORAGE_BUCKET_NAME:
     }
     if AWS_S3_CUSTOM_DOMAIN:
         MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN.rstrip('/')}/"
-
-TAILWIND_APP_NAME = "theme"
-NPM_BIN_PATH = os.environ.get(
-    "NPM_BIN_PATH",
-    r"C:\Program Files\nodejs\npm.cmd" if os.name == "nt" else "npm",
-)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -41,16 +41,64 @@ class BasicProductionViewsTests(TestCase):
             response.content.decode(),
             "User-agent: *\n"
             "Disallow: /sami-admin/\n"
-            "Disallow: /admin/\n"
-            "Allow: /\n",
+            "Allow: /\n"
+            "Sitemap: https://samitravelstours.com/sitemap.xml\n",
         )
 
-    def test_admin_route_responds(self):
-        response = self.client.get(reverse("admin:index"))
+    def test_public_portal_contains_seo_and_conversion_markup(self):
+        response = self.client.get(reverse("core:portal-publico"))
 
-        self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse("admin:login"), response.url)
-        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+        self.assertContains(
+            response,
+            '<link rel="canonical" href="https://samitravelstours.com/">',
+            html=True,
+        )
+        self.assertContains(response, 'property="og:type" content="website"')
+        self.assertContains(response, 'name="twitter:card" content="summary_large_image"')
+        self.assertContains(response, '"@type": "TravelAgency"')
+        self.assertContains(response, 'id="btn-cta-whatsapp"')
+        self.assertContains(response, 'data-track-action="whatsapp_click"')
+        self.assertContains(response, 'id="form-public-quote"')
+        self.assertContains(response, 'id="btn-submit-quote"')
+        self.assertContains(response, 'id="link-social-facebook"')
+        self.assertContains(response, 'id="link-social-instagram"')
+        self.assertContains(response, 'data-tour-id="tours-personalizados"')
+        self.assertContains(response, 'data-tour-name="Tours personalizados"')
+        self.assertContains(response, 'id="cookie-consent"')
+        self.assertContains(response, 'analytics_storage: "denied"')
+        self.assertContains(response, 'ad_storage: "denied"')
+        self.assertContains(response, 'id="btn-cookie-preferences"')
+
+    def test_privacy_policy_is_public_and_has_its_own_metadata(self):
+        response = self.client.get(reverse("core:privacy-policy"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/privacy_policy.html")
+        self.assertContains(response, "Política de Privacidad")
+        self.assertContains(response, "Google Analytics 4")
+        self.assertContains(response, "Meta Pixel")
+        self.assertContains(
+            response,
+            '<link rel="canonical" href="https://samitravelstours.com/politica-de-privacidad/">',
+            html=True,
+        )
+
+    def test_sitemap_only_indexes_the_public_portal(self):
+        response = self.client.get(
+            reverse("django.contrib.sitemaps.views.sitemap"),
+            HTTP_HOST="samitravelstours.com",
+            secure=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/xml")
+        content = response.content.decode()
+        self.assertIn("https://samitravelstours.com/", content)
+        self.assertIn(
+            "https://samitravelstours.com/politica-de-privacidad/",
+            content,
+        )
+        self.assertNotIn("/sami-admin/", content)
 
     def test_sami_admin_login_has_meta_and_http_robots_protection(self):
         response = self.client.get(reverse("sami_admin:login"))
@@ -81,12 +129,6 @@ class BasicProductionViewsTests(TestCase):
             html=True,
         )
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
-
-    def test_internal_panel_requires_staff(self):
-        response = self.client.get(reverse("core:panel-interno"))
-
-        self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse("admin:login"), response.url)
 
     def test_public_form_persists_the_complete_contact_request(self):
         response = self.client.post(

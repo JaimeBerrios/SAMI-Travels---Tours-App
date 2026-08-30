@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.urls import path
 
 from . import views
@@ -7,11 +6,6 @@ from . import views
 app_name = "core"
 
 urlpatterns = [
-    path(
-        "",
-        views.mantenimiento if settings.MAINTENANCE_MODE else views.portal_publico,
-        name="portal-publico",
-    ),
-    path("mantenimiento/", views.mantenimiento, name="mantenimiento"),
-    path("panel-interno/", views.panel_interno, name="panel-interno"),
+    path("", views.portal_publico, name="portal-publico"),
+    path("politica-de-privacidad/", views.privacy_policy, name="privacy-policy"),
 ]

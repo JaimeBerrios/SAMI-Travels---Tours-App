@@ -6,7 +6,7 @@ class SecurityHeadersMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if request.path.startswith(("/sami-admin/", "/admin/")):
+        if request.path.startswith("/sami-admin/"):
             response["X-Robots-Tag"] = "noindex, nofollow"
         response.setdefault(
             "Content-Security-Policy",

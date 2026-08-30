@@ -4,11 +4,10 @@ Aplicación web desarrollada con Django para **Sami Travels & Tours**, como part
 
 ## Descripción del proyecto
 
-La aplicación está compuesta por tres áreas principales:
+La aplicación está compuesta por dos áreas principales:
 
 - **Portal público (`/`)**: página principal de la agencia y formulario provisional para solicitudes de cotización.
-- **Panel interno (`/panel-interno/`)**: espacio de trabajo reservado para usuarios del equipo con permisos de *staff*.
-- **Administración de Django (`/admin/`)**: interfaz administrativa para usuarios autorizados.
+- **Panel administrativo (`/sami-admin/`)**: gestión interna de cotizaciones, catálogos y usuarios autorizados.
 
 El proyecto utiliza la aplicación Django `core` para las vistas, rutas, plantillas y recursos estáticos de la interfaz. La configuración general, así como los puntos de entrada WSGI y ASGI, se encuentran en `sami_project`.
 
@@ -18,10 +17,11 @@ El proyecto utiliza la aplicación Django `core` para las vistas, rutas, plantil
 SAMI/
 ├── core/
 │   ├── static/core/css/       # Estilos propios de la aplicación
-│   ├── templates/core/        # Plantillas del portal y panel interno
+│   ├── templates/core/        # Plantillas del portal público
 │   ├── apps.py
 │   ├── urls.py                # Rutas de la aplicación core
-│   └── views.py               # Vistas públicas y protegidas
+│   └── views.py               # Vistas públicas
+├── sami_admin/                # Panel administrativo personalizado
 ├── sami_project/
 │   ├── settings.py            # Configuración de Django
 │   ├── urls.py                # Enrutamiento principal
@@ -32,7 +32,6 @@ SAMI/
 ├── Dockerfile
 ├── manage.py
 ├── requirements.txt
-└── db.sqlite3                 # Base SQLite heredada (uso local opcional)
 ```
 
 ## Tecnologías
@@ -68,7 +67,7 @@ Para trabajar localmente se necesita:
 - Python 3.11 o una versión compatible con Django 4.2.
 - `pip` y el módulo `venv`.
 - Node.js y npm para compilar Tailwind CSS cuando cambien estilos o plantillas.
-- Conexión a Internet para cargar Anime.js, Font Awesome y Google Maps durante el desarrollo.
+- Conexión a Internet para cargar Anime.js y Google Maps durante el desarrollo.
 - Docker, únicamente si se desea probar la imagen de producción.
 
 ## Guía de ejecución local
@@ -98,7 +97,10 @@ Configurar el entorno local en la misma terminal:
 
 ```powershell
 $env:DJANGO_DEBUG="True"
-$env:DB_ENGINE="sqlite"
+$env:MYSQL_DATABASE="sami_db"
+$env:MYSQL_USER="usuario_mysql"
+$env:MYSQL_PASSWORD="contraseña_mysql"
+$env:MYSQL_HOST="127.0.0.1"
 ```
 
 Con `DJANGO_DEBUG=True` se usa exclusivamente una clave de desarrollo local. No
@@ -124,9 +126,7 @@ pip install -r requirements.txt
 Instalar también las dependencias frontend:
 
 ```bash
-cd theme/static_src
 npm ci
-cd ../..
 ```
 
 ### 4. Compilar Tailwind CSS
@@ -134,13 +134,13 @@ cd ../..
 Generar una vez el CSS minificado:
 
 ```bash
-npm --prefix theme/static_src run build:tailwind
+npm run build:css
 ```
 
 Mientras se trabaja en estilos o plantillas, ejecutar el observador en una segunda terminal:
 
 ```bash
-npm --prefix theme/static_src run dev
+npm run dev:css
 ```
 
 El archivo generado que sirve Django es `theme/static/css/dist/styles.css`. Detener el observador con `Ctrl+C`.
@@ -151,7 +151,7 @@ El archivo generado que sirve Django es `theme/static/css/dist/styles.css`. Dete
 python manage.py migrate
 ```
 
-Si se necesita acceso a `/admin/` o `/panel-interno/`, crear un superusuario:
+Para administrar usuarios y permisos desde `/sami-admin/`, crear un superusuario:
 
 ```bash
 python manage.py createsuperuser
@@ -161,7 +161,7 @@ python manage.py createsuperuser
 
 ```bash
 python manage.py check
-python manage.py test
+python manage.py test --settings=sami_project.test_settings
 ```
 
 ### 7. Recolectar los archivos estáticos (opcional en desarrollo)
@@ -184,7 +184,7 @@ Con `DEBUG=True`, `runserver` sirve directamente los archivos de cada aplicació
 python manage.py runserver
 ```
 
-La aplicación estará disponible en <http://127.0.0.1:8000/>. El panel administrativo se encuentra en <http://127.0.0.1:8000/admin/>.
+La aplicación estará disponible en <http://127.0.0.1:8000/>. El panel administrativo se encuentra en <http://127.0.0.1:8000/sami-admin/>.
 
 Para detener el servidor, presionar:
 
@@ -192,7 +192,7 @@ Para detener el servidor, presionar:
 Ctrl + C
 ```
 
-El mapa muestra la zona desde la cual se brindan los servicios virtuales; no representa una oficina física abierta al público. Anime.js, Font Awesome y el mapa requieren conexión a Internet.
+El mapa muestra la zona desde la cual se brindan los servicios virtuales; no representa una oficina física abierta al público. Anime.js y el mapa requieren conexión a Internet.
 
 ### 9. Desactivar el entorno virtual
 
@@ -235,16 +235,12 @@ La configuración actual reconoce estas variables:
 | --- | --- | --- |
 | `DJANGO_SECRET_KEY` | Clave criptográfica de Django. Debe ser larga, aleatoria y privada en producción. | Clave insegura únicamente para desarrollo |
 | `DJANGO_DEBUG` | Activa o desactiva el modo de depuración (`True`/`False`). | `False` |
-| `MAINTENANCE_MODE` | Muestra temporalmente la página de mantenimiento en `/`. | `False` |
-| `DB_ENGINE` | Selecciona `mysql` (principal) o `sqlite` para tareas locales opcionales. | `mysql` |
 | `MYSQL_DATABASE` | Nombre de la base de datos MySQL. | `sami_db` |
 | `MYSQL_USER` | Usuario de MySQL. | `jaifer08` |
 | `MYSQL_PASSWORD` | Contraseña del usuario de MySQL. | Vacío |
 | `MYSQL_HOST` | Host o nombre del contenedor MySQL. | `mysql_server` |
 | `MYSQL_PORT` | Puerto de MySQL. | `3306` |
-| `GOOGLE_CLIENT_ID` | Identificador OAuth de Google. | Vacío |
-| `GOOGLE_CLIENT_SECRET` | Secreto OAuth de Google. | Vacío |
-| `CONTACT_EMAIL` | Correo mostrado en la página de mantenimiento. | `contacto@samitravelstours.com` |
+| `CONTACT_EMAIL` | Correo mostrado en la política de privacidad. | `contacto@samitravelstours.com` |
 | `DJANGO_SECURE_SSL_REDIRECT` | Redirige las solicitudes de Django hacia HTTPS. | `False` |
 | `DJANGO_SECURE_HSTS_SECONDS` | Duración de HSTS; `0` lo desactiva. | `0` |
 | `PUBLIC_FORM_RATE_LIMIT` | Solicitudes públicas permitidas por IP y ventana. | `5` |
@@ -298,32 +294,13 @@ docker restart caddy
 > [!IMPORTANT]
 > La aplicación real utiliza `.env.production`, migraciones y el volumen persistente `sami_static`. Por ello, para una actualización completa y segura se debe seguir la secuencia detallada que aparece a continuación; esta conserva la conexión a MySQL, los secretos y los archivos estáticos que WhiteNoise sirve desde Django.
 
-### Activar la página de mantenimiento
-
-La página puede revisarse permanentemente en `/mantenimiento/`. Para mostrarla temporalmente al entrar en `https://samitravelstours.com/`, establecer esta variable en `/var/www/sami_app/.env.production`:
-
-```dotenv
-MAINTENANCE_MODE=True
-CONTACT_EMAIL=contacto@samitravelstours.com
-```
-
-Después, recrear `sami_container` siguiendo el flujo de despliegue. El modo de mantenimiento devuelve HTTP `503 Service Unavailable`, mientras que `/admin/`, `/accounts/` y los archivos estáticos continúan disponibles.
-
-Para recuperar el portal público:
-
-```dotenv
-MAINTENANCE_MODE=False
-```
-
-Volver a recrear el contenedor para aplicar el cambio. La escena animada representa un avión en revisión, con escáner, engranajes, herramienta y luces de reparación. El visitante puede pausarla o reanudarla haciendo clic sobre la ilustración y se respeta la preferencia del sistema `prefers-reduced-motion`.
-
 Los archivos estáticos de producción se guardan en el volumen Docker nombrado `sami_static`:
 
 ```text
 contenedor temporal (collectstatic) ──► sami_static ◄── sami_container (/app/staticfiles)
 ```
 
-Caddy reenvía todas las peticiones a Gunicorn. WhiteNoise sirve `/assets/` desde el contenido montado en `/app/staticfiles`, incluido el CSS de Tailwind y los recursos del administrador de Django.
+Caddy reenvía todas las peticiones a Gunicorn. WhiteNoise sirve `/assets/` desde el contenido montado en `/app/staticfiles`, incluido el CSS de Tailwind.
 
 ### Parte A: trabajo en el equipo local
 
@@ -335,7 +312,7 @@ Con el entorno virtual activado:
 git switch main
 git pull --ff-only origin main
 pip install -r requirements.txt
-npm --prefix theme/static_src ci
+npm ci
 ```
 
 #### 2. Implementar y comprobar los cambios
@@ -350,14 +327,14 @@ python manage.py migrate
 Si cambian plantillas, clases o configuración de Tailwind, regenerar el CSS que se guarda en Git:
 
 ```bash
-npm --prefix theme/static_src run build:tailwind
+npm run build:css
 ```
 
 Antes de actualizar el servidor, compilar y verificar el proyecto:
 
 ```bash
 python manage.py check
-python manage.py test
+python manage.py test --settings=sami_project.test_settings
 git diff --check
 git status
 ```
@@ -411,16 +388,12 @@ DJANGO_DEBUG=False
 DJANGO_SECURE_SSL_REDIRECT=True
 DJANGO_SECURE_HSTS_SECONDS=3600
 DJANGO_SECURE_HSTS_PRELOAD=False
-DB_ENGINE=mysql
 MYSQL_DATABASE=sami_db
 MYSQL_USER=jaifer08
 MYSQL_PASSWORD=REEMPLAZAR_POR_UNA_CONTRASENA_SEGURA
 MYSQL_HOST=mysql_server
 MYSQL_PORT=3306
 MYSQL_CONN_MAX_AGE=60
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-ACCOUNT_EMAIL_VERIFICATION=none
 ```
 
 Comprobar que el archivo, la red y el volumen de estáticos existan:
@@ -562,7 +535,7 @@ docker logs --tail 100 sami_container
 docker logs --tail 100 caddy
 ```
 
-El resultado esperado es `HTTP 200`. Revisar también el portal, `/accounts/login/`, `/admin/` y la carga de los archivos estáticos desde un navegador.
+El resultado esperado es `HTTP 200`. Revisar también el portal, `/sami-admin/` y la carga de los archivos estáticos desde un navegador.
 
 En producción, el HTML debe referenciar un nombre versionado similar a `/assets/css/dist/styles.<hash>.css`. Si aparece `/assets/css/dist/styles.css` sin hash, comprobar que `DJANGO_DEBUG=False` esté llegando realmente al contenedor:
 

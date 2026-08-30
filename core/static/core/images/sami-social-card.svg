@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">SAMI Travels &amp; Tours</title>
+  <desc id="desc">Vuelos, tours y experiencias personalizadas.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06152b"/>
+      <stop offset="1" stop-color="#173f6b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <circle cx="1020" cy="90" r="260" fill="#d71920" opacity=".18"/>
+  <circle cx="170" cy="315" r="82" fill="#d71920"/>
+  <path d="M105 315h130M170 250v130M116 282c35 18 73 18 108 0M116 348c35-18 73-18 108 0" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+  <text x="290" y="295" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="800">SAMI Travels</text>
+  <text x="290" y="380" fill="#d71920" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="800">&amp; Tours</text>
+  <text x="294" y="446" fill="#dbe7f5" font-family="Arial, Helvetica, sans-serif" font-size="30">Vuelos, tours y experiencias personalizadas</text>
+</svg>

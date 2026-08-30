@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.core.cache import cache
 from django.shortcuts import redirect, render
@@ -44,17 +43,10 @@ def portal_publico(request):
     return render(request, "core/portal_publico.html", {"form": form})
 
 
-def mantenimiento(request):
-    """Display the maintenance page without replacing the public portal."""
+def privacy_policy(request):
+    """Display the public privacy and cookie policy."""
     return render(
         request,
-        "core/mantenimiento.html",
+        "core/privacy_policy.html",
         {"contact_email": settings.CONTACT_EMAIL},
-        status=503,
     )
-
-
-@staff_member_required(login_url="admin:login")
-def panel_interno(request):
-    """Keep the former staff URL as an alias for the SAMI Admin dashboard."""
-    return redirect("sami_admin:dashboard")
