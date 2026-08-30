@@ -102,6 +102,8 @@ class BasicProductionViewsTests(TestCase):
     def test_public_portal_contains_seo_and_conversion_markup(self):
         response = self.client.get(reverse("core:portal-publico"))
 
+        self.assertContains(response, "https://www.googletagmanager.com/gtag/js?id=G-N92HCL999R")
+        self.assertContains(response, "gtag('config', 'G-N92HCL999R');")
         self.assertContains(
             response,
             '<link rel="canonical" href="https://samitravelstours.com/">',
@@ -182,6 +184,8 @@ class BasicProductionViewsTests(TestCase):
             html=True,
         )
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+        self.assertNotContains(response, "G-N92HCL999R")
+        self.assertNotContains(response, "googletagmanager.com")
 
     def test_public_form_persists_the_complete_contact_request(self):
         response = self.client.post(
