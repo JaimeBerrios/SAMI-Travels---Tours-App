@@ -285,19 +285,20 @@ def _catalog_config(catalog):
 @staff_required
 def catalog_list(request, catalog):
     config = _catalog_config(catalog)
+    status = request.GET.get("estado", "todos" if catalog == "paises" else "activos")
     hierarchy = []
     if catalog == "paises":
         child_status = Q()
-        if request.GET.get("estado", "activos") in {"activos", "inactivos"}:
-            child_status = Q(activo=request.GET.get("estado") == "activos")
+        if status in {"activos", "inactivos"}:
+            child_status = Q(activo=status == "activos")
         lugar_qs = LugarTuristico.objects.filter(child_status).order_by("nombre")
         departamento_qs = Departamento.objects.filter(child_status).order_by("nombre").prefetch_related(
             Prefetch("lugares_turisticos", queryset=lugar_qs)
         )
         country_qs = Pais.objects.all()
-        if request.GET.get("estado", "activos") in {"activos", "inactivos"}:
+        if status in {"activos", "inactivos"}:
             country_qs = country_qs.filter(
-                activo=request.GET.get("estado") == "activos"
+                activo=status == "activos"
             )
         country_qs = country_qs.prefetch_related(Prefetch("departamentos", queryset=departamento_qs))
         query = request.GET.get("q", "").strip().lower()
@@ -334,7 +335,6 @@ def catalog_list(request, catalog):
             items = items.filter(
                 Q(nombre_comercial__icontains=query) | Q(lugar_turistico__nombre__icontains=query)
             )
-    status = request.GET.get("estado", "activos")
     if status in {"activos", "inactivos"}:
         items = items.filter(activo=status == "activos")
     if catalog == "tours":
@@ -361,7 +361,13 @@ def catalog_list(request, catalog):
 @catalog_manager_required
 def catalog_create(request, catalog):
     config = _catalog_config(catalog)
-    form = config["form"](request.POST or None, request.FILES or None)
+    initial = {}
+    if request.method == "GET":
+        if catalog == "departamentos" and request.GET.get("pais", "").isdigit():
+            initial["pais"] = request.GET["pais"]
+        if catalog == "lugares" and request.GET.get("departamento", "").isdigit():
+            initial["departamento"] = request.GET["departamento"]
+    form = config["form"](request.POST or None, request.FILES or None, initial=initial)
     if request.method == "POST" and form.is_valid():
         item = form.save(commit=False)
         item.creado_por = request.user
