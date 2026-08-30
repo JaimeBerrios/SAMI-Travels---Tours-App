@@ -11,7 +11,7 @@ from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
 
-from .decorators import administrator_required, staff_required, superuser_required
+from .decorators import administrator_required, staff_required
 from .forms import (
     ROLE_ADMIN, ROLE_CHOICES, CotizacionForm, LugarTuristicoForm,
     StaffUserCreationForm,
@@ -57,33 +57,6 @@ class StaffRequiredTests(SimpleTestCase):
 
         with self.assertRaises(PermissionDenied):
             self.protected_view(self.request)
-
-
-class SuperuserRequiredTests(SimpleTestCase):
-    def setUp(self):
-        self.request = RequestFactory().get("/sami-admin/usuarios/")
-        self.protected_view = superuser_required(lambda request: "allowed")
-
-    def test_staff_adviser_gets_permission_denied(self):
-        self.request.user = SimpleNamespace(
-            is_authenticated=True,
-            is_active=True,
-            is_staff=True,
-            is_superuser=False,
-        )
-
-        with self.assertRaises(PermissionDenied):
-            self.protected_view(self.request)
-
-    def test_active_superuser_is_allowed(self):
-        self.request.user = SimpleNamespace(
-            is_authenticated=True,
-            is_active=True,
-            is_staff=True,
-            is_superuser=True,
-        )
-
-        self.assertEqual(self.protected_view(self.request), "allowed")
 
 
 class AdministratorRequiredTests(SimpleTestCase):
@@ -216,12 +189,17 @@ class DashboardTests(SimpleTestCase):
             {"estado": Cotizacion.Estado.RECHAZADA, "total": 1},
         ]
         request = RequestFactory().get("/sami-admin/")
-        request.user = get_user_model()(
+        groups = MagicMock()
+        groups.filter.return_value.exists.return_value = True
+        request.user = SimpleNamespace(
+            pk=None,
             username="admin",
             first_name="SAMI",
+            is_authenticated=True,
             is_active=True,
             is_staff=True,
-            is_superuser=True,
+            groups=groups,
+            get_full_name=lambda: "SAMI",
         )
 
         response = dashboard(request)
@@ -309,7 +287,7 @@ class UserDeactivateTests(SimpleTestCase):
 
 class AdministratorUserManagementTests(TestCase):
     def setUp(self):
-        administrator_group = Group.objects.create(name="Administrador")
+        administrator_group, _ = Group.objects.get_or_create(name="Administrador")
         self.administrator = get_user_model().objects.create_user(
             username="administrador",
             email="admin@example.com",
@@ -351,14 +329,10 @@ class AdministratorUserManagementTests(TestCase):
 
 
 class QuotationPermissionTests(SimpleTestCase):
-    def test_superuser_can_view_all_quotes(self):
-        user = SimpleNamespace(is_superuser=True)
-        self.assertTrue(can_view_all_quotes(user))
-
     def test_administrator_can_view_all_quotes(self):
         groups = MagicMock()
         groups.filter.return_value.exists.return_value = True
-        user = SimpleNamespace(is_superuser=False, groups=groups)
+        user = SimpleNamespace(groups=groups)
 
         self.assertTrue(can_view_all_quotes(user))
         groups.filter.assert_called_once_with(name="Administrador")
@@ -368,7 +342,7 @@ class QuotationPermissionTests(SimpleTestCase):
         queryset = quotation_manager.select_related.return_value
         groups = MagicMock()
         groups.filter.return_value.exists.return_value = False
-        adviser = SimpleNamespace(is_superuser=False, groups=groups)
+        adviser = SimpleNamespace(groups=groups)
 
         quotations_for(adviser)
 
@@ -506,7 +480,8 @@ class DestinationCatalogTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_administrator_can_deactivate_catalog_items(self):
-        self.user.groups.add(Group.objects.create(name="Administrador"))
+        administrator_group, _ = Group.objects.get_or_create(name="Administrador")
+        self.user.groups.add(administrator_group)
         response = self.client.post(
             reverse("sami_admin:catalog-toggle", args=["lugares", self.lugar.pk])
         )

@@ -116,7 +116,6 @@ class BasicProductionViewsTests(TestCase):
             username="seo-admin",
             password="test-password",
             is_staff=True,
-            is_superuser=True,
         )
         self.client.force_login(user)
 

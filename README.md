@@ -151,10 +151,10 @@ El archivo generado que sirve Django es `theme/static/css/dist/styles.css`. Dete
 python manage.py migrate
 ```
 
-Para administrar usuarios y permisos desde `/sami-admin/`, crear un superusuario:
+Para crear la primera cuenta con el rol Administrador:
 
 ```bash
-python manage.py createsuperuser
+python manage.py create_sami_admin nombre_usuario --email correo@ejemplo.com
 ```
 
 ### 6. Verificar y ejecutar las pruebas
@@ -218,9 +218,8 @@ handle_path /media/* {
 ```
 
 El panel incluye países, departamentos, lugares turísticos y tours reutilizables.
-Los asesores consultan el catálogo; administradores y superusuarios lo modifican,
-y solo un superusuario elimina datos definitivamente. La operación habitual es
-activar o desactivar registros.
+Los asesores consultan el catálogo y los administradores pueden crearlo,
+modificarlo, activarlo, desactivarlo o eliminarlo definitivamente.
 
 Cada cotización conserva una copia del nombre, ubicación, reseña e imagen del
 destino y de los detalles comerciales editados. Los cambios posteriores del

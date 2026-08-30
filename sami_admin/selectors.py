@@ -3,7 +3,7 @@ from .models import Cotizacion
 
 def can_view_all_quotes(user):
     """Return whether a staff member can access agency-wide quotations."""
-    return user.is_superuser or user.groups.filter(name="Administrador").exists()
+    return user.groups.filter(name="Administrador").exists()
 
 
 def quotations_for(user):

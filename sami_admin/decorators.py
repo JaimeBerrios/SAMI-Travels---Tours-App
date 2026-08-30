@@ -22,34 +22,14 @@ def staff_required(view_func):
     return wrapped_view
 
 
-def superuser_required(view_func):
-    """Restrict sensitive staff-management views to active superusers."""
-
-    @wraps(view_func)
-    def wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect_to_login(request.get_full_path())
-
-        if not request.user.is_active or not request.user.is_superuser:
-            raise PermissionDenied(
-                "Solo un superusuario puede gestionar las cuentas del personal."
-            )
-
-        return view_func(request, *args, **kwargs)
-
-    return wrapped_view
-
-
 def catalog_manager_required(view_func):
-    """Allow catalog mutations to administrators and superusers only."""
+    """Allow catalog mutations to administrators only."""
 
     @wraps(view_func)
     def wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect_to_login(request.get_full_path())
-        is_manager = request.user.is_superuser or request.user.groups.filter(
-            name="Administrador"
-        ).exists()
+        is_manager = request.user.groups.filter(name="Administrador").exists()
         if not request.user.is_active or not request.user.is_staff or not is_manager:
             raise PermissionDenied(
                 "Solo administradores pueden modificar el catálogo de destinos."
@@ -60,15 +40,13 @@ def catalog_manager_required(view_func):
 
 
 def administrator_required(view_func):
-    """Allow user management to administrators and technical superusers."""
+    """Allow user management to administrators."""
 
     @wraps(view_func)
     def wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect_to_login(request.get_full_path())
-        is_administrator = request.user.is_superuser or request.user.groups.filter(
-            name="Administrador"
-        ).exists()
+        is_administrator = request.user.groups.filter(name="Administrador").exists()
         if (
             not request.user.is_active
             or not request.user.is_staff

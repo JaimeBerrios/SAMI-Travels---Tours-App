@@ -25,7 +25,6 @@ from .decorators import (
     administrator_required,
     catalog_manager_required,
     staff_required,
-    superuser_required,
 )
 from .forms import (
     MANAGED_GROUPS,
@@ -351,9 +350,7 @@ def catalog_list(request, catalog):
     else:
         items = items.order_by("nombre")
     page = Paginator(items, 15).get_page(request.GET.get("page"))
-    can_manage_catalog = request.user.is_superuser or request.user.groups.filter(
-        name="Administrador"
-    ).exists()
+    can_manage_catalog = request.user.groups.filter(name="Administrador").exists()
     return render(
         request,
         "sami_admin/catalogo_list.html",
@@ -406,7 +403,7 @@ def catalog_update(request, catalog, item_id):
 
 
 @require_POST
-@superuser_required
+@catalog_manager_required
 def catalog_delete(request, catalog, item_id):
     config = _catalog_config(catalog)
     item = get_object_or_404(config["model"], pk=item_id)
@@ -546,9 +543,9 @@ def user_list(request):
     """List current and deactivated staff accounts for auditability."""
     users = list(
         get_user_model()
-        .objects.filter(is_staff=True, is_superuser=False)
+        .objects.filter(is_staff=True)
         .prefetch_related("groups")
-        .order_by("-is_active", "-is_superuser", "first_name", "username")
+        .order_by("-is_active", "first_name", "username")
     )
     for user in users:
         user.sami_role = get_user_role(user)
@@ -557,7 +554,7 @@ def user_list(request):
 
 @administrator_required
 def user_create(request):
-    """Create a limited staff account without superuser privileges."""
+    """Create a staff account with an administrator or adviser role."""
     form = StaffUserCreationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
@@ -580,7 +577,7 @@ def user_create(request):
 def user_update(request, user_id):
     """Update identity and role fields for a staff account."""
     user = get_object_or_404(
-        get_user_model(), pk=user_id, is_staff=True, is_superuser=False
+        get_user_model(), pk=user_id, is_staff=True
     )
     form = StaffUserUpdateForm(request.POST or None, instance=user)
 
@@ -589,7 +586,6 @@ def user_update(request, user_id):
         active_administrators = get_user_model().objects.filter(
             is_active=True,
             is_staff=True,
-            is_superuser=False,
             groups__name=MANAGED_GROUPS[ROLE_ADMIN],
         ).distinct()
         if (
@@ -620,14 +616,13 @@ def user_update(request, user_id):
 def user_deactivate(request, user_id):
     """Soft-delete a staff account while retaining its historical relations."""
     user = get_object_or_404(
-        get_user_model(), pk=user_id, is_staff=True, is_superuser=False
+        get_user_model(), pk=user_id, is_staff=True
     )
     if user.pk == request.user.pk:
         messages.error(request, "No puedes desactivar tu propia cuenta.")
     elif (
         user.groups.filter(name=MANAGED_GROUPS[ROLE_ADMIN]).exists()
         and get_user_model().objects.filter(
-            is_superuser=False,
             is_staff=True,
             is_active=True,
             groups__name=MANAGED_GROUPS[ROLE_ADMIN],
@@ -650,7 +645,7 @@ def user_deactivate(request, user_id):
 def user_delete(request, user_id):
     """Delete unused accounts; preserve referenced accounts by revoking access."""
     user = get_object_or_404(
-        get_user_model(), pk=user_id, is_staff=True, is_superuser=False
+        get_user_model(), pk=user_id, is_staff=True
     )
     if user.pk == request.user.pk:
         messages.error(request, "No puedes eliminar tu propia cuenta.")
@@ -660,7 +655,6 @@ def user_delete(request, user_id):
         name=MANAGED_GROUPS[ROLE_ADMIN]
     ).exists()
     active_administrators = get_user_model().objects.filter(
-        is_superuser=False,
         is_staff=True,
         is_active=True,
         groups__name=MANAGED_GROUPS[ROLE_ADMIN],
