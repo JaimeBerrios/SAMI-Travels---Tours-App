@@ -79,6 +79,14 @@
         .tour-grid { display: flex; flex-wrap: wrap; margin: 6px -4px -4px; }
         .tour-block-wrap { width: 50%; padding: 4px; }
         .tour-block { min-height: 64px; border: 1px solid var(--line); border-top: 3px solid var(--red); border-radius: 8px; padding: 10px 11px; color: var(--muted); font-size: 9px; break-inside: avoid; }
+        .destination-day { margin-top: 18px; break-inside: avoid; }
+        .destination-day-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--navy); font-size: 12px; font-weight: 800; }
+        .destination-day-title:after { height: 1px; flex: 1; background: var(--line); content: ""; }
+        .destination-card { display: flex; gap: 12px; margin-bottom: 7px; border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 9px; padding: 10px 12px; break-inside: avoid; }
+        .destination-thumb { width: 58px; height: 48px; border-radius: 7px; object-fit: cover; }
+        .destination-card h4 { margin: 0; color: var(--navy-dark); font-size: 11px; }
+        .destination-card p { margin: 2px 0 0; color: var(--muted); font-size: 9px; }
+        .destination-card .destination-price { margin-left: auto; color: var(--navy); font-size: 10px; font-weight: 800; white-space: nowrap; }
         .investment { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; overflow: hidden; border-radius: 12px; background: var(--navy); color: white; }
         .investment-copy { display: flex; align-items: center; gap: 13px; padding: 18px 21px; }
         .investment-icon { display: flex; width: 42px; height: 42px; align-items: center; justify-content: center; border-radius: 11px; background: rgba(255,255,255,.1); color: white; }
@@ -140,6 +148,17 @@
                     <div class="detail"><div class="detail-card"><div class="detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg></div><div><span class="detail-label">Tu asesor SAMI</span><strong class="detail-value">{{ cotizacion.asesor.get_full_name|default:"Equipo SAMI" }}</strong><span class="detail-subvalue">Acompañamiento personalizado</span></div></div></div>
                 </section>
 
+                {% with destinos=cotizacion.destinos.all %}
+                {% if destinos %}
+                    <section aria-label="Itinerario de destinos">
+                        <h3 class="section-title"><span></span>Itinerario del viaje</h3>
+                        {% regroup destinos by fecha_visita as dias %}
+                        {% for destino in destinos %}{% if destino.descripcion_historica %}<div class="tour-block"><strong>{{ destino.nombre_destino }}: reseña histórica</strong>{{ destino.descripcion_historica|linebreaksbr }}</div>{% endif %}{% endfor %}
+                        {% for destino in destinos %}{% if destino.incluye or destino.no_incluye or destino.itinerario %}<div class="tour-block"><strong>{{ destino.nombre_destino }} · detalles</strong>{% if destino.incluye %}<p><b>Incluye:</b> {{ destino.incluye|linebreaksbr }}</p>{% endif %}{% if destino.no_incluye %}<p><b>No incluye:</b> {{ destino.no_incluye|linebreaksbr }}</p>{% endif %}{% if destino.itinerario %}<p><b>Itinerario:</b> {{ destino.itinerario|linebreaksbr }}</p>{% endif %}</div>{% endif %}{% endfor %}
+                        {% for dia in dias %}<div class="destination-day"><div class="destination-day-title">{{ dia.grouper|date:"d \d\e F \d\e Y" }}</div>{% for destino in dia.list %}<div class="destination-card">{% if destino.imagen_url %}<img class="destination-thumb" src="{{ destino.imagen_url }}" alt="">{% endif %}<div><h4>{{ forloop.counter }}. {{ destino.nombre_destino }}</h4><p>{{ destino.ubicacion_destino }}{% if destino.nombre_tour %} · {{ destino.nombre_tour }}{% endif %}</p>{% if destino.notas %}<p>{{ destino.notas|linebreaksbr }}</p>{% endif %}</div>{% if destino.precio_manual is not None %}<span class="destination-price">USD ${{ destino.precio_manual|floatformat:2 }}</span>{% endif %}</div>{% endfor %}</div>{% endfor %}
+                    </section>
+                {% endif %}
+                {% if not destinos %}
                 {% if cotizacion.tipo_cotizacion == "tours" or cotizacion.tipo_cotizacion == "vuelos_tours" %}
                     <section aria-label="Experiencia del tour">
                         <div class="tour-hero">
@@ -151,6 +170,8 @@
                         {% if cotizacion.recomendaciones_tour or cotizacion.que_llevar_tour or cotizacion.restricciones_tour or cotizacion.politica_cancelacion or cotizacion.notas_tour %}<div class="tour-grid">{% if cotizacion.recomendaciones_tour %}<div class="tour-block-wrap"><div class="tour-block"><strong>Recomendaciones</strong>{{ cotizacion.recomendaciones_tour|linebreaksbr }}</div></div>{% endif %}{% if cotizacion.que_llevar_tour %}<div class="tour-block-wrap"><div class="tour-block"><strong>Qué llevar</strong>{{ cotizacion.que_llevar_tour|linebreaksbr }}</div></div>{% endif %}{% if cotizacion.restricciones_tour %}<div class="tour-block-wrap"><div class="tour-block"><strong>Restricciones</strong>{{ cotizacion.restricciones_tour|linebreaksbr }}</div></div>{% endif %}{% if cotizacion.politica_cancelacion %}<div class="tour-block-wrap"><div class="tour-block"><strong>Política de cancelación</strong>{{ cotizacion.politica_cancelacion|linebreaksbr }}</div></div>{% endif %}{% if cotizacion.notas_tour %}<div class="tour-block-wrap" style="width:100%"><div class="tour-block"><strong>Notas importantes del tour</strong>{{ cotizacion.notas_tour|linebreaksbr }}</div></div>{% endif %}</div>{% endif %}
                     </section>
                 {% endif %}
+                {% endif %}
+                {% endwith %}
 
                 {% if cotizacion.tipo_cotizacion == "vuelos" or cotizacion.tipo_cotizacion == "vuelos_tours" %}
                     <section class="flight-summary">

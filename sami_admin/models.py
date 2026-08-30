@@ -214,6 +214,12 @@ class Cotizacion(models.Model):
     ruta_vuelo = models.CharField(max_length=255, null=True, blank=True)
     cantidad_adultos = models.IntegerField(null=True, blank=True)
     cantidad_ninos = models.IntegerField(null=True, blank=True)
+    edades_ninos = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Edades separadas por comas, por ejemplo: 5, 11",
+    )
     fecha_ida = models.DateField(null=True, blank=True)
     hora_salida_ida = models.TimeField(null=True, blank=True)
     hora_llegada_ida = models.TimeField(null=True, blank=True)
@@ -294,3 +300,61 @@ class HistorialCotizacion(models.Model):
         ordering = ("-creado_en",)
         verbose_name = "historial de cotización"
         verbose_name_plural = "historial de cotizaciones"
+
+
+class CotizacionDestino(models.Model):
+    """Ordered destination stop belonging to a quotation itinerary."""
+
+    cotizacion = models.ForeignKey(
+        Cotizacion,
+        on_delete=models.CASCADE,
+        related_name="destinos",
+    )
+    lugar_turistico = models.ForeignKey(
+        LugarTuristico,
+        on_delete=models.PROTECT,
+        related_name="paradas_cotizadas",
+    )
+    tour = models.ForeignKey(
+        Tour,
+        on_delete=models.SET_NULL,
+        related_name="paradas_cotizadas",
+        null=True,
+        blank=True,
+    )
+    fecha_visita = models.DateField()
+    orden = models.PositiveIntegerField(default=1)
+    precio_manual = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        null=True,
+        blank=True,
+    )
+    notas = models.TextField(blank=True)
+    nombre_destino = models.CharField(max_length=180, blank=True)
+    ubicacion_destino = models.CharField(max_length=255, blank=True)
+    descripcion_historica = models.TextField(blank=True)
+    imagen_destino = models.CharField(max_length=500, blank=True)
+    nombre_tour = models.CharField(max_length=180, blank=True)
+    duracion_tour = models.CharField(max_length=120, blank=True)
+    punto_encuentro = models.CharField(max_length=255, blank=True)
+    incluye = models.TextField(blank=True)
+    no_incluye = models.TextField(blank=True)
+    itinerario = models.TextField(blank=True)
+    recomendaciones = models.TextField(blank=True)
+    que_llevar = models.TextField(blank=True)
+    restricciones = models.TextField(blank=True)
+    politica_cancelacion = models.TextField(blank=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("fecha_visita", "orden", "id")
+        indexes = [models.Index(fields=("cotizacion", "fecha_visita", "orden"))]
+
+    def __str__(self):
+        return f"{self.fecha_visita} · {self.nombre_destino or self.lugar_turistico.nombre}"
+
+    @property
+    def imagen_url(self):
+        return default_storage.url(self.imagen_destino) if self.imagen_destino else ""

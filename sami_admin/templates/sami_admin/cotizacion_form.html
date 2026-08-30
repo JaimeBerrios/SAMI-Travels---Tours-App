@@ -19,13 +19,24 @@
                 </div>
             </fieldset>
 
-            <fieldset id="tour-fields" class="rounded-2xl border border-rose-100 bg-rose-50/40 p-5 sm:p-6">
+            <fieldset id="legacy-tour-fields" class="hidden rounded-2xl border border-rose-100 bg-rose-50/40 p-5 sm:p-6">
                 <legend class="px-2 text-base font-bold text-brand-navy"><span class="inline-flex items-center gap-2"><svg class="size-5 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>Experiencia del tour</span></legend>
                 <p class="mt-2 text-sm text-slate-600">Selecciona la ubicación en orden y completa los detalles que aparecerán en la propuesta.</p>
                 <div class="mt-5 grid gap-6 sm:grid-cols-2">
                     {% for field in form %}{% if field.name == 'pais' or field.name == 'departamento' or field.name == 'lugar_turistico' or field.name == 'tour' or field.name == 'duracion_tour' or field.name == 'punto_encuentro' or field.name == 'incluye' or field.name == 'no_incluye' or field.name == 'itinerario_resumido' or field.name == 'recomendaciones_tour' or field.name == 'que_llevar_tour' or field.name == 'restricciones_tour' or field.name == 'politica_cancelacion' or field.name == 'notas_tour' or field.name == 'vigencia_cotizacion' %}
                     <div class="{% if field.name == 'punto_encuentro' or field.name == 'itinerario_resumido' or field.name == 'politica_cancelacion' %}sm:col-span-2{% endif %}"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>
                     {% endif %}{% endfor %}
+                </div>
+            </fieldset>
+
+            <fieldset id="tour-itinerary-fields" class="rounded-2xl border border-rose-100 bg-rose-50/40 p-5 sm:p-6">
+                <legend class="px-2 text-base font-bold text-brand-navy">Itinerario de destinos</legend>
+                <p class="mt-2 text-sm text-slate-600">Puedes agregar destinos repetidos o compartir la misma fecha.</p>
+                <div id="destination-rows" class="mt-5 space-y-4"></div>
+                <button type="button" id="add-destination" class="mt-5 inline-flex items-center gap-2 rounded-xl border border-brand-red px-4 py-2.5 text-sm font-semibold text-brand-red hover:bg-brand-red hover:text-white">+ Agregar destino</button>
+                {{ form.destinos_json }}
+                <div class="mt-7 grid gap-6 border-t border-rose-200 pt-6 sm:grid-cols-2">
+                    {% for field in form %}{% if field.name == 'edades_ninos' or field.name == 'duracion_tour' or field.name == 'punto_encuentro' or field.name == 'incluye' or field.name == 'no_incluye' or field.name == 'itinerario_resumido' or field.name == 'recomendaciones_tour' or field.name == 'que_llevar_tour' or field.name == 'restricciones_tour' or field.name == 'politica_cancelacion' or field.name == 'notas_tour' or field.name == 'vigencia_cotizacion' %}<div class="sm:col-span-2"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p class="mt-2 text-sm font-medium text-rose-600">{{ error }}</p>{% endfor %}</div>{% endif %}{% endfor %}
                 </div>
             </fieldset>
 
@@ -65,11 +76,11 @@
     (() => {
         const typeField = document.getElementById('id_tipo_cotizacion');
         const flightFields = document.getElementById('flight-fields');
-        const tourFields = document.getElementById('tour-fields');
+        const tourFields = document.getElementById('tour-itinerary-fields');
         if (!typeField || !flightFields || !tourFields) return;
         const syncTypeFields = () => {
             flightFields.classList.toggle('hidden', typeField.value === 'tours');
-            tourFields.classList.toggle('hidden', typeField.value === 'vuelos');
+            tourFields.classList.toggle('hidden', !['tours', 'vuelos_tours'].includes(typeField.value));
         };
         typeField.addEventListener('change', syncTypeFields);
         syncTypeFields();
@@ -130,5 +141,32 @@
             });
         });
     })();
+</script>
+<script>
+(() => {
+  const container = document.getElementById('destination-rows');
+  const add = document.getElementById('add-destination');
+  const hidden = document.getElementById('id_destinos_json');
+  if (!container || !add || !hidden) return;
+  let initial = []; try { initial = JSON.parse(hidden.value || '[]'); } catch (e) { initial = []; }
+  const json = async (url) => (await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})).json();
+  const opts = (placeholder, values) => [new Option(placeholder, ''), ...values.map(x => new Option(x.nombre, x.id))];
+  const numberRows = () => container.querySelectorAll('.destination-row').forEach((row, i) => row.querySelector('.row-number').textContent = i + 1);
+  const addRow = async (value = {}) => {
+    const row = document.createElement('div'); row.className = 'destination-row rounded-2xl border border-slate-200 bg-white p-4 shadow-sm';
+    row.innerHTML = `<div class="mb-3 flex items-center justify-between"><strong class="text-sm text-brand-navy">Destino <span class="row-number"></span></strong><button type="button" class="remove-row rounded-lg px-2 py-1 text-sm font-semibold text-rose-600 hover:bg-rose-50">Eliminar</button></div><div class="grid gap-4 sm:grid-cols-2"><label class="text-sm font-semibold text-brand-navy">País<select class="row-country mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2.5"><option value="">Selecciona un país</option>{% for pais in form.fields.pais.queryset %}<option value="{{ pais.id }}">{{ pais.nombre }}</option>{% endfor %}</select></label><label class="text-sm font-semibold text-brand-navy">Departamento<select class="row-department mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2.5"><option value="">Selecciona un departamento</option></select></label><label class="text-sm font-semibold text-brand-navy sm:col-span-2">Lugar turístico<select class="row-place mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2.5"><option value="">Selecciona un lugar</option></select></label><label class="text-sm font-semibold text-brand-navy">Fecha de visita<input type="date" class="row-date mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2.5" value="${value.fecha || ''}"></label><label class="text-sm font-semibold text-brand-navy">Tour o paquete<select class="row-tour mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2.5"><option value="">Sin paquete predeterminado</option></select></label><label class="text-sm font-semibold text-brand-navy">Precio manual (USD)<input type="number" min="0" step="0.01" class="row-price mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2.5" value="${value.precio || ''}"></label><label class="text-sm font-semibold text-brand-navy sm:col-span-2">Notas<textarea rows="2" class="row-notes mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2.5">${value.notas || ''}</textarea></label></div>`;
+    container.appendChild(row); numberRows();
+    const country = row.querySelector('.row-country'), department = row.querySelector('.row-department'), place = row.querySelector('.row-place'), tour = row.querySelector('.row-tour');
+    const loadDepartments = async (selected = '') => { const data = country.value ? await json(`{% url 'sami_admin:departments-json' %}?pais=${country.value}`) : {results: []}; department.replaceChildren(...opts('Selecciona un departamento', data.results)); if (selected) department.value = selected; };
+    const loadPlaces = async (selected = '') => { const data = department.value ? await json(`{% url 'sami_admin:tourist-places-json' %}?departamento=${department.value}`) : {results: []}; place.replaceChildren(...opts('Selecciona un lugar', data.results)); if (selected) place.value = selected; };
+    const loadTours = async (selected = '') => { const data = place.value ? await json(`{% url 'sami_admin:tours-json' %}?lugar=${place.value}`) : {results: []}; row._tourData = data.results; tour.replaceChildren(new Option('Sin paquete predeterminado', ''), ...data.results.map(x => new Option(x.nombre, x.id))); if (selected) tour.value = selected; };
+    tour.addEventListener('change', () => { const selected = row._tourData?.find(x => String(x.id) === tour.value); if (!selected) return; const fields = {duracion: 'duracion_tour', punto_encuentro: 'punto_encuentro', incluye: 'incluye', no_incluye: 'no_incluye', itinerario: 'itinerario_resumido', recomendaciones: 'recomendaciones_tour', que_llevar: 'que_llevar_tour', restricciones: 'restricciones_tour', politica_cancelacion: 'politica_cancelacion', precio_base: 'precio_estimado'}; Object.entries(fields).forEach(([source, target]) => { const input = document.getElementById(`id_${target}`); if (input) input.value = selected[source] || ''; }); });
+    country.value = value.pais || ''; if (country.value) await loadDepartments(value.departamento); if (department.value) await loadPlaces(value.lugar); if (place.value) await loadTours(value.tour);
+    country.addEventListener('change', async () => { await loadDepartments(); await loadPlaces(); await loadTours(); }); department.addEventListener('change', async () => { await loadPlaces(); await loadTours(); }); place.addEventListener('change', async () => { await loadTours(); if (place.value) document.getElementById('id_destino').value = place.options[place.selectedIndex].text; });
+    row.querySelector('.remove-row').addEventListener('click', () => { row.remove(); numberRows(); });
+  };
+  add.addEventListener('click', () => addRow()); if (initial.length) initial.forEach(addRow); else addRow();
+  document.getElementById('quotation-form').addEventListener('submit', () => { hidden.value = JSON.stringify([...container.querySelectorAll('.destination-row')].map(row => ({lugar: row.querySelector('.row-place').value, tour: row.querySelector('.row-tour').value, fecha: row.querySelector('.row-date').value, precio: row.querySelector('.row-price').value, notas: row.querySelector('.row-notes').value, duracion: document.getElementById('id_duracion_tour')?.value || '', punto_encuentro: document.getElementById('id_punto_encuentro')?.value || '', incluye: document.getElementById('id_incluye')?.value || '', no_incluye: document.getElementById('id_no_incluye')?.value || '', itinerario: document.getElementById('id_itinerario_resumido')?.value || '', recomendaciones: document.getElementById('id_recomendaciones_tour')?.value || '', que_llevar: document.getElementById('id_que_llevar_tour')?.value || '', restricciones: document.getElementById('id_restricciones_tour')?.value || '', politica_cancelacion: document.getElementById('id_politica_cancelacion')?.value || ''})));
+})();
 </script>
 {% endblock %}

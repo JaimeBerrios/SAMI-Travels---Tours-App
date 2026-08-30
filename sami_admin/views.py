@@ -10,7 +10,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from django.http import Http404, HttpResponse, JsonResponse
@@ -169,6 +169,7 @@ def quotation_create(request):
         quotation = form.save(commit=False)
         quotation.asesor = request.user
         quotation.save()
+        form.save_destinations(quotation)
         HistorialCotizacion.objects.create(
             cotizacion=quotation,
             usuario=request.user,
@@ -284,6 +285,31 @@ def _catalog_config(catalog):
 @staff_required
 def catalog_list(request, catalog):
     config = _catalog_config(catalog)
+    hierarchy = []
+    if catalog == "paises":
+        child_status = Q()
+        if request.GET.get("estado", "activos") in {"activos", "inactivos"}:
+            child_status = Q(activo=request.GET.get("estado") == "activos")
+        lugar_qs = LugarTuristico.objects.filter(child_status).order_by("nombre")
+        departamento_qs = Departamento.objects.filter(child_status).order_by("nombre").prefetch_related(
+            Prefetch("lugares_turisticos", queryset=lugar_qs)
+        )
+        country_qs = Pais.objects.all()
+        if request.GET.get("estado", "activos") in {"activos", "inactivos"}:
+            country_qs = country_qs.filter(
+                activo=request.GET.get("estado") == "activos"
+            )
+        country_qs = country_qs.prefetch_related(Prefetch("departamentos", queryset=departamento_qs))
+        query = request.GET.get("q", "").strip().lower()
+        for pais in country_qs:
+            departamentos = list(pais.departamentos.all())
+            if query and not (
+                query in pais.nombre.lower()
+                or any(query in departamento.nombre.lower() for departamento in departamentos)
+                or any(query in lugar.nombre.lower() for departamento in departamentos for lugar in departamento.lugares_turisticos.all())
+            ):
+                continue
+            hierarchy.append(pais)
     items = config["model"].objects.all()
     if catalog == "departamentos":
         items = items.select_related("pais").annotate(total_lugares=Count("lugares_turisticos"))
@@ -327,7 +353,8 @@ def catalog_list(request, catalog):
         request,
         "sami_admin/catalogo_list.html",
         {"items": page, "page_obj": page, "catalog": catalog, "query": query,
-         "status": status, "can_manage_catalog": can_manage_catalog, **config},
+         "status": status, "can_manage_catalog": can_manage_catalog,
+         "hierarchy": hierarchy, **config},
     )
 
 
@@ -399,6 +426,7 @@ def quotation_update(request, quotation_id):
     form = CotizacionForm(request.POST or None, instance=quotation)
     if request.method == "POST" and form.is_valid():
         quotation = form.save()
+        form.save_destinations(quotation)
         HistorialCotizacion.objects.create(
             cotizacion=quotation,
             usuario=request.user,
