@@ -23,7 +23,6 @@ class PublicSitemap(Sitemap):
         )
         return [
             ("page", "core:portal-publico"),
-            ("page", "core:agencia-san-miguel"),
             ("page", "core:privacy-policy"),
             *(("destination", item) for item in destinations),
             *(("tour", item) for item in tours),
@@ -33,8 +32,6 @@ class PublicSitemap(Sitemap):
         kind, value = item
         if kind == "page" and value == "core:portal-publico":
             return 1.0
-        if kind == "page" and value == "core:agencia-san-miguel":
-            return 0.9
         return 0.7 if kind in {"destination", "tour"} else 0.3
 
     def changefreq(self, item):

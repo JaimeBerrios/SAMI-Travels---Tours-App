@@ -145,8 +145,3 @@ def privacy_policy(request):
         "core/privacy_policy.html",
         {"contact_email": settings.CONTACT_EMAIL},
     )
-
-
-def agencia_san_miguel(request):
-    """Local SEO landing page for travelers in San Miguel."""
-    return render(request, "core/agencia_san_miguel.html")
