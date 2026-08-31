@@ -182,6 +182,8 @@ class CampaignManagementTests(TestCase):
         self.assertContains(response, "Destino del botón")
         self.assertContains(response, "Color de superposición")
         self.assertContains(response, "overlay-opacity-output")
+        self.assertContains(response, 'id="campaign-link-test"')
+        self.assertContains(response, "Probar enlace actual")
 
         place_response = self.client.get(
             reverse("sami_admin:catalog-create", args=["lugares"])
