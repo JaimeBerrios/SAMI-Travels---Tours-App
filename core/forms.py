@@ -76,6 +76,11 @@ class SolicitudContactoForm(forms.ModelForm):
             self.add_error("tour", "El tour no pertenece al destino seleccionado.")
         if tour and not lugar:
             cleaned["lugar_turistico"] = tour.lugar_turistico
+        if cleaned.get("servicio") != SolicitudContacto.Servicio.VUELO_PRIVADO:
+            cleaned["hora_salida_preferida"] = None
+            cleaned["motivo_vuelo_privado"] = ""
+            cleaned["equipaje_estimado"] = ""
+            cleaned["preferencia_aeronave"] = ""
         return cleaned
 
     def save(self, commit=True):

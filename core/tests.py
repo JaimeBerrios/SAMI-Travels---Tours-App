@@ -156,8 +156,15 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, 'id="form-public-quote"')
         self.assertContains(response, 'id="quick-quote"')
         self.assertContains(response, 'data-quick-service="vuelo"')
+        self.assertContains(response, 'data-quick-flight-mode="vuelo privado"')
+        self.assertContains(response, 'id="quick-private-flight-warning"')
         self.assertContains(response, 'data-quick-service="tour"')
         self.assertContains(response, 'data-quick-service="vuelo y tour"')
+        self.assertNotContains(response, 'data-quick-service="vuelo privado"')
+        self.assertContains(response, 'data-flight-mode="vuelo"')
+        self.assertContains(response, 'data-flight-mode="vuelo privado"')
+        self.assertNotContains(response, 'data-service="vuelo privado"')
+        self.assertContains(response, "Las tarifas son considerablemente superiores")
         self.assertContains(response, 'data-trip-type="roundtrip"')
         self.assertContains(response, 'data-trip-type="oneway"')
         self.assertContains(response, 'id="quick-adults"')
@@ -293,6 +300,29 @@ class BasicProductionViewsTests(TestCase):
         self.assertEqual(solicitud.hora_salida_preferida.strftime("%H:%M"), "08:30")
         self.assertEqual(solicitud.equipaje_estimado, "4 maletas medianas")
         self.assertEqual(solicitud.preferencia_aeronave, "Jet mediano")
+
+    def test_public_commercial_flight_discards_private_only_details(self):
+        response = self.client.post(
+            reverse("core:portal-publico"),
+            {
+                "nombre": "Ana Viajera",
+                "correo": "ana@example.com",
+                "servicio": "vuelo",
+                "origen": "San Salvador",
+                "destino": "Madrid",
+                "hora_salida_preferida": "08:30",
+                "motivo_vuelo_privado": "turismo",
+                "equipaje_estimado": "4 maletas",
+                "preferencia_aeronave": "Jet mediano",
+            },
+        )
+
+        self.assertRedirects(response, reverse("core:portal-publico"))
+        solicitud = SolicitudContacto.objects.get()
+        self.assertIsNone(solicitud.hora_salida_preferida)
+        self.assertEqual(solicitud.motivo_vuelo_privado, "")
+        self.assertEqual(solicitud.equipaje_estimado, "")
+        self.assertEqual(solicitud.preferencia_aeronave, "")
 
     def test_public_form_rejects_honeypot_submissions(self):
         response = self.client.post(
