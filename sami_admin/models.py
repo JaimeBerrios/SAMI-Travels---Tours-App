@@ -321,9 +321,11 @@ class CampanaPromocional(models.Model):
     def get_target_url(self):
         portal = reverse("core:portal-publico")
         if self.tipo_enlace == self.TipoEnlace.DESTINO and self.lugar_turistico_id:
-            return f"{portal}?lugar={self.lugar_turistico_id}#cotizar"
+            return reverse(
+                "core:destination-detail", args=[self.lugar_turistico.slug]
+            )
         if self.tipo_enlace == self.TipoEnlace.TOUR and self.tour_id:
-            return f"{portal}?tour={self.tour_id}#cotizar"
+            return reverse("core:tour-detail", args=[self.tour.slug])
         if self.tipo_enlace == self.TipoEnlace.PERSONALIZADO:
             return self.url_personalizada or f"{portal}#cotizar"
         return f"{portal}#cotizar"
@@ -335,9 +337,9 @@ class CampanaPromocional(models.Model):
     @property
     def descripcion_enlace(self):
         if self.tipo_enlace == self.TipoEnlace.DESTINO and self.lugar_turistico_id:
-            return f"Cotizador con destino: {self.lugar_turistico.nombre}"
+            return f"Artículo del destino: {self.lugar_turistico.nombre}"
         if self.tipo_enlace == self.TipoEnlace.TOUR and self.tour_id:
-            return f"Cotizador con tour: {self.tour.nombre_comercial}"
+            return f"Detalle del tour: {self.tour.nombre_comercial}"
         if self.tipo_enlace == self.TipoEnlace.PERSONALIZADO:
             return self.url_personalizada or "Enlace pendiente"
         return "Formulario de cotización"

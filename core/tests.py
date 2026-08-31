@@ -329,6 +329,14 @@ class BasicProductionViewsTests(TestCase):
             precio_base=75,
             destacado=True,
         )
+        destination_campaign = CampanaPromocional(
+            tipo_enlace=CampanaPromocional.TipoEnlace.DESTINO,
+            lugar_turistico=place,
+        )
+        tour_campaign = CampanaPromocional(
+            tipo_enlace=CampanaPromocional.TipoEnlace.TOUR,
+            tour=tour,
+        )
 
         destination_response = self.client.get(
             reverse("core:destination-detail", args=[place.slug])
@@ -348,3 +356,11 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(tour_response, '"@type":"TouristTrip"')
         self.assertContains(portal_response, "Atardecer en El Tunco")
         self.assertContains(portal_response, 'value="tour" selected')
+        self.assertEqual(
+            destination_campaign.get_target_url(),
+            reverse("core:destination-detail", args=[place.slug]),
+        )
+        self.assertEqual(
+            tour_campaign.get_target_url(),
+            reverse("core:tour-detail", args=[tour.slug]),
+        )
