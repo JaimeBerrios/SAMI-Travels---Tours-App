@@ -124,7 +124,12 @@
             </div>
         </div>
         <input id="quick-service" type="hidden" value="vuelo">
-        <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
+        <div id="quick-trip-options" class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Tipo de trayecto">
+            <button type="button" class="quick-trip-type rounded-full border border-brand-red bg-brand-red-soft px-4 py-2 text-sm font-bold text-brand-red" data-trip-type="roundtrip" aria-pressed="true">Ida y vuelta</button>
+            <button type="button" class="quick-trip-type rounded-full border border-slate-300 px-4 py-2 text-sm font-bold" data-trip-type="oneway" aria-pressed="false">Solo ida</button>
+        </div>
+        <input id="quick-trip-type" type="hidden" value="roundtrip">
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-7 lg:items-end">
             <div id="quick-origin-field" class="lg:col-span-1">
                 <label for="quick-origin" class="mb-1.5 block text-sm font-bold">Origen</label>
                 <div class="relative"><i class="fa-solid fa-location-dot pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i><input id="quick-origin" type="text" autocomplete="address-level2" placeholder="San Salvador" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-10 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
@@ -133,7 +138,7 @@
                 <label for="quick-destination" class="mb-1.5 block text-sm font-bold">Destino</label>
                 <div class="relative"><i class="fa-solid fa-location-arrow pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i><input id="quick-destination" type="text" autocomplete="off" placeholder="¿A dónde vas?" required class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-10 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
             </div>
-            <div>
+            <div id="quick-return-field">
                 <label for="quick-departure" class="mb-1.5 block text-sm font-bold">Ida</label>
                 <input id="quick-departure" type="date" class="min-h-12 w-full rounded-xl border border-slate-300 px-3 py-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10">
             </div>
@@ -142,15 +147,30 @@
                 <input id="quick-return" type="date" class="min-h-12 w-full rounded-xl border border-slate-300 px-3 py-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10">
             </div>
             <div>
-                <label for="quick-travelers" class="mb-1.5 block text-sm font-bold">Viajeros</label>
-                <select id="quick-travelers" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10">
-                    <option value="1">1 viajero</option><option value="2">2 viajeros</option><option value="3">3 viajeros</option><option value="4">4 viajeros</option><option value="5">5 viajeros</option><option value="6">6 viajeros</option><option value="7">7 viajeros</option><option value="8">8+ viajeros</option>
+                <label for="quick-adults" class="mb-1.5 block text-sm font-bold">Adultos</label>
+                <select id="quick-adults" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10">
+                    <option value="1">1 adulto</option><option value="2">2 adultos</option><option value="3">3 adultos</option><option value="4">4 adultos</option><option value="5">5 adultos</option><option value="6">6 adultos</option><option value="7">7 adultos</option><option value="8">8+ adultos</option>
                 </select>
             </div>
+            <div><label for="quick-children" class="mb-1.5 block text-sm font-bold">Niños</label><select id="quick-children" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"><option value="0">Sin niños</option><option value="1">1 niño</option><option value="2">2 niños</option><option value="3">3 niños</option><option value="4">4 niños</option><option value="5">5+ niños</option></select></div>
             <button id="btn-quick-quote" type="submit" class="min-h-12 rounded-xl bg-brand-red px-5 py-3 font-bold text-white shadow-lg shadow-brand-red/25 transition hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/20">Continuar <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></button>
         </div>
         <p id="quick-quote-error" class="mt-3 hidden text-sm font-semibold text-brand-red" role="alert">Indica el destino para continuar.</p>
     </form>
+</section>
+
+<section class="bg-white py-16 sm:py-20" aria-labelledby="popular-routes-title">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Rutas populares</span><h2 id="popular-routes-title" class="mt-2 text-3xl font-black">Viajes desde El Salvador</h2><p class="mt-3 text-slate-600">Selecciona una ruta frecuente y solicita opciones actualizadas para tus fechas.</p></div><span class="text-sm text-slate-500">Sin precios desactualizados ni cargos ocultos</span></div>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Houston"><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Houston</strong></span><i class="fa-solid fa-arrow-right text-brand-red transition group-hover:translate-x-1"></i></button>
+            <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Washington D. C."><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Washington D. C.</strong></span><i class="fa-solid fa-arrow-right text-brand-red transition group-hover:translate-x-1"></i></button>
+            <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Los Ángeles"><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Los Ángeles</strong></span><i class="fa-solid fa-arrow-right text-brand-red transition group-hover:translate-x-1"></i></button>
+            <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Madrid"><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Madrid</strong></span><i class="fa-solid fa-arrow-right text-brand-red transition group-hover:translate-x-1"></i></button>
+            <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Ciudad de México"><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Ciudad de México</strong></span><i class="fa-solid fa-arrow-right text-brand-red transition group-hover:translate-x-1"></i></button>
+            <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Cancún"><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Cancún</strong></span><i class="fa-solid fa-arrow-right text-brand-red transition group-hover:translate-x-1"></i></button>
+        </div>
+    </div>
 </section>
 
 <section class="border-y border-slate-200 bg-slate-50 py-16 sm:py-20" aria-labelledby="seo-local-heading">
@@ -190,6 +210,21 @@
                 <h3 class="mt-6 text-xl font-bold">Asesoría</h3><p class="mt-3 leading-7 text-slate-600">Te orientamos en cada paso para viajar con tranquilidad y confianza.</p>
             </article>
         </div>
+    </div>
+</section>
+
+<section id="explorar" class="bg-brand-navy py-16 text-white sm:py-20" aria-labelledby="trip-explorer-title">
+    <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+        <div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-rose-300">Inspírate</span><h2 id="trip-explorer-title" class="mt-3 text-3xl font-black sm:text-4xl">¿Aún no sabes a dónde viajar?</h2><p class="mt-5 max-w-xl leading-8 text-slate-200">Cuéntanos qué experiencia buscas y tu presupuesto. Un asesor te ayudará a encontrar destinos que encajen contigo.</p></div>
+        <form id="trip-explorer" class="rounded-3xl bg-white p-5 text-brand-navy shadow-2xl sm:p-7">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div><label for="explorer-budget" class="mb-2 block text-sm font-bold">Presupuesto por persona (USD)</label><select id="explorer-budget" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="Hasta USD $500">Hasta $500</option><option value="USD $500 a $1,000">$500 a $1,000</option><option value="USD $1,000 a $2,000">$1,000 a $2,000</option><option value="Más de USD $2,000">Más de $2,000</option></select></div>
+                <div><label for="explorer-month" class="mb-2 block text-sm font-bold">Cuándo quieres viajar</label><select id="explorer-month" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="Fechas flexibles">Fechas flexibles</option><option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option></select></div>
+                <div><label for="explorer-style" class="mb-2 block text-sm font-bold">Tipo de experiencia</label><select id="explorer-style" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option>Playa y descanso</option><option>Ciudad y cultura</option><option>Naturaleza y aventura</option><option>Viaje familiar</option><option>Viaje en pareja</option><option>Destino por descubrir</option></select></div>
+                <div><label for="explorer-scope" class="mb-2 block text-sm font-bold">Preferencia</label><select id="explorer-scope" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option>Internacional</option><option>Dentro de El Salvador</option><option>Estoy abierto a opciones</option></select></div>
+                <button type="submit" class="btn-primary sm:col-span-2">Recibir recomendaciones <i class="fa-solid fa-compass ml-1"></i></button>
+            </div>
+        </form>
     </div>
 </section>
 
@@ -318,7 +353,12 @@
     const quickDestination = document.getElementById("quick-destination");
     const quickDeparture = document.getElementById("quick-departure");
     const quickReturn = document.getElementById("quick-return");
-    const quickTravelers = document.getElementById("quick-travelers");
+    const quickReturnField = document.getElementById("quick-return-field");
+    const quickAdults = document.getElementById("quick-adults");
+    const quickChildren = document.getElementById("quick-children");
+    const quickTripOptions = document.getElementById("quick-trip-options");
+    const quickTripType = document.getElementById("quick-trip-type");
+    const quickTripButtons = document.querySelectorAll(".quick-trip-type");
     const quickError = document.getElementById("quick-quote-error");
     const service = document.getElementById("servicio");
     const tabs = document.querySelectorAll(".quote-tab");
@@ -344,9 +384,23 @@
             tab.setAttribute("aria-pressed", String(active));
         });
         quickOriginField?.classList.toggle("hidden", value === "tour");
+        quickTripOptions?.classList.toggle("hidden", value === "tour");
+        quickReturnField?.classList.toggle("hidden", value !== "tour" && quickTripType.value === "oneway");
     };
     quickTabs.forEach(tab => tab.addEventListener("click", () => {
         quickService.value = tab.dataset.quickService;
+        syncQuickTabs();
+    }));
+    quickTripButtons.forEach(button => button.addEventListener("click", () => {
+        quickTripType.value = button.dataset.tripType;
+        quickTripButtons.forEach(item => {
+            const active = item === button;
+            item.classList.toggle("border-brand-red", active);
+            item.classList.toggle("bg-brand-red-soft", active);
+            item.classList.toggle("text-brand-red", active);
+            item.setAttribute("aria-pressed", String(active));
+        });
+        if (quickTripType.value === "oneway") quickReturn.value = "";
         syncQuickTabs();
     }));
     quickDeparture?.addEventListener("change", () => {
@@ -367,15 +421,43 @@
         document.getElementById("origen").value = quickOrigin.value.trim();
         document.getElementById("destino").value = destination;
         document.getElementById("fecha_ida").value = quickDeparture.value;
-        document.getElementById("fecha_regreso").value = quickReturn.value;
-        document.getElementById("adultos").value = quickTravelers.value;
-        document.getElementById("ninos").value = "0";
+        document.getElementById("fecha_regreso").value = quickTripType.value === "oneway" ? "" : quickReturn.value;
+        document.getElementById("adultos").value = quickAdults.value;
+        document.getElementById("ninos").value = quickChildren.value;
         sync();
         syncAges();
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({event: "quick_quote_continue", service_type: quickService.value});
         document.getElementById("cotizar").scrollIntoView({behavior: "smooth", block: "start"});
         window.setTimeout(() => document.getElementById("nombre").focus({preventScroll: true}), 500);
+    });
+
+    document.querySelectorAll(".popular-route").forEach(route => route.addEventListener("click", () => {
+        quickService.value = "vuelo";
+        quickOrigin.value = route.dataset.origin;
+        quickDestination.value = route.dataset.destination;
+        syncQuickTabs();
+        quickForm.scrollIntoView({behavior: "smooth", block: "center"});
+        window.setTimeout(() => quickDeparture.focus({preventScroll: true}), 500);
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({event: "popular_route_select", route_destination: route.dataset.destination});
+    }));
+
+    document.getElementById("trip-explorer")?.addEventListener("submit", event => {
+        event.preventDefault();
+        const budget = document.getElementById("explorer-budget").value;
+        const month = document.getElementById("explorer-month").value;
+        const style = document.getElementById("explorer-style").value;
+        const scope = document.getElementById("explorer-scope").value;
+        service.value = "vuelo y tour";
+        document.getElementById("destino").value = "Destino por recomendar";
+        document.getElementById("presupuesto").value = "";
+        document.getElementById("detalles").value = `Deseo recomendaciones. Presupuesto: ${budget}. Mes: ${month}. Experiencia: ${style}. Preferencia: ${scope}.`;
+        sync();
+        document.getElementById("cotizar").scrollIntoView({behavior: "smooth", block: "start"});
+        window.setTimeout(() => document.getElementById("nombre").focus({preventScroll: true}), 500);
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({event: "trip_explorer_continue", travel_style: style});
     });
     const sync = () => {
         const value = service.value;

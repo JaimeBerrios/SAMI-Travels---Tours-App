@@ -131,6 +131,12 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, 'data-quick-service="vuelo"')
         self.assertContains(response, 'data-quick-service="tour"')
         self.assertContains(response, 'data-quick-service="vuelo y tour"')
+        self.assertContains(response, 'data-trip-type="roundtrip"')
+        self.assertContains(response, 'data-trip-type="oneway"')
+        self.assertContains(response, 'id="quick-adults"')
+        self.assertContains(response, 'id="quick-children"')
+        self.assertContains(response, 'id="popular-routes-title"')
+        self.assertContains(response, 'id="trip-explorer"')
         self.assertContains(response, 'event: "quick_quote_continue"')
         self.assertContains(response, 'id="btn-submit-quote"')
         self.assertContains(response, 'id="link-social-facebook"')
@@ -280,6 +286,11 @@ class BasicProductionViewsTests(TestCase):
             nombre="El Tunco",
             imagen="lugares_turisticos/el-tunco.jpg",
             descripcion_historica="Destino de playa reconocido por sus olas.",
+            mejor_epoca="Noviembre a abril",
+            duracion_recomendada="3 a 5 días",
+            aeropuerto_principal="Aeropuerto Internacional de El Salvador",
+            actividades_destacadas="Surf\nAtardeceres en la playa",
+            requisitos_viaje="Confirma documentos vigentes antes de viajar.",
             destacado=True,
         )
         tour = Tour.objects.create(
@@ -303,6 +314,10 @@ class BasicProductionViewsTests(TestCase):
         )
 
         self.assertContains(destination_response, "El Tunco")
+        self.assertContains(destination_response, "Noviembre a abril")
+        self.assertContains(destination_response, "Surf")
+        self.assertContains(destination_response, '"@type":"TouristDestination"')
         self.assertContains(tour_response, "Atardecer en El Tunco")
+        self.assertContains(tour_response, '"@type":"TouristTrip"')
         self.assertContains(portal_response, "Atardecer en El Tunco")
         self.assertContains(portal_response, 'value="tour" selected')

@@ -87,6 +87,23 @@ class LugarTuristico(models.Model):
     imagen = models.ImageField(upload_to="lugares_turisticos/")
     descripcion_historica = models.TextField()
     resumen_publico = models.CharField(max_length=280, blank=True)
+    mejor_epoca = models.CharField(
+        max_length=180, blank=True,
+        help_text="Meses o temporada recomendada para visitar el destino.",
+    )
+    duracion_recomendada = models.CharField(
+        max_length=120, blank=True,
+        help_text="Ejemplo: 4 a 6 días.",
+    )
+    aeropuerto_principal = models.CharField(max_length=180, blank=True)
+    actividades_destacadas = models.TextField(
+        blank=True,
+        help_text="Una actividad por línea.",
+    )
+    requisitos_viaje = models.TextField(
+        blank=True,
+        help_text="Orientación general; evita afirmar requisitos que puedan cambiar.",
+    )
     destacado = models.BooleanField(default=False, db_index=True)
     activo = models.BooleanField(default=True, db_index=True)
     creado_en = models.DateTimeField(default=timezone.now, editable=False)
@@ -126,6 +143,10 @@ class LugarTuristico(models.Model):
                 suffix += 1
             self.slug = candidate
         super().save(*args, **kwargs)
+
+    @property
+    def lista_actividades(self):
+        return [item.strip() for item in self.actividades_destacadas.splitlines() if item.strip()]
 
 
 class Tour(models.Model):

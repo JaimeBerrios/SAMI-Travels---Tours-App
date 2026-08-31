@@ -841,9 +841,15 @@ class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
         model = LugarTuristico
         fields = (
             "departamento", "nombre", "imagen", "resumen_publico",
-            "descripcion_historica", "destacado", "activo",
+            "descripcion_historica", "mejor_epoca", "duracion_recomendada",
+            "aeropuerto_principal", "actividades_destacadas", "requisitos_viaje",
+            "destacado", "activo",
         )
-        widgets = {"descripcion_historica": forms.Textarea(attrs={"rows": 7})}
+        widgets = {
+            "descripcion_historica": forms.Textarea(attrs={"rows": 7}),
+            "actividades_destacadas": forms.Textarea(attrs={"rows": 5}),
+            "requisitos_viaje": forms.Textarea(attrs={"rows": 5}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
