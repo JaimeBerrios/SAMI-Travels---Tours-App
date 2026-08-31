@@ -21,9 +21,13 @@ class SolicitudContactoForm(forms.ModelForm):
             "destino",
             "fecha_ida",
             "fecha_regreso",
+            "hora_salida_preferida",
             "adultos",
             "ninos",
             "edades_ninos",
+            "motivo_vuelo_privado",
+            "equipaje_estimado",
+            "preferencia_aeronave",
             "presupuesto",
             "lugar_turistico",
             "tour",
@@ -32,6 +36,7 @@ class SolicitudContactoForm(forms.ModelForm):
         widgets = {
             "fecha_ida": forms.DateInput(attrs={"type": "date"}),
             "fecha_regreso": forms.DateInput(attrs={"type": "date"}),
+            "hora_salida_preferida": forms.TimeInput(attrs={"type": "time"}),
             "detalles": forms.Textarea(attrs={"rows": 4}),
         }
 

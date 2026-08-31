@@ -266,6 +266,34 @@ class BasicProductionViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(SolicitudContacto.objects.exists())
 
+    def test_public_form_persists_private_flight_details(self):
+        response = self.client.post(
+            reverse("core:portal-publico"),
+            {
+                "nombre": "Carlos Ejecutivo",
+                "correo": "carlos@example.com",
+                "servicio": "vuelo privado",
+                "origen": "San Salvador",
+                "destino": "Miami",
+                "fecha_ida": "2026-12-10",
+                "hora_salida_preferida": "08:30",
+                "adultos": 4,
+                "ninos": 0,
+                "motivo_vuelo_privado": "negocios",
+                "equipaje_estimado": "4 maletas medianas",
+                "preferencia_aeronave": "Jet mediano",
+            },
+        )
+
+        self.assertRedirects(response, reverse("core:portal-publico"))
+        solicitud = SolicitudContacto.objects.get()
+        self.assertEqual(
+            solicitud.servicio, SolicitudContacto.Servicio.VUELO_PRIVADO
+        )
+        self.assertEqual(solicitud.hora_salida_preferida.strftime("%H:%M"), "08:30")
+        self.assertEqual(solicitud.equipaje_estimado, "4 maletas medianas")
+        self.assertEqual(solicitud.preferencia_aeronave, "Jet mediano")
+
     def test_public_form_rejects_honeypot_submissions(self):
         response = self.client.post(
             reverse("core:portal-publico"),

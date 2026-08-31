@@ -390,6 +390,24 @@ class PublicRequestWorkflowTests(TestCase):
             reverse("sami_admin:quotation-update", args=[quotation.pk]),
         )
 
+    def test_private_flight_request_converts_with_special_details(self):
+        self.request_record.servicio = SolicitudContacto.Servicio.VUELO_PRIVADO
+        self.request_record.motivo_vuelo_privado = "negocios"
+        self.request_record.equipaje_estimado = "4 maletas"
+        self.request_record.preferencia_aeronave = "Jet mediano"
+        self.request_record.save()
+
+        self.client.post(
+            reverse("sami_admin:request-convert", args=[self.request_record.pk])
+        )
+
+        self.request_record.refresh_from_db()
+        quotation = self.request_record.cotizacion
+        self.assertEqual(quotation.tipo_cotizacion, Cotizacion.TipoCotizacion.VUELOS)
+        self.assertIn("Vuelo privado", quotation.notas_importantes)
+        self.assertIn("4 maletas", quotation.notas_importantes)
+        self.assertIn("Jet mediano", quotation.notas_importantes)
+
 
 class StaffUserCreationFormTests(SimpleTestCase):
     def test_save_forces_limited_staff_permissions(self):

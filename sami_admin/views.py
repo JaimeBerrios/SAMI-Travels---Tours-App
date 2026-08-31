@@ -305,6 +305,7 @@ def request_convert(request, request_id):
 
     type_mapping = {
         SolicitudContacto.Servicio.VUELO: Cotizacion.TipoCotizacion.VUELOS,
+        SolicitudContacto.Servicio.VUELO_PRIVADO: Cotizacion.TipoCotizacion.VUELOS,
         SolicitudContacto.Servicio.TOUR: Cotizacion.TipoCotizacion.TOURS,
         SolicitudContacto.Servicio.VUELO_TOUR: Cotizacion.TipoCotizacion.VUELOS_TOURS,
     }
@@ -348,7 +349,18 @@ def request_convert(request, request_id):
             edades_ninos=solicitud.edades_ninos or None,
             fecha_ida=solicitud.fecha_ida,
             fecha_vuelta=solicitud.fecha_regreso,
-            notas_importantes=solicitud.detalles or None,
+            notas_importantes="\n".join(filter(None, (
+                solicitud.detalles,
+                (
+                    "Vuelo privado — "
+                    f"Motivo: {solicitud.get_motivo_vuelo_privado_display() or 'Por definir'}; "
+                    f"hora preferida: {solicitud.hora_salida_preferida or 'Por definir'}; "
+                    f"equipaje: {solicitud.equipaje_estimado or 'Por definir'}; "
+                    f"aeronave: {solicitud.preferencia_aeronave or 'Sin preferencia'}"
+                    if solicitud.servicio == SolicitudContacto.Servicio.VUELO_PRIVADO
+                    else ""
+                ),
+            ))) or None,
             precio_estimado=solicitud.presupuesto or 0,
         )
         if place and quotation.tipo_cotizacion != Cotizacion.TipoCotizacion.VUELOS:

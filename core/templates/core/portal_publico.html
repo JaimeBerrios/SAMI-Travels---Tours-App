@@ -122,8 +122,9 @@
                 <h2 id="quick-quote-title" class="mt-1 text-xl font-black sm:text-2xl">Cotiza tu próximo viaje</h2>
                 <p class="mt-1 text-sm text-slate-500">Completa lo esencial; tus datos pasarán al formulario de solicitud.</p>
             </div>
-            <div class="grid grid-cols-3 rounded-2xl bg-slate-100 p-1" role="group" aria-label="Servicio para cotizar">
+            <div class="grid grid-cols-2 rounded-2xl bg-slate-100 p-1 sm:grid-cols-4" role="group" aria-label="Servicio para cotizar">
                 <button type="button" class="quick-quote-tab rounded-xl px-3 py-2.5 text-sm font-bold transition" data-quick-service="vuelo" aria-pressed="true"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> Vuelo</button>
+                <button type="button" class="quick-quote-tab rounded-xl px-3 py-2.5 text-sm font-bold transition" data-quick-service="vuelo privado" aria-pressed="false"><i class="fa-solid fa-jet-fighter-up mr-1" aria-hidden="true"></i> Privado</button>
                 <button type="button" class="quick-quote-tab rounded-xl px-3 py-2.5 text-sm font-bold transition" data-quick-service="tour" aria-pressed="false"><i class="fa-solid fa-map-location-dot mr-1" aria-hidden="true"></i> Tour</button>
                 <button type="button" class="quick-quote-tab rounded-xl px-3 py-2.5 text-sm font-bold transition" data-quick-service="vuelo y tour" aria-pressed="false"><i class="fa-solid fa-suitcase-rolling mr-1" aria-hidden="true"></i> Vuelo + tour</button>
             </div>
@@ -201,11 +202,15 @@
             <h2 class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">Planeamos el viaje que tienes en mente</h2>
             <p class="mt-4 text-slate-600">Soluciones personalizadas para disfrutar cada etapa de tu próxima aventura.</p>
         </div>
-        <div class="mt-12 grid gap-6 md:grid-cols-3">
+        <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <article class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-2 hover:border-brand-red/30 hover:shadow-2xl hover:shadow-brand-navy/10">
                 <div class="grid size-14 place-items-center rounded-2xl bg-brand-red-soft text-brand-red transition group-hover:bg-brand-red group-hover:text-white"><i class="fa-solid fa-plane text-2xl"></i></div>
                 <h3 class="mt-6 text-xl font-bold">Vuelos</h3><p class="mt-3 leading-7 text-slate-600">Buscamos opciones convenientes según tus fechas, presupuesto y destino.</p>
             </article>
+            <button type="button" class="service-private-flight group rounded-2xl border border-slate-200/80 bg-white p-7 text-left shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-2 hover:border-brand-red/30 hover:shadow-2xl hover:shadow-brand-navy/10">
+                <div class="grid size-14 place-items-center rounded-2xl bg-brand-red-soft text-brand-red transition group-hover:bg-brand-red group-hover:text-white"><i class="fa-solid fa-jet-fighter-up text-2xl"></i></div>
+                <h3 class="mt-6 text-xl font-bold">Vuelos privados</h3><p class="mt-3 leading-7 text-slate-600">Solicita una propuesta según ruta, pasajeros, horario y necesidades especiales.</p>
+            </button>
             <article class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-2 hover:border-brand-red/30 hover:shadow-2xl hover:shadow-brand-navy/10" data-tour-id="tours-personalizados" data-tour-name="Tours personalizados">
                 <div class="grid size-14 place-items-center rounded-2xl bg-brand-red-soft text-brand-red transition group-hover:bg-brand-red group-hover:text-white"><i class="fa-solid fa-map-location-dot text-2xl"></i></div>
                 <h3 class="mt-6 text-xl font-bold">Tours</h3><p class="mt-3 leading-7 text-slate-600">Experiencias locales e internacionales para viajar en pareja, familia o grupo.</p>
@@ -281,8 +286,8 @@
                 <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
             </div>
             {% if form.errors %}<div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">Revisa los campos señalados antes de continuar.</div>{% endif %}
-            <div class="mb-7 grid grid-cols-3 rounded-2xl bg-slate-100 p-1" role="group" aria-label="Tipo de viaje"><button type="button" class="quote-tab rounded-xl px-2 py-3 text-sm font-bold" data-service="vuelo">Vuelos</button><button type="button" class="quote-tab rounded-xl px-2 py-3 text-sm font-bold" data-service="tour">Tours</button><button type="button" class="quote-tab rounded-xl px-2 py-3 text-sm font-bold" data-service="vuelo y tour">Vuelo + tour</button></div>
-            <select id="servicio" name="servicio" class="sr-only" aria-label="Tipo de viaje"><option value="vuelo" {% if form.servicio.value == 'vuelo' %}selected{% endif %}>Vuelos</option><option value="tour" {% if form.servicio.value == 'tour' %}selected{% endif %}>Tours</option><option value="vuelo y tour" {% if form.servicio.value == 'vuelo y tour' %}selected{% endif %}>Vuelo y tour</option></select>
+            <div class="mb-7 grid grid-cols-2 rounded-2xl bg-slate-100 p-1 sm:grid-cols-4" role="group" aria-label="Tipo de viaje"><button type="button" class="quote-tab rounded-xl px-2 py-3 text-sm font-bold" data-service="vuelo">Vuelos</button><button type="button" class="quote-tab rounded-xl px-2 py-3 text-sm font-bold" data-service="vuelo privado">Vuelo privado</button><button type="button" class="quote-tab rounded-xl px-2 py-3 text-sm font-bold" data-service="tour">Tours</button><button type="button" class="quote-tab rounded-xl px-2 py-3 text-sm font-bold" data-service="vuelo y tour">Vuelo + tour</button></div>
+            <select id="servicio" name="servicio" class="sr-only" aria-label="Tipo de viaje"><option value="vuelo" {% if form.servicio.value == 'vuelo' %}selected{% endif %}>Vuelos</option><option value="vuelo privado" {% if form.servicio.value == 'vuelo privado' %}selected{% endif %}>Vuelo privado</option><option value="tour" {% if form.servicio.value == 'tour' %}selected{% endif %}>Tours</option><option value="vuelo y tour" {% if form.servicio.value == 'vuelo y tour' %}selected{% endif %}>Vuelo y tour</option></select>
             <div class="grid gap-5 sm:grid-cols-2">
                 <div><label for="nombre" class="mb-2 block text-sm font-bold text-slate-700">Nombre completo</label><input type="text" id="nombre" name="nombre" value="{{ form.nombre.value|default:'' }}" required autocomplete="name" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.nombre.errors }}</div>
                 <div><label for="correo" class="mb-2 block text-sm font-bold text-slate-700">Correo electrónico</label><input type="email" id="correo" name="correo" value="{{ form.correo.value|default:'' }}" required autocomplete="email" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.correo.errors }}</div>
@@ -294,6 +299,7 @@
                 <div><label for="adultos" class="mb-2 block text-sm font-bold text-slate-700">Adultos</label><input type="number" min="1" id="adultos" name="adultos" value="{{ form.adultos.value|default:1 }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
                 <div><label for="ninos" class="mb-2 block text-sm font-bold text-slate-700">Niños</label><input type="number" min="0" id="ninos" name="ninos" value="{{ form.ninos.value|default:0 }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
                 <div id="children-ages" class="hidden sm:col-span-2"><label for="edades_ninos" class="mb-2 block text-sm font-bold text-slate-700">Edades de los niños</label><input type="text" id="edades_ninos" name="edades_ninos" value="{{ form.edades_ninos.value|default:'' }}" placeholder="Ej. 5, 11" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
+                <div data-private-flight-field class="hidden sm:col-span-2"><div class="rounded-2xl border border-blue-200 bg-blue-50 p-5"><div class="flex items-start gap-3"><i class="fa-solid fa-jet-fighter-up mt-1 text-xl text-brand-red"></i><div><h3 class="font-black text-brand-navy">Detalles del vuelo privado</h3><p class="mt-1 text-xs leading-5 text-slate-600">Solo necesitamos información orientativa; el operador confirmará aeronave, permisos y disponibilidad.</p></div></div><div class="mt-4 grid gap-4 sm:grid-cols-2"><div><label for="motivo_vuelo_privado" class="mb-2 block text-sm font-bold text-slate-700">Motivo del viaje</label><select id="motivo_vuelo_privado" name="motivo_vuelo_privado" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">Seleccionar</option>{% for value, label in form.fields.motivo_vuelo_privado.choices %}{% if value %}<option value="{{ value }}" {% if form.motivo_vuelo_privado.value == value %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}</select></div><div><label for="hora_salida_preferida" class="mb-2 block text-sm font-bold text-slate-700">Hora preferida</label><input type="time" id="hora_salida_preferida" name="hora_salida_preferida" value="{{ form.hora_salida_preferida.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div><div><label for="equipaje_estimado" class="mb-2 block text-sm font-bold text-slate-700">Equipaje estimado</label><input type="text" id="equipaje_estimado" name="equipaje_estimado" value="{{ form.equipaje_estimado.value|default:'' }}" placeholder="Ej. 4 maletas medianas" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div><div><label for="preferencia_aeronave" class="mb-2 block text-sm font-bold text-slate-700">Aeronave <span class="font-normal text-slate-400">(opcional)</span></label><input type="text" id="preferencia_aeronave" name="preferencia_aeronave" value="{{ form.preferencia_aeronave.value|default:'' }}" placeholder="Sin preferencia" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div></div></div></div>
                 <div data-tour-field><label for="lugar_turistico" class="mb-2 block text-sm font-bold text-slate-700">Destino del catálogo</label><select id="lugar_turistico" name="lugar_turistico" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">Seleccionar (opcional)</option>{% for place in form.fields.lugar_turistico.queryset %}<option value="{{ place.id }}" {% if form.lugar_turistico.value|stringformat:'s' == place.id|stringformat:'s' %}selected{% endif %}>{{ place.nombre }} · {{ place.departamento.pais.nombre }}</option>{% endfor %}</select></div>
                 <div data-tour-field><label for="tour" class="mb-2 block text-sm font-bold text-slate-700">Tour</label><select id="tour" name="tour" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">Sin tour predeterminado</option>{% for item in form.fields.tour.queryset %}<option value="{{ item.id }}" data-place="{{ item.lugar_turistico_id }}" {% if form.tour.value|stringformat:'s' == item.id|stringformat:'s' %}selected{% endif %}>{{ item.nombre_comercial }}</option>{% endfor %}</select></div>
                 <div><label for="presupuesto" class="mb-2 block text-sm font-bold text-slate-700">Presupuesto aproximado (USD)</label><input type="number" min="0" step="0.01" id="presupuesto" name="presupuesto" value="{{ form.presupuesto.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
@@ -369,6 +375,7 @@
     const tabs = document.querySelectorAll(".quote-tab");
     const flightFields = document.querySelectorAll("[data-flight-field]");
     const tourFields = document.querySelectorAll("[data-tour-field]");
+    const privateFlightFields = document.querySelectorAll("[data-private-flight-field]");
     const children = document.getElementById("ninos");
     const ages = document.getElementById("children-ages");
     const place = document.getElementById("lugar_turistico");
@@ -448,6 +455,13 @@
         window.dataLayer.push({event: "popular_route_select", route_destination: route.dataset.destination});
     }));
 
+    document.querySelector(".service-private-flight")?.addEventListener("click", () => {
+        service.value = "vuelo privado";
+        sync();
+        document.getElementById("cotizar").scrollIntoView({behavior: "smooth", block: "start"});
+        window.setTimeout(() => document.getElementById("origen").focus({preventScroll: true}), 500);
+    });
+
     document.getElementById("trip-explorer")?.addEventListener("submit", event => {
         event.preventDefault();
         const budget = document.getElementById("explorer-budget").value;
@@ -469,7 +483,8 @@
         tabs.forEach(tab => tab.classList.toggle("bg-white", tab.dataset.service === value));
         tabs.forEach(tab => tab.classList.toggle("text-brand-red", tab.dataset.service === value));
         flightFields.forEach(field => field.classList.toggle("hidden", value === "tour"));
-        tourFields.forEach(field => field.classList.toggle("hidden", value === "vuelo"));
+        tourFields.forEach(field => field.classList.toggle("hidden", !["tour", "vuelo y tour"].includes(value)));
+        privateFlightFields.forEach(field => field.classList.toggle("hidden", value !== "vuelo privado"));
     };
     tabs.forEach(tab => tab.addEventListener("click", () => {
         service.value = tab.dataset.service;

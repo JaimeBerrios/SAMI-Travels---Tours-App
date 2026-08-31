@@ -12,8 +12,16 @@ class TimeStampedModel(models.Model):
 class SolicitudContacto(TimeStampedModel):
     class Servicio(models.TextChoices):
         VUELO = "vuelo", "Cotización de vuelo"
+        VUELO_PRIVADO = "vuelo privado", "Cotización de vuelo privado"
         TOUR = "tour", "Cotización de tour"
         VUELO_TOUR = "vuelo y tour", "Vuelo y tour"
+
+    class MotivoVueloPrivado(models.TextChoices):
+        NEGOCIOS = "negocios", "Negocios"
+        TURISMO = "turismo", "Turismo"
+        GRUPO = "grupo", "Viaje grupal"
+        EMERGENCIA = "emergencia", "Necesidad urgente"
+        OTRO = "otro", "Otro"
 
     class Estado(models.TextChoices):
         NUEVA = "nueva", "Nueva"
@@ -31,9 +39,15 @@ class SolicitudContacto(TimeStampedModel):
     destino = models.CharField(max_length=180, blank=True)
     fecha_ida = models.DateField(null=True, blank=True)
     fecha_regreso = models.DateField(null=True, blank=True)
+    hora_salida_preferida = models.TimeField(null=True, blank=True)
     adultos = models.PositiveSmallIntegerField(default=1)
     ninos = models.PositiveSmallIntegerField(default=0)
     edades_ninos = models.CharField(max_length=120, blank=True)
+    motivo_vuelo_privado = models.CharField(
+        max_length=20, choices=MotivoVueloPrivado.choices, blank=True
+    )
+    equipaje_estimado = models.CharField(max_length=180, blank=True)
+    preferencia_aeronave = models.CharField(max_length=120, blank=True)
     presupuesto = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True
     )
