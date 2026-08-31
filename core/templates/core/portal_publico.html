@@ -63,7 +63,7 @@
             <h1 class="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">{% if campaign %}{{ campaign.titulo }}{% else %}Tu agencia de viajes en El Salvador para descubrir el mundo{% endif %}</h1>
             <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-200">{% if campaign %}{{ campaign.descripcion }}{% else %}Encontramos vuelos, tours y experiencias diseñadas para ti, con acompañamiento antes, durante y después de tu viaje.{% endif %}</p>
             <div class="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a href="{% if campaign %}{{ campaign_url }}{% else %}#cotizar{% endif %}" class="rounded-xl bg-brand-red px-6 py-3.5 text-center font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:ring-4 focus:ring-white/30"{% if campaign.tipo_enlace == 'personalizado' %} target="_blank" rel="noopener noreferrer"{% endif %}>{% if campaign %}{{ campaign.texto_boton }}{% else %}Solicitar cotización{% endif %}</a>
+                <a href="{% if campaign %}{{ campaign_url|default:'#cotizar' }}{% else %}#cotizar{% endif %}" class="rounded-xl bg-brand-red px-6 py-3.5 text-center font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:ring-4 focus:ring-white/30"{% if campaign.tipo_enlace == 'personalizado' and campaign.url_personalizada %} target="_blank" rel="noopener noreferrer"{% endif %}>{% if campaign %}{{ campaign.texto_boton_publico }}{% else %}Solicitar cotización{% endif %}</a>
                 <a href="#servicios" class="rounded-xl border border-white/40 px-6 py-3.5 text-center font-bold transition hover:bg-white/10">Ver servicios</a>
             </div>
         </div>

@@ -325,8 +325,12 @@ class CampanaPromocional(models.Model):
         if self.tipo_enlace == self.TipoEnlace.TOUR and self.tour_id:
             return f"{portal}?tour={self.tour_id}#cotizar"
         if self.tipo_enlace == self.TipoEnlace.PERSONALIZADO:
-            return self.url_personalizada
+            return self.url_personalizada or f"{portal}#cotizar"
         return f"{portal}#cotizar"
+
+    @property
+    def texto_boton_publico(self):
+        return self.texto_boton.strip() or "Solicitar cotización"
 
     @property
     def descripcion_enlace(self):

@@ -98,6 +98,28 @@ class BasicProductionViewsTests(TestCase):
             response, "Tu agencia de viajes en El Salvador para descubrir el mundo"
         )
 
+    def test_campaign_with_empty_cta_uses_the_quote_fallback(self):
+        CampanaPromocional.objects.create(
+            nombre="Campaña incompleta",
+            titulo="Descubre un nuevo destino",
+            descripcion="Una promoción con respaldo de conversión.",
+            imagen_escritorio="campanas/escritorio/destino.webp",
+            imagen_movil="campanas/movil/destino.webp",
+            texto_alternativo="Destino turístico",
+            texto_boton="",
+            tipo_enlace=CampanaPromocional.TipoEnlace.PERSONALIZADO,
+            url_personalizada="",
+            fecha_inicio=timezone.now() - timedelta(minutes=5),
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, '>Solicitar cotización</a>')
+        self.assertContains(response, 'href="/#cotizar"')
+        self.assertNotContains(
+            response, 'href="/#cotizar" target="_blank"'
+        )
+
     def test_robots_txt_only_allows_the_public_site(self):
         response = self.client.get(reverse("robots-txt"))
 
