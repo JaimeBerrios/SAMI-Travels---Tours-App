@@ -67,7 +67,10 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, campaign.titulo)
         self.assertContains(response, campaign.imagen_escritorio.url)
         self.assertContains(response, campaign.imagen_movil.url)
-        self.assertContains(response, 'href="https://example.com/black-friday"')
+        self.assertContains(
+            response,
+            f'href="{reverse("core:campaign-click", args=[campaign.pk])}"',
+        )
         self.assertContains(response, ">Ver oferta</a>")
         self.assertContains(response, 'id="flight-animation-toggle"')
         self.assertContains(response, 'id="quick-quote"')
@@ -78,6 +81,132 @@ class BasicProductionViewsTests(TestCase):
         self.assertNotContains(
             response, "Tu próximo destino está más cerca de lo que imaginas."
         )
+        campaign.refresh_from_db()
+        self.assertEqual(campaign.impresiones, 1)
+
+        self.client.get(reverse("core:portal-publico"))
+        campaign.refresh_from_db()
+        self.assertEqual(campaign.impresiones, 1)
+
+    def test_video_campaign_uses_responsive_media_and_static_fallback(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="Video de verano",
+            titulo="Vive el verano",
+            descripcion="Una promoción en movimiento.",
+            imagen_escritorio="campanas/escritorio/verano.webp",
+            imagen_movil="campanas/movil/verano.webp",
+            tipo_multimedia=CampanaPromocional.TipoMultimedia.VIDEO,
+            multimedia_escritorio="campanas/multimedia/escritorio/verano.mp4",
+            multimedia_movil="campanas/multimedia/movil/verano.webm",
+            texto_alternativo="Playa al atardecer",
+            fecha_inicio=timezone.now() - timedelta(minutes=5),
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, campaign.imagen_escritorio.url)
+        self.assertContains(response, campaign.multimedia_escritorio.url)
+        self.assertContains(response, campaign.multimedia_movil.url)
+        self.assertContains(response, "video/webm")
+        self.assertContains(response, "autoplay muted loop playsinline")
+        self.assertContains(response, ".campaign-motion-media { display: none; }")
+
+    def test_gif_campaign_uses_responsive_animated_media(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="GIF promocional",
+            titulo="Oferta animada",
+            descripcion="Una promoción animada.",
+            imagen_escritorio="campanas/escritorio/oferta.webp",
+            imagen_movil="campanas/movil/oferta.webp",
+            tipo_multimedia=CampanaPromocional.TipoMultimedia.GIF,
+            multimedia_escritorio="campanas/multimedia/escritorio/oferta.gif",
+            multimedia_movil="campanas/multimedia/movil/oferta.gif",
+            texto_alternativo="Oferta de viaje",
+            fecha_inicio=timezone.now() - timedelta(minutes=5),
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, campaign.multimedia_escritorio.url)
+        self.assertContains(response, campaign.multimedia_movil.url)
+        self.assertContains(response, 'type="image/gif"')
+
+    def test_campaign_click_and_quote_conversion_are_counted(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="Campaña medible",
+            titulo="Viaja con nosotros",
+            descripcion="Promoción medible.",
+            imagen_escritorio="campanas/escritorio/medible.webp",
+            imagen_movil="campanas/movil/medible.webp",
+            texto_alternativo="Viajeros",
+            tipo_enlace=CampanaPromocional.TipoEnlace.PERSONALIZADO,
+            url_personalizada="https://example.com/promocion",
+            fecha_inicio=timezone.now() - timedelta(minutes=5),
+        )
+        self.client.get(reverse("core:portal-publico"))
+
+        click_response = self.client.get(
+            reverse("core:campaign-click", args=[campaign.pk])
+        )
+        self.assertEqual(click_response.status_code, 302)
+        self.assertEqual(click_response.url, campaign.url_personalizada)
+
+        quote_response = self.client.post(
+            reverse("core:portal-publico"),
+            {
+                "nombre": "Cliente campaña",
+                "correo": "cliente@example.com",
+                "servicio": "vuelo",
+                "origen": "San Salvador",
+                "destino": "Madrid",
+            },
+        )
+        self.assertRedirects(quote_response, reverse("core:portal-publico"))
+        campaign.refresh_from_db()
+        self.assertEqual(campaign.impresiones, 1)
+        self.assertEqual(campaign.clics, 1)
+        self.assertEqual(campaign.conversiones, 1)
+
+    def test_archived_campaign_is_not_published_or_clickable(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="Campaña eliminada",
+            titulo="No mostrar",
+            descripcion="Campaña en papelera.",
+            imagen_escritorio="campanas/escritorio/papelera.webp",
+            imagen_movil="campanas/movil/papelera.webp",
+            texto_alternativo="Campaña archivada",
+            fecha_inicio=timezone.now() - timedelta(minutes=5),
+            archivada_en=timezone.now(),
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertNotContains(response, campaign.titulo)
+        self.assertEqual(
+            self.client.get(reverse("core:campaign-click", args=[campaign.pk])).status_code,
+            404,
+        )
+
+    def test_lower_order_wins_when_active_campaigns_share_priority(self):
+        common = {
+            "descripcion": "Campaña con prioridad compartida.",
+            "imagen_escritorio": "campanas/escritorio/orden.webp",
+            "imagen_movil": "campanas/movil/orden.webp",
+            "texto_alternativo": "Destino",
+            "fecha_inicio": timezone.now() - timedelta(minutes=5),
+            "prioridad": 20,
+        }
+        CampanaPromocional.objects.create(
+            nombre="Orden posterior", titulo="No debe ganar", orden=5, **common
+        )
+        winner = CampanaPromocional.objects.create(
+            nombre="Orden principal", titulo="Debe ganar", orden=1, **common
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, winner.titulo)
+        self.assertNotContains(response, "No debe ganar")
 
     def test_expired_campaign_falls_back_to_the_corporate_hero(self):
         CampanaPromocional.objects.create(

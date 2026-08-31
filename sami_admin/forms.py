@@ -60,19 +60,25 @@ class CampanaPromocionalForm(forms.ModelForm):
         "imagen_escritorio": ((1920, 800), "escritorio"),
         "imagen_movil": ((1080, 1350), "móvil"),
     }
+    MULTIMEDIA_LIMITS = {
+        "multimedia_escritorio": {"gif": 5 * 1024 * 1024, "video": 12 * 1024 * 1024},
+        "multimedia_movil": {"gif": 4 * 1024 * 1024, "video": 8 * 1024 * 1024},
+    }
 
     class Meta:
         model = CampanaPromocional
         fields = (
             "nombre", "etiqueta", "titulo", "descripcion",
-            "imagen_escritorio", "imagen_movil", "color_superposicion",
+            "imagen_escritorio", "imagen_movil", "tipo_multimedia",
+            "multimedia_escritorio", "multimedia_movil", "color_superposicion",
             "opacidad_superposicion", "texto_alternativo",
             "texto_boton", "tipo_enlace", "lugar_turistico", "tour",
-            "url_personalizada", "fecha_inicio", "fecha_fin", "prioridad",
+            "url_personalizada", "fecha_inicio", "fecha_fin", "prioridad", "orden",
             "activo", "mostrar_avion",
         )
         widgets = {
             "descripcion": forms.Textarea(attrs={"rows": 4}),
+            "tipo_multimedia": forms.RadioSelect,
             "color_superposicion": forms.TextInput(attrs={"type": "color"}),
             "opacidad_superposicion": forms.NumberInput(
                 attrs={"type": "range", "min": 0, "max": 100, "step": 1}
@@ -103,6 +109,15 @@ class CampanaPromocionalForm(forms.ModelForm):
             self.fields[name].widget.attrs["class"] = "size-5 accent-rose-600"
         for name in ("imagen_escritorio", "imagen_movil"):
             self.fields[name].widget.attrs["accept"] = "image/jpeg,image/png,image/webp"
+        for name in ("multimedia_escritorio", "multimedia_movil"):
+            self.fields[name].widget.attrs["accept"] = "image/gif,video/mp4,video/webm"
+        self.fields["multimedia_escritorio"].label = "GIF o video para computadora"
+        self.fields["multimedia_movil"].label = "GIF o video para celular"
+        self.fields["tipo_multimedia"].widget.attrs["class"] = "space-y-2"
+        self.fields["tipo_multimedia"].required = False
+        self.fields["tipo_multimedia"].initial = CampanaPromocional.TipoMultimedia.IMAGEN
+        self.fields["orden"].required = False
+        self.fields["orden"].initial = 0
         self.fields["color_superposicion"].widget.attrs["class"] = (
             "h-12 w-full cursor-pointer rounded-xl border border-slate-300 bg-white p-1"
         )
@@ -153,12 +168,102 @@ class CampanaPromocionalForm(forms.ModelForm):
     def clean_imagen_movil(self):
         return self._clean_campaign_image("imagen_movil")
 
+    def _clean_campaign_multimedia(self, field_name):
+        media = self.cleaned_data.get(field_name)
+        uploaded = self.files.get(field_name)
+        if not media or not uploaded:
+            return media
+        media_type = self.data.get(
+            "tipo_multimedia", CampanaPromocional.TipoMultimedia.IMAGEN
+        )
+        if media_type not in {
+            CampanaPromocional.TipoMultimedia.GIF,
+            CampanaPromocional.TipoMultimedia.VIDEO,
+        }:
+            raise forms.ValidationError(
+                "Selecciona GIF animado o Video antes de adjuntar este archivo."
+            )
+        limit = self.MULTIMEDIA_LIMITS[field_name][media_type]
+        if media.size > limit:
+            raise forms.ValidationError(
+                f"El archivo no puede superar {limit // (1024 * 1024)} MB."
+            )
+        suffix = Path(uploaded.name).suffix.lower()
+        uploaded.seek(0)
+        signature = uploaded.read(16)
+        uploaded.seek(0)
+        if media_type == CampanaPromocional.TipoMultimedia.GIF:
+            if suffix != ".gif" or not signature.startswith((b"GIF87a", b"GIF89a")):
+                raise forms.ValidationError("Selecciona un archivo GIF válido.")
+            try:
+                with Image.open(uploaded) as source:
+                    if source.format != "GIF" or getattr(source, "n_frames", 1) < 2:
+                        raise forms.ValidationError("El GIF debe contener animación.")
+                    target, label = self.IMAGE_SPECS[
+                        field_name.replace("multimedia", "imagen")
+                    ]
+                    ratio = source.width / source.height
+                    target_ratio = target[0] / target[1]
+                    if abs(ratio - target_ratio) / target_ratio > 0.10:
+                        raise forms.ValidationError(
+                            f"La proporción no corresponde al formato de {label}. "
+                            f"Utiliza una proporción cercana a {target[0]} × {target[1]}."
+                        )
+            except forms.ValidationError:
+                raise
+            except (UnidentifiedImageError, OSError):
+                raise forms.ValidationError("El archivo GIF no es válido.")
+            finally:
+                uploaded.seek(0)
+            return media
+        valid_mp4 = suffix == ".mp4" and b"ftyp" in signature[4:12]
+        valid_webm = suffix == ".webm" and signature.startswith(b"\x1a\x45\xdf\xa3")
+        if not (valid_mp4 or valid_webm):
+            raise forms.ValidationError("Usa un video MP4 o WebM válido.")
+        return media
+
+    def clean_multimedia_escritorio(self):
+        return self._clean_campaign_multimedia("multimedia_escritorio")
+
+    def clean_multimedia_movil(self):
+        return self._clean_campaign_multimedia("multimedia_movil")
+
     def clean(self):
         cleaned = super().clean()
+        cleaned["tipo_multimedia"] = (
+            cleaned.get("tipo_multimedia")
+            or CampanaPromocional.TipoMultimedia.IMAGEN
+        )
+        cleaned["orden"] = cleaned.get("orden") or 0
         start = cleaned.get("fecha_inicio")
         end = cleaned.get("fecha_fin")
         if start and end and end <= start:
             self.add_error("fecha_fin", "Debe ser posterior al inicio de la campaña.")
+        media_type = cleaned.get("tipo_multimedia")
+        if media_type in {
+            CampanaPromocional.TipoMultimedia.GIF,
+            CampanaPromocional.TipoMultimedia.VIDEO,
+        }:
+            for field_name in ("multimedia_escritorio", "multimedia_movil"):
+                if not cleaned.get(field_name) and field_name not in self.errors:
+                    self.add_error(
+                        field_name,
+                        "Adjunta una versión para computadora y otra para celular.",
+                    )
+                    continue
+                media = cleaned.get(field_name)
+                if not media or field_name in self.errors:
+                    continue
+                suffix = Path(media.name).suffix.lower()
+                if media_type == CampanaPromocional.TipoMultimedia.GIF and suffix != ".gif":
+                    self.add_error(field_name, "El archivo guardado no es GIF; reemplázalo.")
+                elif media_type == CampanaPromocional.TipoMultimedia.VIDEO and suffix not in {
+                    ".mp4",
+                    ".webm",
+                }:
+                    self.add_error(
+                        field_name, "El archivo guardado no es MP4 o WebM; reemplázalo."
+                    )
         link_type = cleaned.get("tipo_enlace")
         requirements = {
             CampanaPromocional.TipoEnlace.DESTINO: ("lugar_turistico", "Selecciona el destino de la campaña."),

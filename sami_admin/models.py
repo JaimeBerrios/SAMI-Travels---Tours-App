@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.files.storage import default_storage
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
@@ -212,11 +213,23 @@ class Tour(models.Model):
 
 
 class CampanaPromocional(models.Model):
+    MEDIA_FIELD_NAMES = (
+        "imagen_escritorio",
+        "imagen_movil",
+        "multimedia_escritorio",
+        "multimedia_movil",
+    )
+
     class TipoEnlace(models.TextChoices):
         COTIZADOR = "cotizador", "Formulario de cotización"
         DESTINO = "destino", "Destino turístico"
         TOUR = "tour", "Tour o paquete"
         PERSONALIZADO = "personalizado", "Enlace personalizado"
+
+    class TipoMultimedia(models.TextChoices):
+        IMAGEN = "imagen", "Imagen"
+        GIF = "gif", "GIF animado"
+        VIDEO = "video", "Video"
 
     nombre = models.CharField(
         max_length=120,
@@ -231,6 +244,18 @@ class CampanaPromocional(models.Model):
     descripcion = models.TextField(max_length=360)
     imagen_escritorio = models.ImageField(upload_to="campanas/escritorio/")
     imagen_movil = models.ImageField(upload_to="campanas/movil/")
+    tipo_multimedia = models.CharField(
+        max_length=10,
+        choices=TipoMultimedia.choices,
+        default=TipoMultimedia.IMAGEN,
+        help_text="Las imágenes siempre se conservan como portada y respaldo.",
+    )
+    multimedia_escritorio = models.FileField(
+        upload_to="campanas/multimedia/escritorio/", blank=True
+    )
+    multimedia_movil = models.FileField(
+        upload_to="campanas/multimedia/movil/", blank=True
+    )
     color_superposicion = models.CharField(
         "color de superposición",
         max_length=7,
@@ -280,8 +305,16 @@ class CampanaPromocional(models.Model):
         default=10,
         help_text="La campaña activa con el número más alto se mostrará primero.",
     )
+    orden = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Entre campañas con la misma prioridad, el número menor aparece primero.",
+    )
     activo = models.BooleanField(default=True, db_index=True)
     mostrar_avion = models.BooleanField(default=True)
+    archivada_en = models.DateTimeField(null=True, blank=True, db_index=True)
+    impresiones = models.PositiveBigIntegerField(default=0, editable=False)
+    clics = models.PositiveBigIntegerField(default=0, editable=False)
+    conversiones = models.PositiveBigIntegerField(default=0, editable=False)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
     creado_por = models.ForeignKey(
@@ -300,7 +333,7 @@ class CampanaPromocional(models.Model):
     )
 
     class Meta:
-        ordering = ("-prioridad", "-fecha_inicio", "-id")
+        ordering = ("-prioridad", "orden", "-fecha_inicio", "-id")
         verbose_name = "campaña promocional"
         verbose_name_plural = "campañas promocionales"
 
@@ -310,6 +343,8 @@ class CampanaPromocional(models.Model):
     @property
     def estado_publicacion(self):
         now = timezone.now()
+        if self.archivada_en:
+            return "Papelera"
         if not self.activo:
             return "Pausada"
         if self.fecha_inicio > now:
@@ -317,6 +352,87 @@ class CampanaPromocional(models.Model):
         if self.fecha_fin and self.fecha_fin < now:
             return "Finalizada"
         return "Publicada"
+
+    @property
+    def tasa_clics(self):
+        if not self.impresiones:
+            return 0
+        return (self.clics / self.impresiones) * 100
+
+    @property
+    def tasa_conversion(self):
+        if not self.impresiones:
+            return 0
+        return (self.conversiones / self.impresiones) * 100
+
+    @staticmethod
+    def _mime_for_file(file_field, media_type):
+        if media_type == CampanaPromocional.TipoMultimedia.GIF:
+            return "image/gif"
+        if file_field.name.lower().endswith(".webm"):
+            return "video/webm"
+        return "video/mp4"
+
+    @property
+    def tipo_mime_multimedia(self):
+        return self._mime_for_file(self.multimedia_escritorio, self.tipo_multimedia)
+
+    @property
+    def tipo_mime_multimedia_movil(self):
+        return self._mime_for_file(self.multimedia_movil, self.tipo_multimedia)
+
+    @property
+    def peso_total_multimedia(self):
+        total = 0
+        for field_name in self.MEDIA_FIELD_NAMES:
+            file_field = getattr(self, field_name)
+            if not file_field or not file_field.name:
+                continue
+            try:
+                total += file_field.storage.size(file_field.name)
+            except (FileNotFoundError, OSError, NotImplementedError):
+                continue
+        return total
+
+    @classmethod
+    def _delete_files_if_unreferenced(cls, stored_files):
+        for storage, name in stored_files:
+            if not name:
+                continue
+            references = Q()
+            for field_name in cls.MEDIA_FIELD_NAMES:
+                references |= Q(**{field_name: name})
+            if cls.objects.filter(references).exists():
+                continue
+            try:
+                if storage.exists(name):
+                    storage.delete(name)
+            except OSError:
+                # Un fallo temporal del proveedor no debe revertir la operación.
+                continue
+
+    def save(self, *args, **kwargs):
+        previous_files = []
+        if self.pk:
+            previous = type(self).objects.filter(pk=self.pk).first()
+            if previous:
+                for field_name in self.MEDIA_FIELD_NAMES:
+                    old_file = getattr(previous, field_name)
+                    new_file = getattr(self, field_name)
+                    if old_file.name and old_file.name != new_file.name:
+                        previous_files.append((old_file.storage, old_file.name))
+        super().save(*args, **kwargs)
+        self._delete_files_if_unreferenced(previous_files)
+
+    def delete(self, *args, **kwargs):
+        stored_files = [
+            (getattr(self, field_name).storage, getattr(self, field_name).name)
+            for field_name in self.MEDIA_FIELD_NAMES
+            if getattr(self, field_name).name
+        ]
+        result = super().delete(*args, **kwargs)
+        self._delete_files_if_unreferenced(stored_files)
+        return result
 
     def get_target_url(self):
         portal = reverse("core:portal-publico")

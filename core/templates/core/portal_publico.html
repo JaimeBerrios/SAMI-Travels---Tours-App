@@ -42,16 +42,28 @@
     }
     @media (prefers-reduced-motion: reduce) {
         .flight-animation__plane { will-change: auto; }
+        .campaign-motion-media { display: none; }
     }
 </style>
 {% endblock %}
 {% block content %}
 <section class="relative isolate overflow-hidden bg-brand-navy text-white">
     {% if campaign %}
-    <picture class="absolute inset-0 -z-20">
+    <picture class="absolute inset-0 -z-30">
         <source media="(max-width: 639px)" srcset="{{ campaign.imagen_movil.url }}">
         <img src="{{ campaign.imagen_escritorio.url }}" alt="{{ campaign.texto_alternativo }}" class="h-full w-full object-cover">
     </picture>
+    {% if campaign.tipo_multimedia == 'gif' and campaign.multimedia_escritorio and campaign.multimedia_movil %}
+    <picture class="campaign-motion-media absolute inset-0 -z-20" aria-hidden="true">
+        <source media="(max-width: 639px)" srcset="{{ campaign.multimedia_movil.url }}" type="image/gif">
+        <img src="{{ campaign.multimedia_escritorio.url }}" alt="" class="h-full w-full object-cover">
+    </picture>
+    {% elif campaign.tipo_multimedia == 'video' and campaign.multimedia_escritorio and campaign.multimedia_movil %}
+    <video class="campaign-motion-media absolute inset-0 -z-20 h-full w-full object-cover opacity-0 transition-opacity duration-500" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
+        <source media="(max-width: 639px)" src="{{ campaign.multimedia_movil.url }}" type="{{ campaign.tipo_mime_multimedia_movil }}">
+        <source src="{{ campaign.multimedia_escritorio.url }}" type="{{ campaign.tipo_mime_multimedia }}">
+    </video>
+    {% endif %}
     <div class="campaign-overlay absolute inset-0 -z-10" style="--campaign-overlay-color: {{ campaign.color_superposicion }}; --campaign-overlay-opacity: {{ campaign.opacidad_superposicion }}%;"></div>
     <div class="campaign-text-scrim absolute inset-0 -z-10"></div>
     {% else %}
@@ -330,6 +342,12 @@
     const flightPlane = document.querySelector("#flight-plane");
     const flightRoute = document.querySelector("#flight-route");
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+        document.querySelectorAll("video.campaign-motion-media").forEach(video => {
+            video.pause();
+            video.removeAttribute("autoplay");
+        });
+    }
 
     if (flightToggle && flightPlane && flightRoute && !reduceMotion) {
         const motionPath = svg.createMotionPath(flightRoute);
@@ -368,6 +386,17 @@
 </script>
 <script>
 (() => {
+    const reduceCampaignMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.querySelectorAll("video.campaign-motion-media").forEach(video => {
+        if (reduceCampaignMotion) {
+            video.pause();
+            video.removeAttribute("autoplay");
+            return;
+        }
+        const revealVideo = () => video.classList.remove("opacity-0");
+        if (video.readyState >= 2) revealVideo();
+        else video.addEventListener("loadeddata", revealVideo, {once: true});
+    });
     const quickForm = document.getElementById("quick-quote");
     const quickService = document.getElementById("quick-service");
     const quickTabs = document.querySelectorAll(".quick-quote-tab");

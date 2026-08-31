@@ -213,7 +213,18 @@ Los administradores gestionan el banner principal desde
 un destino, tour o cotizador y control de la animación del avión. Solo se publica
 la campaña vigente con mayor prioridad; si no existe una, el portal recupera el
 contenido corporativo. Las imágenes se normalizan a WebP en 1920×800 para
-escritorio y 1080×1350 para móvil.
+escritorio y 1080×1350 para móvil. También se pueden adjuntar versiones GIF
+animadas o videos MP4/WebM para ambos tamaños; las imágenes permanecen como
+portada, respaldo de carga y alternativa cuando el dispositivo solicita reducir
+el movimiento. Los GIF admiten hasta 5 MB en escritorio y 4 MB en móvil; los
+videos, hasta 12 MB y 8 MB respectivamente, con una duración recomendada máxima
+de 15 segundos.
+
+El listado de campañas permite buscar, filtrar, duplicar y ordenar promociones,
+además de consultar impresiones, clics y solicitudes atribuidas. Eliminar envía
+primero la campaña a la papelera; desde allí puede restaurarse pausada o borrarse
+definitivamente. El borrado permanente y el reemplazo de archivos limpian del
+almacenamiento únicamente los medios que ya no comparte ninguna otra campaña.
 
 Las fotografías del catálogo se validan, redimensionan a un máximo de
 1600×1200 y convierten a JPEG optimizado. En producción se debe montar

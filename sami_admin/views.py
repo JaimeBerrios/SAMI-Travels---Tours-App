@@ -10,7 +10,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Count, Prefetch
+from django.db.models import Count, Prefetch, Sum
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from django.http import Http404, HttpResponse, JsonResponse
@@ -72,10 +72,38 @@ def campaign_list(request):
         "lugar_turistico", "tour", "actualizado_por"
     )
     now = timezone.now()
-    current_campaign = campaigns.filter(
+    query = request.GET.get("q", "").strip()
+    status = request.GET.get("estado", "todas")
+    if query:
+        campaigns = campaigns.filter(
+            Q(nombre__icontains=query)
+            | Q(titulo__icontains=query)
+            | Q(etiqueta__icontains=query)
+        )
+    if status == "papelera":
+        campaigns = campaigns.filter(archivada_en__isnull=False)
+    else:
+        campaigns = campaigns.filter(archivada_en__isnull=True)
+        if status == "publicadas":
+            campaigns = campaigns.filter(
+                activo=True, fecha_inicio__lte=now
+            ).filter(Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=now))
+        elif status == "programadas":
+            campaigns = campaigns.filter(activo=True, fecha_inicio__gt=now)
+        elif status == "finalizadas":
+            campaigns = campaigns.filter(activo=True, fecha_fin__lt=now)
+        elif status == "pausadas":
+            campaigns = campaigns.filter(activo=False)
+    current_campaign = CampanaPromocional.objects.filter(
+        archivada_en__isnull=True,
         activo=True,
         fecha_inicio__lte=now,
     ).filter(Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=now)).first()
+    totals = CampanaPromocional.objects.filter(archivada_en__isnull=True).aggregate(
+        impresiones=Sum("impresiones"),
+        clics=Sum("clics"),
+        conversiones=Sum("conversiones"),
+    )
     return render(
         request,
         "sami_admin/campana_list.html",
@@ -83,6 +111,9 @@ def campaign_list(request):
             "campaigns": campaigns,
             "now": now,
             "current_campaign_id": current_campaign.pk if current_campaign else None,
+            "query": query,
+            "status": status,
+            "totals": {key: value or 0 for key, value in totals.items()},
         },
     )
 
@@ -106,7 +137,9 @@ def campaign_create(request):
 
 @administrator_required
 def campaign_update(request, campaign_id):
-    campaign = get_object_or_404(CampanaPromocional, pk=campaign_id)
+    campaign = get_object_or_404(
+        CampanaPromocional, pk=campaign_id, archivada_en__isnull=True
+    )
     form = CampanaPromocionalForm(
         request.POST or None, request.FILES or None, instance=campaign
     )
@@ -126,7 +159,9 @@ def campaign_update(request, campaign_id):
 @require_POST
 @administrator_required
 def campaign_toggle(request, campaign_id):
-    campaign = get_object_or_404(CampanaPromocional, pk=campaign_id)
+    campaign = get_object_or_404(
+        CampanaPromocional, pk=campaign_id, archivada_en__isnull=True
+    )
     campaign.activo = not campaign.activo
     campaign.actualizado_por = request.user
     campaign.save(update_fields=("activo", "actualizado_por", "actualizado_en"))
@@ -134,6 +169,87 @@ def campaign_toggle(request, campaign_id):
         request, f"La campaña fue {'activada' if campaign.activo else 'pausada'}."
     )
     return redirect("sami_admin:campaign-list")
+
+
+@require_POST
+@administrator_required
+def campaign_duplicate(request, campaign_id):
+    source = get_object_or_404(
+        CampanaPromocional, pk=campaign_id, archivada_en__isnull=True
+    )
+    duplicate = CampanaPromocional.objects.create(
+        nombre=f"{source.nombre} (copia)"[:120],
+        etiqueta=source.etiqueta,
+        titulo=source.titulo,
+        descripcion=source.descripcion,
+        imagen_escritorio=source.imagen_escritorio.name,
+        imagen_movil=source.imagen_movil.name,
+        tipo_multimedia=source.tipo_multimedia,
+        multimedia_escritorio=source.multimedia_escritorio.name,
+        multimedia_movil=source.multimedia_movil.name,
+        color_superposicion=source.color_superposicion,
+        opacidad_superposicion=source.opacidad_superposicion,
+        texto_alternativo=source.texto_alternativo,
+        texto_boton=source.texto_boton,
+        tipo_enlace=source.tipo_enlace,
+        lugar_turistico=source.lugar_turistico,
+        tour=source.tour,
+        url_personalizada=source.url_personalizada,
+        fecha_inicio=timezone.now(),
+        fecha_fin=None,
+        prioridad=source.prioridad,
+        orden=source.orden,
+        activo=False,
+        mostrar_avion=source.mostrar_avion,
+        creado_por=request.user,
+        actualizado_por=request.user,
+    )
+    messages.success(request, "Se creó una copia pausada lista para editar.")
+    return redirect("sami_admin:campaign-update", campaign_id=duplicate.pk)
+
+
+@require_POST
+@administrator_required
+def campaign_archive(request, campaign_id):
+    campaign = get_object_or_404(
+        CampanaPromocional, pk=campaign_id, archivada_en__isnull=True
+    )
+    campaign.activo = False
+    campaign.archivada_en = timezone.now()
+    campaign.actualizado_por = request.user
+    campaign.save(
+        update_fields=("activo", "archivada_en", "actualizado_por", "actualizado_en")
+    )
+    messages.success(request, "La campaña fue enviada a la papelera.")
+    return redirect("sami_admin:campaign-list")
+
+
+@require_POST
+@administrator_required
+def campaign_restore(request, campaign_id):
+    campaign = get_object_or_404(
+        CampanaPromocional, pk=campaign_id, archivada_en__isnull=False
+    )
+    campaign.archivada_en = None
+    campaign.activo = False
+    campaign.actualizado_por = request.user
+    campaign.save(
+        update_fields=("activo", "archivada_en", "actualizado_por", "actualizado_en")
+    )
+    messages.success(request, "La campaña fue restaurada en estado pausado.")
+    return redirect("sami_admin:campaign-list")
+
+
+@require_POST
+@administrator_required
+def campaign_delete(request, campaign_id):
+    campaign = get_object_or_404(
+        CampanaPromocional, pk=campaign_id, archivada_en__isnull=False
+    )
+    campaign_name = campaign.nombre
+    campaign.delete()
+    messages.success(request, f'La campaña "{campaign_name}" fue eliminada definitivamente.')
+    return redirect(f'{reverse("sami_admin:campaign-list")}?estado=papelera')
 
 
 def login_view(request):

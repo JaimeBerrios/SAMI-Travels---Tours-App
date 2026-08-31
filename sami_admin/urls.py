@@ -25,6 +25,26 @@ urlpatterns = [
         name="campaign-toggle",
     ),
     path(
+        "campanas/<int:campaign_id>/duplicar/",
+        views.campaign_duplicate,
+        name="campaign-duplicate",
+    ),
+    path(
+        "campanas/<int:campaign_id>/eliminar/",
+        views.campaign_archive,
+        name="campaign-archive",
+    ),
+    path(
+        "campanas/<int:campaign_id>/restaurar/",
+        views.campaign_restore,
+        name="campaign-restore",
+    ),
+    path(
+        "campanas/<int:campaign_id>/eliminar-definitivamente/",
+        views.campaign_delete,
+        name="campaign-delete",
+    ),
+    path(
         "solicitudes/<int:request_id>/",
         views.request_detail,
         name="request-detail",

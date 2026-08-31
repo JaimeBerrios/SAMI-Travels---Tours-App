@@ -112,6 +112,28 @@ class CampaignManagementTests(TestCase):
         Image.new("RGB", size, "#173F6B").save(output, format="JPEG", quality=80)
         return SimpleUploadedFile(name, output.getvalue(), content_type="image/jpeg")
 
+    @staticmethod
+    def animated_gif_upload(name, size):
+        output = BytesIO()
+        frames = [Image.new("P", size, color) for color in (1, 2)]
+        frames[0].save(
+            output,
+            format="GIF",
+            save_all=True,
+            append_images=frames[1:],
+            duration=200,
+            loop=0,
+        )
+        return SimpleUploadedFile(name, output.getvalue(), content_type="image/gif")
+
+    @staticmethod
+    def video_upload(name, content_type="video/mp4"):
+        if name.endswith(".webm"):
+            content = b"\x1a\x45\xdf\xa3" + (b"\x00" * 64)
+        else:
+            content = b"\x00\x00\x00\x18ftypmp42" + (b"\x00" * 64)
+        return SimpleUploadedFile(name, content, content_type=content_type)
+
     def test_campaign_form_shows_dimensions_and_optimizes_both_images(self):
         form = CampanaPromocionalForm(
             data={
@@ -166,6 +188,194 @@ class CampaignManagementTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("imagen_escritorio", form.errors)
 
+    def test_campaign_form_accepts_responsive_videos_with_static_fallbacks(self):
+        form = CampanaPromocionalForm(
+            data={
+                "nombre": "Video de verano",
+                "etiqueta": "Promoción especial",
+                "titulo": "Descubre el verano",
+                "descripcion": "Promoción con video corto.",
+                "texto_alternativo": "Playa al atardecer",
+                "tipo_multimedia": CampanaPromocional.TipoMultimedia.VIDEO,
+                "texto_boton": "Cotizar",
+                "tipo_enlace": CampanaPromocional.TipoEnlace.COTIZADOR,
+                "color_superposicion": "#06152B",
+                "opacidad_superposicion": 55,
+                "fecha_inicio": timezone.now().strftime("%Y-%m-%dT%H:%M"),
+                "prioridad": 10,
+                "orden": 2,
+                "activo": True,
+            },
+            files={
+                "imagen_escritorio": self.image_upload("desktop.jpg", (1920, 800)),
+                "imagen_movil": self.image_upload("mobile.jpg", (1080, 1350)),
+                "multimedia_escritorio": self.video_upload("desktop.mp4"),
+                "multimedia_movil": self.video_upload("mobile.webm", "video/webm"),
+            },
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(
+            form.cleaned_data["tipo_multimedia"],
+            CampanaPromocional.TipoMultimedia.VIDEO,
+        )
+        self.assertEqual(form.cleaned_data["orden"], 2)
+
+    def test_campaign_form_accepts_responsive_animated_gifs(self):
+        common_data = {
+            "nombre": "GIF promocional",
+            "etiqueta": "Promoción especial",
+            "titulo": "Oferta animada",
+            "descripcion": "Promoción con animación.",
+            "texto_alternativo": "Promoción animada",
+            "tipo_multimedia": CampanaPromocional.TipoMultimedia.GIF,
+            "texto_boton": "Cotizar",
+            "tipo_enlace": CampanaPromocional.TipoEnlace.COTIZADOR,
+            "color_superposicion": "#06152B",
+            "opacidad_superposicion": 55,
+            "fecha_inicio": timezone.now().strftime("%Y-%m-%dT%H:%M"),
+            "prioridad": 10,
+            "activo": True,
+        }
+        form = CampanaPromocionalForm(
+            data=common_data,
+            files={
+                "imagen_escritorio": self.image_upload("desktop.jpg", (1920, 800)),
+                "imagen_movil": self.image_upload("mobile.jpg", (1080, 1350)),
+                "multimedia_escritorio": self.animated_gif_upload("desktop.gif", (1920, 800)),
+                "multimedia_movil": self.animated_gif_upload("mobile.gif", (1080, 1350)),
+            },
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_campaign_can_be_duplicated_archived_restored_and_deleted(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="Campaña reutilizable",
+            titulo="Viaja ahora",
+            descripcion="Campaña de prueba.",
+            imagen_escritorio="campanas/escritorio/reutilizable.webp",
+            imagen_movil="campanas/movil/reutilizable.webp",
+            texto_alternativo="Destino",
+            fecha_inicio=timezone.now(),
+            activo=True,
+        )
+        self.client.force_login(self.administrator)
+
+        duplicate_response = self.client.post(
+            reverse("sami_admin:campaign-duplicate", args=[campaign.pk])
+        )
+        duplicate = CampanaPromocional.objects.exclude(pk=campaign.pk).get()
+        self.assertRedirects(
+            duplicate_response,
+            reverse("sami_admin:campaign-update", args=[duplicate.pk]),
+        )
+        self.assertFalse(duplicate.activo)
+        self.assertEqual(duplicate.imagen_escritorio.name, campaign.imagen_escritorio.name)
+
+        self.client.post(reverse("sami_admin:campaign-archive", args=[campaign.pk]))
+        campaign.refresh_from_db()
+        self.assertFalse(campaign.activo)
+        self.assertIsNotNone(campaign.archivada_en)
+
+        self.client.post(reverse("sami_admin:campaign-restore", args=[campaign.pk]))
+        campaign.refresh_from_db()
+        self.assertIsNone(campaign.archivada_en)
+        self.assertFalse(campaign.activo)
+
+        self.client.post(reverse("sami_admin:campaign-archive", args=[campaign.pk]))
+        delete_response = self.client.post(
+            reverse("sami_admin:campaign-delete", args=[campaign.pk])
+        )
+        self.assertRedirects(
+            delete_response,
+            f'{reverse("sami_admin:campaign-list")}?estado=papelera',
+        )
+        self.assertFalse(CampanaPromocional.objects.filter(pk=campaign.pk).exists())
+
+    def test_campaign_list_can_filter_the_trash_and_search(self):
+        visible = CampanaPromocional.objects.create(
+            nombre="Verano Caribe",
+            titulo="Viaja al Caribe",
+            descripcion="Oferta vigente.",
+            imagen_escritorio="campanas/escritorio/caribe.webp",
+            imagen_movil="campanas/movil/caribe.webp",
+            texto_alternativo="Caribe",
+            fecha_inicio=timezone.now(),
+        )
+        CampanaPromocional.objects.create(
+            nombre="Invierno archivado",
+            titulo="Oferta anterior",
+            descripcion="Campaña archivada.",
+            imagen_escritorio="campanas/escritorio/invierno.webp",
+            imagen_movil="campanas/movil/invierno.webp",
+            texto_alternativo="Invierno",
+            fecha_inicio=timezone.now(),
+            archivada_en=timezone.now(),
+            activo=False,
+        )
+        self.client.force_login(self.administrator)
+
+        response = self.client.get(
+            reverse("sami_admin:campaign-list"), {"q": "Caribe"}
+        )
+        self.assertContains(response, visible.nombre)
+        self.assertNotContains(response, "Invierno archivado")
+        trash = self.client.get(
+            reverse("sami_admin:campaign-list"), {"estado": "papelera"}
+        )
+        self.assertContains(trash, "Invierno archivado")
+        self.assertNotContains(trash, visible.nombre)
+
+    def test_campaign_files_are_cleaned_only_after_the_last_reference(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="Campaña original",
+            titulo="Oferta",
+            descripcion="Campaña con archivos compartidos.",
+            imagen_escritorio="campanas/escritorio/compartida.webp",
+            imagen_movil="campanas/movil/compartida.webp",
+            texto_alternativo="Destino",
+            fecha_inicio=timezone.now(),
+        )
+        duplicate = CampanaPromocional.objects.create(
+            nombre="Campaña duplicada",
+            titulo=campaign.titulo,
+            descripcion=campaign.descripcion,
+            imagen_escritorio=campaign.imagen_escritorio.name,
+            imagen_movil=campaign.imagen_movil.name,
+            texto_alternativo=campaign.texto_alternativo,
+            fecha_inicio=timezone.now(),
+        )
+        storage = campaign.imagen_escritorio.storage
+
+        with patch.object(storage, "exists", return_value=True), patch.object(
+            storage, "delete"
+        ) as delete_file:
+            campaign.delete()
+            delete_file.assert_not_called()
+            duplicate.delete()
+            self.assertEqual(delete_file.call_count, 2)
+
+    def test_replacing_campaign_image_cleans_the_unreferenced_previous_file(self):
+        campaign = CampanaPromocional.objects.create(
+            nombre="Campaña editable",
+            titulo="Oferta",
+            descripcion="Campaña con imagen reemplazable.",
+            imagen_escritorio="campanas/escritorio/anterior.webp",
+            imagen_movil="campanas/movil/mobile.webp",
+            texto_alternativo="Destino",
+            fecha_inicio=timezone.now(),
+        )
+        storage = campaign.imagen_escritorio.storage
+
+        with patch.object(storage, "exists", return_value=True), patch.object(
+            storage, "delete"
+        ) as delete_file:
+            campaign.imagen_escritorio = "campanas/escritorio/nueva.webp"
+            campaign.save()
+
+        delete_file.assert_called_once_with("campanas/escritorio/anterior.webp")
+
     def test_only_administrators_can_manage_campaigns(self):
         adviser = get_user_model().objects.create_user(
             username="asesor-campanas", password="password", is_staff=True
@@ -184,11 +394,41 @@ class CampaignManagementTests(TestCase):
         self.assertContains(response, "overlay-opacity-output")
         self.assertContains(response, 'id="campaign-link-test"')
         self.assertContains(response, "Probar enlace actual")
+        self.assertContains(response, "GIF animado")
+        self.assertContains(response, "Peso estimado")
+        self.assertContains(response, "máximo 15 segundos")
 
         place_response = self.client.get(
             reverse("sami_admin:catalog-create", args=["lugares"])
         )
         self.assertContains(place_response, "1600 × 1200 px")
+
+    def test_campaign_mutations_reject_advisers(self):
+        adviser = get_user_model().objects.create_user(
+            username="asesor-sin-permisos", password="password", is_staff=True
+        )
+        campaign = CampanaPromocional.objects.create(
+            nombre="Campaña protegida",
+            titulo="Oferta protegida",
+            descripcion="Solo administradores.",
+            imagen_escritorio="campanas/escritorio/protegida.webp",
+            imagen_movil="campanas/movil/protegida.webp",
+            texto_alternativo="Destino",
+            fecha_inicio=timezone.now(),
+        )
+        self.client.force_login(adviser)
+
+        for url_name in (
+            "campaign-toggle",
+            "campaign-duplicate",
+            "campaign-archive",
+            "campaign-restore",
+            "campaign-delete",
+        ):
+            response = self.client.post(
+                reverse(f"sami_admin:{url_name}", args=[campaign.pk])
+            )
+            self.assertEqual(response.status_code, 403)
 
     def test_campaign_list_exposes_the_saved_link_for_verification(self):
         campaign = CampanaPromocional.objects.create(

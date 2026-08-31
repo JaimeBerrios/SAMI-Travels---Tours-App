@@ -1,8 +1,9 @@
 from django.contrib import messages
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import F, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from sami_admin.models import CampanaPromocional, LugarTuristico, Tour
@@ -59,6 +60,11 @@ def portal_publico(request):
         elif form.is_valid():
             cache.set(rate_key, attempts + 1, settings.PUBLIC_FORM_RATE_WINDOW)
             solicitud = form.save()
+            attributed_campaign = request.session.pop("attributed_campaign", None)
+            if attributed_campaign:
+                CampanaPromocional.objects.filter(
+                    pk=attributed_campaign, archivada_en__isnull=True
+                ).update(conversiones=F("conversiones") + 1)
             messages.success(
                 request,
                 f"¡Gracias, {solicitud.nombre}! Tu solicitud fue registrada. "
@@ -91,12 +97,22 @@ def portal_publico(request):
         featured_tours = tours[:6]
     now = timezone.now()
     campaign = CampanaPromocional.objects.filter(
+        archivada_en__isnull=True,
         activo=True,
         fecha_inicio__lte=now,
     ).filter(Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=now)).select_related(
         "lugar_turistico", "tour"
-    ).order_by("-prioridad", "-fecha_inicio", "-id").first()
-    campaign_url = campaign.get_target_url() if campaign else ""
+    ).order_by("-prioridad", "orden", "-fecha_inicio", "-id").first()
+    campaign_url = ""
+    if campaign:
+        viewed_campaigns = request.session.get("viewed_campaigns", [])
+        if campaign.pk not in viewed_campaigns:
+            CampanaPromocional.objects.filter(pk=campaign.pk).update(
+                impresiones=F("impresiones") + 1
+            )
+            request.session["viewed_campaigns"] = (viewed_campaigns + [campaign.pk])[-20:]
+        request.session["attributed_campaign"] = campaign.pk
+        campaign_url = reverse("core:campaign-click", args=[campaign.pk])
     return render(
         request,
         "core/portal_publico.html",
@@ -145,3 +161,11 @@ def privacy_policy(request):
         "core/privacy_policy.html",
         {"contact_email": settings.CONTACT_EMAIL},
     )
+
+
+def campaign_click(request, campaign_id):
+    campaign = get_object_or_404(
+        CampanaPromocional, pk=campaign_id, archivada_en__isnull=True
+    )
+    CampanaPromocional.objects.filter(pk=campaign.pk).update(clics=F("clics") + 1)
+    return redirect(campaign.get_target_url())
