@@ -29,11 +29,15 @@
         will-change: transform;
     }
     .campaign-overlay {
-        background: linear-gradient(180deg, rgb(6 21 43 / 28%) 0%, rgb(6 21 43 / 92%) 72%);
+        background-color: var(--campaign-overlay-color, #06152b);
+        opacity: var(--campaign-overlay-opacity, .55);
+    }
+    .campaign-text-scrim {
+        background: linear-gradient(180deg, transparent 20%, rgb(6 21 43 / 72%) 100%);
     }
     @media (min-width: 640px) {
-        .campaign-overlay {
-            background: linear-gradient(90deg, rgb(6 21 43 / 98%) 0%, rgb(6 21 43 / 90%) 38%, rgb(6 21 43 / 42%) 62%, rgb(6 21 43 / 5%) 86%);
+        .campaign-text-scrim {
+            background: linear-gradient(90deg, rgb(6 21 43 / 62%) 0%, rgb(6 21 43 / 35%) 42%, transparent 72%);
         }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -48,7 +52,8 @@
         <source media="(max-width: 639px)" srcset="{{ campaign.imagen_movil.url }}">
         <img src="{{ campaign.imagen_escritorio.url }}" alt="{{ campaign.texto_alternativo }}" class="h-full w-full object-cover">
     </picture>
-    <div class="campaign-overlay absolute inset-0 -z-10"></div>
+    <div class="campaign-overlay absolute inset-0 -z-10" style="--campaign-overlay-color: {{ campaign.color_superposicion }}; --campaign-overlay-opacity: {{ campaign.opacidad_superposicion }}%;"></div>
+    <div class="campaign-text-scrim absolute inset-0 -z-10"></div>
     {% else %}
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(215,25,32,.28),transparent_35%),linear-gradient(110deg,#06152B_20%,#173F6B_100%)]"></div>
     {% endif %}
@@ -138,11 +143,11 @@
                 <label for="quick-destination" class="mb-1.5 block text-sm font-bold">Destino</label>
                 <div class="relative"><i class="fa-solid fa-location-arrow pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i><input id="quick-destination" type="text" autocomplete="off" placeholder="¿A dónde vas?" required class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-10 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
             </div>
-            <div id="quick-return-field">
+            <div>
                 <label for="quick-departure" class="mb-1.5 block text-sm font-bold">Ida</label>
                 <input id="quick-departure" type="date" class="min-h-12 w-full rounded-xl border border-slate-300 px-3 py-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10">
             </div>
-            <div>
+            <div id="quick-return-field">
                 <label for="quick-return" class="mb-1.5 block text-sm font-bold">Regreso</label>
                 <input id="quick-return" type="date" class="min-h-12 w-full rounded-xl border border-slate-300 px-3 py-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10">
             </div>

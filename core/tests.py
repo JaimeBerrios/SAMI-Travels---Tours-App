@@ -58,6 +58,8 @@ class BasicProductionViewsTests(TestCase):
             fecha_inicio=timezone.now() - timedelta(hours=1),
             fecha_fin=timezone.now() + timedelta(days=1),
             mostrar_avion=True,
+            color_superposicion="#D71920",
+            opacidad_superposicion=37,
         )
 
         response = self.client.get(reverse("core:portal-publico"))
@@ -70,6 +72,9 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, 'id="flight-animation-toggle"')
         self.assertContains(response, 'id="quick-quote"')
         self.assertContains(response, 'id="btn-quick-quote"')
+        self.assertContains(response, "--campaign-overlay-color: #D71920")
+        self.assertContains(response, "--campaign-overlay-opacity: 37%")
+        self.assertContains(response, '<div id="quick-return-field">')
         self.assertNotContains(
             response, "Tu próximo destino está más cerca de lo que imaginas."
         )

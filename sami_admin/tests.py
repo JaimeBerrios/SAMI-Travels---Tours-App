@@ -122,6 +122,8 @@ class CampaignManagementTests(TestCase):
                 "texto_alternativo": "Familia viajando",
                 "texto_boton": "Cotizar ahora",
                 "tipo_enlace": CampanaPromocional.TipoEnlace.COTIZADOR,
+                "color_superposicion": "#D71920",
+                "opacidad_superposicion": 42,
                 "fecha_inicio": (timezone.now() + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
                 "fecha_fin": (timezone.now() + timedelta(days=3)).strftime("%Y-%m-%dT%H:%M"),
                 "prioridad": 20,
@@ -137,6 +139,8 @@ class CampaignManagementTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertTrue(form.cleaned_data["imagen_escritorio"].name.endswith(".webp"))
         self.assertTrue(form.cleaned_data["imagen_movil"].name.endswith(".webp"))
+        self.assertEqual(form.cleaned_data["color_superposicion"], "#D71920")
+        self.assertEqual(form.cleaned_data["opacidad_superposicion"], 42)
 
     def test_campaign_form_rejects_an_incorrect_image_ratio(self):
         form = CampanaPromocionalForm(
@@ -147,6 +151,8 @@ class CampaignManagementTests(TestCase):
                 "texto_alternativo": "Destino navideño",
                 "texto_boton": "Cotizar",
                 "tipo_enlace": CampanaPromocional.TipoEnlace.COTIZADOR,
+                "color_superposicion": "#06152B",
+                "opacidad_superposicion": 55,
                 "fecha_inicio": timezone.now().strftime("%Y-%m-%dT%H:%M"),
                 "prioridad": 10,
                 "activo": True,
@@ -174,6 +180,8 @@ class CampaignManagementTests(TestCase):
         self.assertContains(response, "1920 × 800 px")
         self.assertContains(response, "1080 × 1350 px")
         self.assertContains(response, "Destino del botón")
+        self.assertContains(response, "Color de superposición")
+        self.assertContains(response, "overlay-opacity-output")
 
         place_response = self.client.get(
             reverse("sami_admin:catalog-create", args=["lugares"])

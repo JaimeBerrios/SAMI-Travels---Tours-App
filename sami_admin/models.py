@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.files.storage import default_storage
 from django.db import models
 from django.urls import reverse
@@ -231,6 +231,24 @@ class CampanaPromocional(models.Model):
     descripcion = models.TextField(max_length=360)
     imagen_escritorio = models.ImageField(upload_to="campanas/escritorio/")
     imagen_movil = models.ImageField(upload_to="campanas/movil/")
+    color_superposicion = models.CharField(
+        "color de superposición",
+        max_length=7,
+        default="#06152B",
+        validators=[
+            RegexValidator(
+                regex=r"^#[0-9A-Fa-f]{6}$",
+                message="Selecciona un color hexadecimal válido.",
+            )
+        ],
+        help_text="Color aplicado sobre la imagen para mejorar el contraste.",
+    )
+    opacidad_superposicion = models.PositiveSmallIntegerField(
+        "transparencia del color",
+        default=55,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="0 muestra la imagen original y 100 cubre completamente la imagen.",
+    )
     texto_alternativo = models.CharField(
         max_length=180,
         help_text="Describe brevemente la imagen para accesibilidad.",

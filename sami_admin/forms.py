@@ -65,13 +65,18 @@ class CampanaPromocionalForm(forms.ModelForm):
         model = CampanaPromocional
         fields = (
             "nombre", "etiqueta", "titulo", "descripcion",
-            "imagen_escritorio", "imagen_movil", "texto_alternativo",
+            "imagen_escritorio", "imagen_movil", "color_superposicion",
+            "opacidad_superposicion", "texto_alternativo",
             "texto_boton", "tipo_enlace", "lugar_turistico", "tour",
             "url_personalizada", "fecha_inicio", "fecha_fin", "prioridad",
             "activo", "mostrar_avion",
         )
         widgets = {
             "descripcion": forms.Textarea(attrs={"rows": 4}),
+            "color_superposicion": forms.TextInput(attrs={"type": "color"}),
+            "opacidad_superposicion": forms.NumberInput(
+                attrs={"type": "range", "min": 0, "max": 100, "step": 1}
+            ),
             "fecha_inicio": forms.DateTimeInput(attrs={"type": "datetime-local"}),
             "fecha_fin": forms.DateTimeInput(attrs={"type": "datetime-local"}),
         }
@@ -98,6 +103,9 @@ class CampanaPromocionalForm(forms.ModelForm):
             self.fields[name].widget.attrs["class"] = "size-5 accent-rose-600"
         for name in ("imagen_escritorio", "imagen_movil"):
             self.fields[name].widget.attrs["accept"] = "image/jpeg,image/png,image/webp"
+        self.fields["color_superposicion"].widget.attrs["class"] = (
+            "h-12 w-full cursor-pointer rounded-xl border border-slate-300 bg-white p-1"
+        )
         self.fields["url_personalizada"].widget.attrs["placeholder"] = (
             "https://ejemplo.com/promocion"
         )
