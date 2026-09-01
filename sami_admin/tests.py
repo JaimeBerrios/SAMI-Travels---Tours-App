@@ -273,7 +273,13 @@ class CampaignManagementTests(TestCase):
         self.assertFalse(duplicate.activo)
         self.assertEqual(duplicate.imagen_escritorio.name, campaign.imagen_escritorio.name)
 
-        self.client.post(reverse("sami_admin:campaign-archive", args=[campaign.pk]))
+        archive_response = self.client.post(
+            reverse("sami_admin:campaign-archive", args=[campaign.pk])
+        )
+        self.assertRedirects(
+            archive_response,
+            f'{reverse("sami_admin:campaign-list")}?estado=papelera',
+        )
         campaign.refresh_from_db()
         self.assertFalse(campaign.activo)
         self.assertIsNotNone(campaign.archivada_en)
@@ -303,7 +309,7 @@ class CampaignManagementTests(TestCase):
             texto_alternativo="Caribe",
             fecha_inicio=timezone.now(),
         )
-        CampanaPromocional.objects.create(
+        archived = CampanaPromocional.objects.create(
             nombre="Invierno archivado",
             titulo="Oferta anterior",
             descripcion="Campaña archivada.",
@@ -312,6 +318,17 @@ class CampaignManagementTests(TestCase):
             texto_alternativo="Invierno",
             fecha_inicio=timezone.now(),
             archivada_en=timezone.now(),
+            activo=False,
+        )
+        older_archived = CampanaPromocional.objects.create(
+            nombre="Promoción anterior",
+            titulo="Viajes del año pasado",
+            descripcion="Material para consultar en el historial.",
+            imagen_escritorio="campanas/escritorio/anterior.webp",
+            imagen_movil="campanas/movil/anterior.webp",
+            texto_alternativo="Viaje anterior",
+            fecha_inicio=timezone.now() - timedelta(days=90),
+            archivada_en=timezone.now() - timedelta(days=2),
             activo=False,
         )
         self.client.force_login(self.administrator)
@@ -325,7 +342,22 @@ class CampaignManagementTests(TestCase):
             reverse("sami_admin:campaign-list"), {"estado": "papelera"}
         )
         self.assertContains(trash, "Invierno archivado")
+        self.assertContains(trash, "Promoción anterior")
         self.assertNotContains(trash, visible.nombre)
+        self.assertContains(trash, "Campañas eliminadas recientemente")
+        self.assertContains(trash, "Eliminada el", count=2)
+        self.assertEqual(trash.context["campaign_counts"], {"active": 1, "trash": 2})
+        self.assertEqual(
+            [campaign.pk for campaign in trash.context["campaigns"]],
+            [archived.pk, older_archived.pk],
+        )
+
+        partial_search = self.client.get(
+            reverse("sami_admin:campaign-list"),
+            {"estado": "papelera", "q": "historial"},
+        )
+        self.assertContains(partial_search, older_archived.nombre)
+        self.assertNotContains(partial_search, archived.nombre)
 
     def test_campaign_files_are_cleaned_only_after_the_last_reference(self):
         campaign = CampanaPromocional.objects.create(

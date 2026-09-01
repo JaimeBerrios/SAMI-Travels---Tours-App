@@ -95,15 +95,29 @@ def campaign_list(request):
     )
     now = timezone.now()
     query = request.GET.get("q", "").strip()
+    allowed_statuses = {
+        "todas",
+        "publicadas",
+        "programadas",
+        "pausadas",
+        "finalizadas",
+        "papelera",
+    }
     status = request.GET.get("estado", "todas")
+    if status not in allowed_statuses:
+        status = "todas"
     if query:
         campaigns = campaigns.filter(
             Q(nombre__icontains=query)
             | Q(titulo__icontains=query)
             | Q(etiqueta__icontains=query)
+            | Q(descripcion__icontains=query)
+            | Q(texto_boton__icontains=query)
         )
     if status == "papelera":
-        campaigns = campaigns.filter(archivada_en__isnull=False)
+        campaigns = campaigns.filter(archivada_en__isnull=False).order_by(
+            "-archivada_en", "-id"
+        )
     else:
         campaigns = campaigns.filter(archivada_en__isnull=True)
         if status == "publicadas":
@@ -126,6 +140,10 @@ def campaign_list(request):
         clics=Sum("clics"),
         conversiones=Sum("conversiones"),
     )
+    campaign_counts = CampanaPromocional.objects.aggregate(
+        active=Count("id", filter=Q(archivada_en__isnull=True)),
+        trash=Count("id", filter=Q(archivada_en__isnull=False)),
+    )
     return render(
         request,
         "sami_admin/campana_list.html",
@@ -136,6 +154,7 @@ def campaign_list(request):
             "query": query,
             "status": status,
             "totals": {key: value or 0 for key, value in totals.items()},
+            "campaign_counts": campaign_counts,
         },
     )
 
@@ -243,7 +262,7 @@ def campaign_archive(request, campaign_id):
         update_fields=("activo", "archivada_en", "actualizado_por", "actualizado_en")
     )
     messages.success(request, "La campaña fue enviada a la papelera.")
-    return redirect("sami_admin:campaign-list")
+    return redirect(f'{reverse("sami_admin:campaign-list")}?estado=papelera')
 
 
 @require_POST

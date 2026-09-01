@@ -5,7 +5,13 @@
 <section>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div><h2 class="text-2xl font-black text-brand-navy">Banner principal del sitio</h2><p class="mt-1 text-sm text-slate-500">Programa campañas, publica contenido multimedia y consulta su rendimiento.</p></div>
-        <a href="{% url 'sami_admin:campaign-create' %}" class="btn-primary">Nueva campaña</a>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'sami_admin:campaign-list' %}?estado=papelera" class="btn-secondary">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 15h8l1-15M10 10v7m4-7v7"/></svg>
+                Papelera <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-700">{{ campaign_counts.trash }}</span>
+            </a>
+            <a href="{% url 'sami_admin:campaign-create' %}" class="btn-primary">Nueva campaña</a>
+        </div>
     </div>
 
     <div class="mt-6 grid gap-4 sm:grid-cols-3">
@@ -14,10 +20,24 @@
         <div class="surface-card-raised p-5"><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Solicitudes atribuidas</p><p class="mt-2 text-3xl font-black text-brand-navy">{{ totals.conversiones }}</p><p class="mt-1 text-xs text-slate-500">Formularios enviados después de verla.</p></div>
     </div>
 
-    <form method="get" class="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_220px_auto]">
-        <div><label for="campaign-search" class="sr-only">Buscar campañas</label><input id="campaign-search" name="q" value="{{ query }}" placeholder="Buscar por nombre, título o etiqueta" class="block w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-        <div><label for="campaign-status" class="sr-only">Estado</label><select id="campaign-status" name="estado" class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="todas" {% if status == 'todas' %}selected{% endif %}>Todas</option><option value="publicadas" {% if status == 'publicadas' %}selected{% endif %}>Publicadas</option><option value="programadas" {% if status == 'programadas' %}selected{% endif %}>Programadas</option><option value="pausadas" {% if status == 'pausadas' %}selected{% endif %}>Pausadas</option><option value="finalizadas" {% if status == 'finalizadas' %}selected{% endif %}>Finalizadas</option><option value="papelera" {% if status == 'papelera' %}selected{% endif %}>Papelera</option></select></div>
-        <button type="submit" class="btn-secondary">Filtrar</button>
+    <nav class="mt-6 flex gap-2 border-b border-slate-200" aria-label="Secciones de campañas">
+        <a href="{% url 'sami_admin:campaign-list' %}" {% if status != 'papelera' %}aria-current="page"{% endif %} class="inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-bold transition {% if status != 'papelera' %}border-brand-red text-brand-red{% else %}border-transparent text-slate-500 hover:text-brand-navy{% endif %}">Campañas activas <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ campaign_counts.active }}</span></a>
+        <a href="{% url 'sami_admin:campaign-list' %}?estado=papelera" {% if status == 'papelera' %}aria-current="page"{% endif %} class="inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-bold transition {% if status == 'papelera' %}border-brand-red text-brand-red{% else %}border-transparent text-slate-500 hover:text-brand-navy{% endif %}">Papelera <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ campaign_counts.trash }}</span></a>
+    </nav>
+
+    {% if status == 'papelera' %}
+    <div class="mt-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <svg class="mt-0.5 size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4m0 4h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div><p class="font-bold">Campañas eliminadas recientemente</p><p class="mt-1 leading-6">Aquí aparecen todas las campañas enviadas a la papelera, de la más reciente a la más antigua. Puedes restaurarlas o eliminarlas definitivamente.</p></div>
+    </div>
+    {% endif %}
+
+    <form method="get" class="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 {% if status == 'papelera' %}sm:grid-cols-[1fr_auto_auto]{% else %}sm:grid-cols-[1fr_220px_auto_auto]{% endif %}">
+        {% if status == 'papelera' %}<input type="hidden" name="estado" value="papelera">{% endif %}
+        <div><label for="campaign-search" class="sr-only">Buscar campañas</label><input id="campaign-search" type="search" name="q" value="{{ query }}" placeholder="Buscar por cualquier palabra" class="block w-full rounded-xl border border-slate-300 px-4 py-3"></div>
+        {% if status != 'papelera' %}<div><label for="campaign-status" class="sr-only">Estado</label><select id="campaign-status" name="estado" class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="todas" {% if status == 'todas' %}selected{% endif %}>Todas las activas</option><option value="publicadas" {% if status == 'publicadas' %}selected{% endif %}>Publicadas</option><option value="programadas" {% if status == 'programadas' %}selected{% endif %}>Programadas</option><option value="pausadas" {% if status == 'pausadas' %}selected{% endif %}>Pausadas</option><option value="finalizadas" {% if status == 'finalizadas' %}selected{% endif %}>Finalizadas</option></select></div>{% endif %}
+        <button type="submit" class="btn-secondary">Buscar</button>
+        {% if query %}<a href="{% url 'sami_admin:campaign-list' %}{% if status == 'papelera' %}?estado=papelera{% endif %}" class="inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold text-slate-600 hover:bg-slate-100">Limpiar</a>{% endif %}
     </form>
 
     <div class="mt-6 grid gap-5 lg:grid-cols-2">
@@ -26,6 +46,7 @@
             <div class="relative"><img src="{{ campaign.imagen_escritorio.url }}" alt="" class="h-48 w-full object-cover"><span class="absolute right-3 top-3 rounded-full bg-brand-navy/90 px-3 py-1 text-xs font-bold text-white">{{ campaign.get_tipo_multimedia_display }}</span></div>
             <div class="p-6">
                 <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-xs font-bold uppercase tracking-[.16em] text-rose-600">{{ campaign.etiqueta }}</p><h3 class="mt-1 text-xl font-black text-brand-navy">{{ campaign.nombre }}</h3></div>{% if campaign.id == current_campaign_id %}<span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Visible ahora</span>{% elif campaign.estado_publicacion == 'Publicada' %}<span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700">En espera por prioridad</span>{% else %}<span class="rounded-full px-3 py-1 text-xs font-bold {% if campaign.estado_publicacion == 'Programada' %}bg-blue-100 text-blue-700{% elif campaign.estado_publicacion == 'Finalizada' or campaign.estado_publicacion == 'Papelera' %}bg-slate-200 text-slate-600{% else %}bg-amber-100 text-amber-700{% endif %}">{{ campaign.estado_publicacion }}</span>{% endif %}</div>
+                {% if campaign.archivada_en %}<p class="mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 15h8l1-15"/></svg>Eliminada el {{ campaign.archivada_en|date:"d/m/Y \a \l\a\s H:i" }}{% if campaign.actualizado_por %} por {{ campaign.actualizado_por.get_full_name|default:campaign.actualizado_por.username }}{% endif %}</p>{% endif %}
                 <p class="mt-3 font-semibold text-slate-800">{{ campaign.titulo }}</p>
                 <dl class="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt class="text-slate-500">Inicio</dt><dd class="font-semibold">{{ campaign.fecha_inicio|date:"d/m/Y H:i" }}</dd></div><div><dt class="text-slate-500">Fin</dt><dd class="font-semibold">{{ campaign.fecha_fin|date:"d/m/Y H:i"|default:"Sin fecha" }}</dd></div><div><dt class="text-slate-500">Prioridad / orden</dt><dd class="font-semibold">{{ campaign.prioridad }} / {{ campaign.orden }}</dd></div><div><dt class="text-slate-500">Avioncito</dt><dd class="font-semibold">{% if campaign.mostrar_avion %}Visible{% else %}Oculto{% endif %}</dd></div></dl>
                 <div class="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center"><div><span class="block text-lg font-black text-brand-navy">{{ campaign.impresiones }}</span><span class="text-[10px] font-bold uppercase text-slate-500">Vistas</span></div><div><span class="block text-lg font-black text-brand-navy">{{ campaign.clics }}</span><span class="text-[10px] font-bold uppercase text-slate-500">Clics · {{ campaign.tasa_clics|floatformat:1 }}%</span></div><div><span class="block text-lg font-black text-brand-navy">{{ campaign.conversiones }}</span><span class="text-[10px] font-bold uppercase text-slate-500">Solicitudes · {{ campaign.tasa_conversion|floatformat:1 }}%</span></div></div>
@@ -38,7 +59,7 @@
             </div>
         </article>
         {% empty %}
-        <div class="surface-card-raised p-10 text-center lg:col-span-2"><p class="font-semibold text-brand-navy">No se encontraron campañas.</p><p class="mt-2 text-sm text-slate-500">Ajusta los filtros o crea una nueva campaña.</p></div>
+        <div class="surface-card-raised p-10 text-center lg:col-span-2"><p class="font-semibold text-brand-navy">{% if status == 'papelera' %}{% if query %}No hay campañas eliminadas que coincidan con “{{ query }}”.{% else %}La papelera está vacía.{% endif %}{% else %}No se encontraron campañas.{% endif %}</p><p class="mt-2 text-sm text-slate-500">{% if status == 'papelera' %}{% if query %}Prueba con otra palabra o limpia la búsqueda para ver todas.{% else %}Las campañas que elimines aparecerán aquí y podrás recuperarlas.{% endif %}{% else %}Ajusta los filtros o crea una nueva campaña.{% endif %}</p>{% if status == 'papelera' and query %}<a href="{% url 'sami_admin:campaign-list' %}?estado=papelera" class="btn-secondary mt-5">Ver toda la papelera</a>{% endif %}</div>
         {% endfor %}
     </div>
 </section>
