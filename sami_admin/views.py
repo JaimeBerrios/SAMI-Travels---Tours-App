@@ -1,3 +1,5 @@
+from unicodedata import combining, normalize
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (
@@ -51,6 +53,26 @@ from .models import (
 )
 from .selectors import can_view_all_quotes, quotations_for
 from .services import generate_quotation_pdf
+
+
+AIRPORTS = (
+    {"iata": "SAL", "ciudad": "San Salvador", "pais": "El Salvador"},
+    {"iata": "GUA", "ciudad": "Ciudad de Guatemala", "pais": "Guatemala"},
+    {"iata": "SAP", "ciudad": "San Pedro Sula", "pais": "Honduras"},
+    {"iata": "TGU", "ciudad": "Tegucigalpa", "pais": "Honduras"},
+    {"iata": "MGA", "ciudad": "Managua", "pais": "Nicaragua"},
+    {"iata": "SJO", "ciudad": "San José", "pais": "Costa Rica"},
+    {"iata": "PTY", "ciudad": "Ciudad de Panamá", "pais": "Panamá"},
+    {"iata": "MEX", "ciudad": "Ciudad de México", "pais": "México"},
+    {"iata": "CUN", "ciudad": "Cancún", "pais": "México"},
+    {"iata": "GDL", "ciudad": "Guadalajara", "pais": "México"},
+    {"iata": "MIA", "ciudad": "Miami", "pais": "Estados Unidos"},
+    {"iata": "LAX", "ciudad": "Los Ángeles", "pais": "Estados Unidos"},
+    {"iata": "JFK", "ciudad": "Nueva York", "pais": "Estados Unidos"},
+    {"iata": "MAD", "ciudad": "Madrid", "pais": "España"},
+    {"iata": "BOG", "ciudad": "Bogotá", "pais": "Colombia"},
+    {"iata": "LIM", "ciudad": "Lima", "pais": "Perú"},
+)
 
 
 def assign_user_role(user, role):
@@ -558,6 +580,30 @@ def quotation_create(request):
         "sami_admin/cotizacion_form.html",
         {"form": form, "form_title": "Nueva cotización"},
     )
+
+
+@staff_required
+def airports_json(request):
+    """Return mock airport matches using the shape expected from a future GDS."""
+    def normalize_search(value):
+        return "".join(
+            character
+            for character in normalize("NFKD", value.strip().casefold())
+            if not combining(character)
+        )
+
+    query = normalize_search(request.GET.get("q", ""))
+    if len(query) < 2:
+        return JsonResponse({"results": []})
+
+    matches = [
+        airport
+        for airport in AIRPORTS
+        if query in normalize_search(airport["iata"])
+        or query in normalize_search(airport["ciudad"])
+        or query in normalize_search(airport["pais"])
+    ]
+    return JsonResponse({"results": matches[:8]})
 
 
 @staff_required

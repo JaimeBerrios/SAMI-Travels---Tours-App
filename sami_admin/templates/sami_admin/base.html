@@ -7,6 +7,7 @@
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <title>{% block title %}SAMI Admin{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-rose-600 selection:text-white">
     <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-slate-950/60 backdrop-blur-sm lg:hidden" aria-hidden="true"></div>

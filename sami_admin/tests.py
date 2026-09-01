@@ -492,6 +492,10 @@ class SamiAdminUrlTests(SimpleTestCase):
             reverse("sami_admin:quotation-pdf", args=[9]),
             "/sami-admin/cotizaciones/9/pdf/",
         )
+        self.assertEqual(
+            reverse("sami_admin:airports-json"),
+            "/sami-admin/api/aeropuertos/",
+        )
 
     def test_user_management_urls(self):
         self.assertEqual(reverse("sami_admin:user-list"), "/sami-admin/usuarios/")
@@ -876,6 +880,49 @@ class DestinationCatalogTests(TestCase):
         )
         self.assertEqual(response.json()["results"][0]["nombre"], "Aventura costera")
         self.assertEqual(response.json()["results"][0]["precio_base"], "125.00")
+
+    def test_airport_endpoint_filters_mock_gds_results(self):
+        response = self.client.get(
+            reverse("sami_admin:airports-json"), {"q": "san salvador"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["results"], [
+            {"iata": "SAL", "ciudad": "San Salvador", "pais": "El Salvador"}
+        ])
+
+    def test_airport_endpoint_is_accent_insensitive_and_requires_two_characters(self):
+        response = self.client.get(
+            reverse("sami_admin:airports-json"), {"q": "mexico"}
+        )
+        self.assertEqual(
+            [airport["iata"] for airport in response.json()["results"]],
+            ["MEX", "CUN", "GDL"],
+        )
+
+        response = self.client.get(reverse("sami_admin:airports-json"), {"q": "m"})
+        self.assertEqual(response.json()["results"], [])
+
+    def test_airport_endpoint_requires_staff_authentication(self):
+        self.client.logout()
+
+        response = self.client.get(reverse("sami_admin:airports-json"), {"q": "sal"})
+
+        self.assertRedirects(
+            response,
+            "/sami-admin/login/?next=/sami-admin/api/aeropuertos/%3Fq%3Dsal",
+        )
+
+    def test_quotation_form_loads_flatpickr_and_airport_autosuggest(self):
+        response = self.client.get(reverse("sami_admin:quotation-create"))
+
+        self.assertContains(response, "flatpickr@4.6.13")
+        self.assertContains(response, 'id="flight-date-range"')
+        self.assertContains(response, 'name="origen"')
+        self.assertContains(response, 'id="origin-airport-results"')
+        self.assertContains(response, 'id="destination-airport-results"')
+        self.assertContains(response, reverse("sami_admin:airports-json"))
+        self.assertContains(response, "window.setTimeout(search, 300)")
 
     def test_edit_form_initializes_the_full_location_hierarchy(self):
         quotation = Cotizacion(

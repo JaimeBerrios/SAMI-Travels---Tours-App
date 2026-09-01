@@ -55,6 +55,7 @@ urlpatterns = [
         name="request-convert",
     ),
     path("api/departamentos/", views.departments_json, name="departments-json"),
+    path("api/aeropuertos/", views.airports_json, name="airports-json"),
     path("api/lugares-turisticos/", views.tourist_places_json, name="tourist-places-json"),
     path("api/tours/", views.tours_json, name="tours-json"),
     path("catalogo/<str:catalog>/", views.catalog_list, name="catalog-list"),

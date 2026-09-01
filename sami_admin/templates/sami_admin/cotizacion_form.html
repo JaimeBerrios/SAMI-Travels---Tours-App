@@ -3,6 +3,30 @@
 {% block title %}{{ form_title }} | SAMI Admin{% endblock %}
 {% block page_heading %}{{ form_title }}{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+<style>
+    .flatpickr-calendar { border: 0; border-radius: 1rem; box-shadow: 0 20px 45px rgb(15 23 42 / 18%); overflow: hidden; }
+    .flatpickr-months { background: #1e3a8a; color: #fff; padding: .35rem 0; }
+    .flatpickr-months .flatpickr-month,
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year { color: #fff; fill: #fff; }
+    .flatpickr-months .flatpickr-prev-month,
+    .flatpickr-months .flatpickr-next-month { color: #fff; fill: #fff; }
+    .flatpickr-months .flatpickr-prev-month:hover svg,
+    .flatpickr-months .flatpickr-next-month:hover svg { fill: #e11d48; }
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange,
+    .flatpickr-day.selected:hover,
+    .flatpickr-day.startRange:hover,
+    .flatpickr-day.endRange:hover { background: #1e3a8a; border-color: #1e3a8a; }
+    .flatpickr-day.inRange { background: #dbeafe; border-color: #dbeafe; box-shadow: -5px 0 0 #dbeafe, 5px 0 0 #dbeafe; }
+    .flatpickr-day.today { border-color: #e11d48; color: #e11d48; font-weight: 700; }
+    .flatpickr-day.today:hover { background: #e11d48; border-color: #e11d48; color: #fff; }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="mx-auto w-full max-w-4xl">
     <a href="{% url 'sami_admin:quotation-list' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-rose-600 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"><svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>Volver a cotizaciones</a>
@@ -15,7 +39,22 @@
             <fieldset class="section-card">
                 <legend class="section-legend">Información general</legend>
                 <div class="sami-form-grid mt-4">
-                    {% for field in form %}{% if field.name == 'cliente_nombre' or field.name == 'cliente_correo' or field.name == 'tipo_cotizacion' or field.name == 'destino' or field.name == 'precio_estimado' or field.name == 'estado' %}<div class="{% if field.name == 'cliente_nombre' or field.name == 'cliente_correo' %}sm:col-span-2{% endif %}"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %}<span class="text-rose-600" aria-hidden="true"> *</span><span class="sr-only"> (obligatorio)</span>{% endif %}</label>{{ field }}{% if field.help_text %}<p id="{{ field.id_for_label }}_helptext" class="mt-2 text-xs leading-5 text-slate-500">{{ field.help_text }}</p>{% endif %}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>{% endif %}{% endfor %}
+                    {% for field in form %}
+                        {% if field.name == 'cliente_nombre' or field.name == 'cliente_correo' or field.name == 'tipo_cotizacion' or field.name == 'destino' or field.name == 'precio_estimado' or field.name == 'estado' %}
+                            {% if field.name == 'destino' %}
+                                <div id="general-destination-slot">
+                                    <div id="destination-field-wrapper" class="relative">
+                                        <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">Destino<span class="text-rose-600" aria-hidden="true"> *</span><span class="sr-only"> (obligatorio)</span></label>
+                                        {{ field }}
+                                        <div id="destination-airport-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de destino"></div>
+                                        {% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="{% if field.name == 'cliente_nombre' or field.name == 'cliente_correo' %}sm:col-span-2{% endif %}"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %}<span class="text-rose-600" aria-hidden="true"> *</span><span class="sr-only"> (obligatorio)</span>{% endif %}</label>{{ field }}{% if field.help_text %}<p id="{{ field.id_for_label }}_helptext" class="mt-2 text-xs leading-5 text-slate-500">{{ field.help_text }}</p>{% endif %}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </fieldset>
 
@@ -43,9 +82,27 @@
             <div id="flight-fields" class="space-y-8">
                 <fieldset class="rounded-2xl border border-blue-100 bg-blue-50/50 p-5 sm:p-6">
                     <legend class="px-2 text-base font-bold text-brand-navy"><span class="inline-flex items-center gap-2"><svg class="size-4 shrink-0 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg>Pasajeros y ruta</span></legend>
-                    <div class="sami-form-grid mt-5">
-                        {% for field in form %}{% if field.name == 'ruta_vuelo' or field.name == 'cantidad_adultos' or field.name == 'cantidad_ninos' %}<div class="{% if field.name == 'ruta_vuelo' %}sm:col-span-2{% endif %}"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>{% endif %}{% endfor %}
+                    <div class="mt-5 grid gap-6 sm:grid-cols-2">
+                        <div class="relative">
+                            <label for="id_origen" class="mb-2 block text-sm font-semibold text-brand-navy">Origen<span class="text-rose-600" aria-hidden="true"> *</span><span class="sr-only"> (obligatorio)</span></label>
+                            <input id="id_origen" name="origen" type="text" autocomplete="off" placeholder="Ciudad o código IATA" class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-red focus:ring-4 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="origin-airport-results" aria-expanded="false">
+                            <div id="origin-airport-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de origen"></div>
+                        </div>
+                        <div id="flight-destination-slot"></div>
+                        {{ form.ruta_vuelo.as_hidden }}
+                        {% for error in form.ruta_vuelo.errors %}<p class="text-sm font-medium text-rose-600 sm:col-span-2" role="alert">{{ error }}</p>{% endfor %}
+                        {% for field in form %}{% if field.name == 'cantidad_adultos' or field.name == 'cantidad_ninos' %}<div><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>{% endif %}{% endfor %}
                     </div>
+                </fieldset>
+
+                <fieldset class="section-card">
+                    <legend class="px-2 text-base font-bold text-brand-navy">Fechas de viaje</legend>
+                    <label for="flight-date-range" class="mt-3 block text-sm font-semibold text-brand-navy">Selecciona ida y vuelta en un solo calendario</label>
+                    <div class="relative mt-2">
+                        <svg class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+                        <input id="flight-date-range" type="text" readonly placeholder="Selecciona fecha de ida y regreso" class="block w-full cursor-pointer rounded-xl border border-slate-300 bg-white py-3 pl-12 pr-4 text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-red focus:ring-4 focus:ring-brand-red/10">
+                    </div>
+                    <p class="mt-2 text-xs text-slate-500">También puedes abrir el calendario desde cualquiera de los campos de fecha.</p>
                 </fieldset>
 
                 <div class="grid gap-8 lg:grid-cols-2">
@@ -72,15 +129,27 @@
     </div>
     {% if historial %}<section class="surface-card-raised mt-6 p-6"><h2 class="text-lg font-bold text-brand-navy">Historial reciente</h2><ol class="mt-4 divide-y divide-slate-200">{% for evento in historial %}<li class="flex flex-wrap justify-between gap-2 py-3 text-sm"><span><strong class="capitalize text-brand-navy">{{ evento.accion|cut:"_" }}</strong> por {{ evento.usuario.get_full_name|default:evento.usuario.username|default:"Sistema" }}</span><time class="text-slate-500">{{ evento.creado_en|date:"d/m/Y H:i" }}</time></li>{% endfor %}</ol></section>{% endif %}
 </section>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js"></script>
 <script>
     (() => {
         const typeField = document.getElementById('id_tipo_cotizacion');
         const flightFields = document.getElementById('flight-fields');
         const tourFields = document.getElementById('tour-itinerary-fields');
+        const originField = document.getElementById('id_origen');
+        const destinationWrapper = document.getElementById('destination-field-wrapper');
+        const generalDestinationSlot = document.getElementById('general-destination-slot');
+        const flightDestinationSlot = document.getElementById('flight-destination-slot');
         if (!typeField || !flightFields || !tourFields) return;
         const syncTypeFields = () => {
-            flightFields.classList.toggle('hidden', typeField.value === 'tours');
+            const includesFlight = ['vuelos', 'vuelos_tours'].includes(typeField.value);
+            flightFields.classList.toggle('hidden', !includesFlight);
             tourFields.classList.toggle('hidden', !['tours', 'vuelos_tours'].includes(typeField.value));
+            originField.required = includesFlight;
+            generalDestinationSlot.classList.toggle('hidden', includesFlight);
+            if (destinationWrapper) {
+                (includesFlight ? flightDestinationSlot : generalDestinationSlot).appendChild(destinationWrapper);
+            }
         };
         typeField.addEventListener('change', syncTypeFields);
         syncTypeFields();
@@ -139,6 +208,186 @@
                 const input = document.getElementById(`id_${field}`);
                 if (input) input.value = tour[key] || '';
             });
+        });
+    })();
+</script>
+<script>
+    (() => {
+        const rangeField = document.getElementById('flight-date-range');
+        const departureField = document.getElementById('id_fecha_ida');
+        const returnField = document.getElementById('id_fecha_vuelta');
+        if (!rangeField || !departureField || !returnField || !window.flatpickr) return;
+
+        const defaultDates = [departureField.value, returnField.value]
+            .filter(Boolean)
+            .map(value => window.flatpickr.parseDate(value, 'Y-m-d'));
+        const picker = window.flatpickr(rangeField, {
+            mode: 'range',
+            dateFormat: 'd/m/Y',
+            defaultDate: defaultDates,
+            disableMobile: true,
+            locale: window.flatpickr.l10ns.es,
+            onChange(selectedDates, _dateText, instance) {
+                departureField.value = selectedDates[0]
+                    ? instance.formatDate(selectedDates[0], 'Y-m-d')
+                    : '';
+                returnField.value = selectedDates[1]
+                    ? instance.formatDate(selectedDates[1], 'Y-m-d')
+                    : '';
+            },
+        });
+
+        [departureField, returnField].forEach(field => {
+            field.readOnly = true;
+            field.classList.add('cursor-pointer');
+            field.addEventListener('click', () => picker.open());
+            field.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    picker.open();
+                }
+            });
+        });
+    })();
+</script>
+<script>
+    (() => {
+        const form = document.getElementById('quotation-form');
+        const typeField = document.getElementById('id_tipo_cotizacion');
+        const routeField = document.getElementById('id_ruta_vuelo');
+        const originField = document.getElementById('id_origen');
+        const destinationField = document.getElementById('id_destino');
+        const endpoint = "{% url 'sami_admin:airports-json' %}";
+        if (!form || !routeField || !originField || !destinationField) return;
+
+        const savedRoute = routeField.value.split(/\s+(?:→|a)\s+/i);
+        if (savedRoute.length === 2) {
+            originField.value = savedRoute[0];
+            if (!destinationField.value) destinationField.value = savedRoute[1];
+        }
+
+        const airplaneIcon = `
+            <svg class="size-5 shrink-0 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="m2 16 20-9-7 14-3-6-6-3Z"></path><path d="m12 15 10-8"></path>
+            </svg>`;
+
+        const setupAutosuggest = (input, dropdown) => {
+            let debounceTimer;
+            let controller;
+            let resultButtons = [];
+            let activeIndex = -1;
+
+            const close = () => {
+                window.clearTimeout(debounceTimer);
+                controller?.abort();
+                dropdown.classList.add('hidden');
+                dropdown.replaceChildren();
+                input.setAttribute('aria-expanded', 'false');
+                activeIndex = -1;
+                resultButtons = [];
+            };
+            const open = () => {
+                dropdown.classList.remove('hidden');
+                input.setAttribute('aria-expanded', 'true');
+            };
+            const showMessage = message => {
+                resultButtons = [];
+                activeIndex = -1;
+                const status = document.createElement('p');
+                status.className = 'px-3 py-2.5 text-sm text-slate-500';
+                status.textContent = message;
+                dropdown.replaceChildren(status);
+                open();
+            };
+            const choose = airport => {
+                input.value = `(${airport.iata}) ${airport.ciudad}, ${airport.pais}`;
+                input.dispatchEvent(new Event('change', {bubbles: true}));
+                close();
+            };
+            const render = airports => {
+                dropdown.replaceChildren();
+                if (!airports.length) {
+                    showMessage('No encontramos aeropuertos para esta búsqueda.');
+                    return;
+                }
+                airports.forEach(airport => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-blue-50 focus:bg-blue-50 focus:outline-none';
+                    button.setAttribute('role', 'option');
+                    button.innerHTML = airplaneIcon;
+                    const label = document.createElement('span');
+                    label.className = 'min-w-0';
+                    label.textContent = `(${airport.iata}) ${airport.ciudad}, ${airport.pais}`;
+                    button.appendChild(label);
+                    button.addEventListener('click', () => choose(airport));
+                    dropdown.appendChild(button);
+                });
+                resultButtons = [...dropdown.querySelectorAll('[role="option"]')];
+                open();
+            };
+            const search = async () => {
+                const query = input.value.trim();
+                if (query.length < 2) {
+                    close();
+                    return;
+                }
+                controller?.abort();
+                controller = new AbortController();
+                showMessage('Buscando aeropuertos…');
+                try {
+                    const response = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`, {
+                        headers: {'X-Requested-With': 'XMLHttpRequest'},
+                        signal: controller.signal,
+                    });
+                    if (!response.ok) throw new Error('Airport search failed');
+                    const data = await response.json();
+                    render(data.results || []);
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        showMessage('No fue posible consultar los aeropuertos. Intenta de nuevo.');
+                    }
+                }
+            };
+
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('aria-autocomplete', 'list');
+            input.setAttribute('aria-controls', dropdown.id);
+            input.setAttribute('aria-expanded', 'false');
+            input.addEventListener('input', () => {
+                window.clearTimeout(debounceTimer);
+                debounceTimer = window.setTimeout(search, 300);
+            });
+            input.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    close();
+                    return;
+                }
+                if (!resultButtons.length || !['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) return;
+                event.preventDefault();
+                if (event.key === 'Enter' && activeIndex >= 0) {
+                    resultButtons[activeIndex].click();
+                    return;
+                }
+                activeIndex = event.key === 'ArrowDown'
+                    ? (activeIndex + 1) % resultButtons.length
+                    : (activeIndex - 1 + resultButtons.length) % resultButtons.length;
+                resultButtons.forEach((button, index) => {
+                    button.classList.toggle('bg-blue-50', index === activeIndex);
+                    button.setAttribute('aria-selected', String(index === activeIndex));
+                });
+            });
+            document.addEventListener('click', event => {
+                if (event.target !== input && !dropdown.contains(event.target)) close();
+            });
+        };
+
+        setupAutosuggest(originField, document.getElementById('origin-airport-results'));
+        setupAutosuggest(destinationField, document.getElementById('destination-airport-results'));
+        form.addEventListener('submit', () => {
+            if (['vuelos', 'vuelos_tours'].includes(typeField.value)) {
+                routeField.value = `${originField.value.trim()} → ${destinationField.value.trim()}`;
+            }
         });
     })();
 </script>
