@@ -8,6 +8,8 @@ class SecurityHeadersMiddleware:
         response = self.get_response(request)
         if request.path.startswith("/sami-admin/"):
             response["X-Robots-Tag"] = "noindex, nofollow"
+            response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response["Pragma"] = "no-cache"
         response.setdefault(
             "Content-Security-Policy",
             "default-src 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net "

@@ -886,6 +886,9 @@ class CotizacionModelTests(TestCase):
         )
         self.assertEqual(form.fields["fecha_ida"].widget.attrs["min"], today.isoformat())
         self.assertEqual(form.fields["fecha_vuelta"].widget.attrs["min"], today.isoformat())
+        self.assertEqual(
+            form.fields["destino"].widget.attrs["list"], "airport-fallback-options"
+        )
 
         reversed_range_data = form.data.copy()
         reversed_range_data["fecha_ida"] = (today + timedelta(days=5)).isoformat()
@@ -1003,6 +1006,16 @@ class DestinationCatalogTests(TestCase):
         self.assertContains(response, "search(true)")
         self.assertContains(response, "Aeropuertos populares")
         self.assertContains(response, f'min="{timezone.localdate().isoformat()}"', count=2)
+        self.assertContains(response, 'id="airport-fallback-options"')
+        self.assertContains(response, "(SAL) San Salvador, El Salvador")
+        self.assertNotContains(response, "window.flatpickr.l10ns?.es")
+        self.assertNotContains(response, "controller?.abort()")
+        self.assertNotContains(response, "dropdown.replaceChildren")
+        self.assertEqual(
+            response["Cache-Control"],
+            "no-store, no-cache, must-revalidate, max-age=0",
+        )
+        self.assertEqual(response["Pragma"], "no-cache")
 
     def test_edit_form_initializes_the_full_location_hierarchy(self):
         quotation = Cotizacion(

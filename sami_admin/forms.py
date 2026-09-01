@@ -577,6 +577,7 @@ class CotizacionForm(forms.ModelForm):
         minimum_flight_date = timezone.localdate().isoformat()
         self.fields["fecha_ida"].widget.attrs["min"] = minimum_flight_date
         self.fields["fecha_vuelta"].widget.attrs["min"] = minimum_flight_date
+        self.fields["destino"].widget.attrs["list"] = "airport-fallback-options"
         self._original_lugar_id = self.instance.lugar_turistico_id
         self._original_tour_id = self.instance.tour_id
         pais_id = self.data.get("pais") if self.is_bound else None

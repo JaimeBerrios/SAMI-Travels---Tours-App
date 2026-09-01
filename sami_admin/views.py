@@ -628,7 +628,11 @@ def quotation_create(request):
     return render(
         request,
         "sami_admin/cotizacion_form.html",
-        {"form": form, "form_title": "Nueva cotización"},
+        {
+            "form": form,
+            "form_title": "Nueva cotización",
+            "airport_options": AIRPORTS,
+        },
     )
 
 
@@ -924,6 +928,7 @@ def quotation_update(request, quotation_id):
             "form": form,
             "form_title": "Editar cotización",
             "historial": quotation.historial.select_related("usuario")[:12],
+            "airport_options": AIRPORTS,
         },
     )
 

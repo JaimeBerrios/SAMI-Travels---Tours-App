@@ -85,11 +85,12 @@
                     <div class="mt-5 grid gap-6 sm:grid-cols-2">
                         <div class="relative">
                             <label for="id_origen" class="mb-2 block text-sm font-semibold text-brand-navy">Origen<span class="text-rose-600" aria-hidden="true"> *</span><span class="sr-only"> (obligatorio)</span></label>
-                            <input id="id_origen" name="origen" type="text" autocomplete="off" placeholder="Ciudad o código IATA" class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-red focus:ring-4 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="origin-airport-results" aria-expanded="false">
+                            <input id="id_origen" name="origen" type="text" autocomplete="off" list="airport-fallback-options" placeholder="Ciudad o código IATA" class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-red focus:ring-4 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="origin-airport-results" aria-expanded="false">
                             <div id="origin-airport-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de origen" aria-live="polite"></div>
                         </div>
                         <div id="flight-destination-slot"></div>
                         {{ form.ruta_vuelo.as_hidden }}
+                        <datalist id="airport-fallback-options">{% for airport in airport_options %}<option value="({{ airport.iata }}) {{ airport.ciudad }}, {{ airport.pais }}">{% endfor %}</datalist>
                         {% for error in form.ruta_vuelo.errors %}<p class="text-sm font-medium text-rose-600 sm:col-span-2" role="alert">{{ error }}</p>{% endfor %}
                         {% for field in form %}{% if field.name == 'cantidad_adultos' or field.name == 'cantidad_ninos' %}<div><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}</div>{% endif %}{% endfor %}
                     </div>
@@ -227,7 +228,7 @@
             defaultDate: defaultDates,
             minDate: 'today',
             disableMobile: true,
-            locale: window.flatpickr.l10ns?.es || 'default',
+            locale: (window.flatpickr.l10ns && window.flatpickr.l10ns.es) || 'default',
             onChange(selectedDates, _dateText, instance) {
                 departureField.value = selectedDates[0]
                     ? instance.formatDate(selectedDates[0], 'Y-m-d')
@@ -280,9 +281,9 @@
 
             const close = () => {
                 window.clearTimeout(debounceTimer);
-                controller?.abort();
+                if (controller) controller.abort();
                 dropdown.classList.add('hidden');
-                dropdown.replaceChildren();
+                dropdown.innerHTML = '';
                 input.setAttribute('aria-expanded', 'false');
                 activeIndex = -1;
                 resultButtons = [];
@@ -297,7 +298,8 @@
                 const status = document.createElement('p');
                 status.className = 'px-3 py-2.5 text-sm text-slate-500';
                 status.textContent = message;
-                dropdown.replaceChildren(status);
+                dropdown.innerHTML = '';
+                dropdown.appendChild(status);
                 open();
             };
             const choose = airport => {
@@ -306,7 +308,7 @@
                 close();
             };
             const render = (airports, showPopularHeading = false) => {
-                dropdown.replaceChildren();
+                dropdown.innerHTML = '';
                 if (!airports.length) {
                     showMessage('No encontramos aeropuertos para esta búsqueda.');
                     return;
@@ -330,7 +332,9 @@
                     button.addEventListener('click', () => choose(airport));
                     dropdown.appendChild(button);
                 });
-                resultButtons = [...dropdown.querySelectorAll('[role="option"]')];
+                resultButtons = Array.prototype.slice.call(
+                    dropdown.querySelectorAll('[role="option"]')
+                );
                 open();
             };
             const search = async (showPopular = false) => {
@@ -339,14 +343,18 @@
                     close();
                     return;
                 }
-                controller?.abort();
-                controller = new AbortController();
+                if (controller) controller.abort();
+                controller = window.AbortController ? new window.AbortController() : null;
                 showMessage('Buscando aeropuertos…');
                 try {
-                    const response = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`, {
+                    const requestOptions = {
                         headers: {'X-Requested-With': 'XMLHttpRequest'},
-                        signal: controller.signal,
-                    });
+                    };
+                    if (controller) requestOptions.signal = controller.signal;
+                    const response = await fetch(
+                        `${endpoint}?q=${encodeURIComponent(query)}`,
+                        requestOptions
+                    );
                     if (!response.ok) throw new Error('Airport search failed');
                     const data = await response.json();
                     render(data.results || [], !query);
