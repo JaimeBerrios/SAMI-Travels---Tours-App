@@ -483,7 +483,25 @@ class BasicProductionViewsTests(TestCase):
     def test_security_headers_are_present(self):
         response = self.client.get(reverse("core:portal-publico"))
 
-        self.assertIn("default-src 'self'", response["Content-Security-Policy"])
+        content_security_policy = response["Content-Security-Policy"]
+        directives = {
+            parts[0]: parts[1:]
+            for directive in content_security_policy.split(";")
+            if (parts := directive.strip().split())
+        }
+        self.assertIn("'self'", directives["default-src"])
+        self.assertIn("https://www.googletagmanager.com", directives["script-src"])
+        self.assertIn("https://tagmanager.google.com", directives["script-src"])
+        self.assertIn("https://fonts.googleapis.com", directives["style-src"])
+        self.assertIn("https://fonts.gstatic.com", directives["font-src"])
+        self.assertIn("https://www.googletagmanager.com", directives["frame-src"])
+        for analytics_source in (
+            "https://www.googletagmanager.com",
+            "https://*.google-analytics.com",
+            "https://*.analytics.google.com",
+        ):
+            with self.subTest(analytics_source=analytics_source):
+                self.assertIn(analytics_source, directives["connect-src"])
         self.assertEqual(
             response["Permissions-Policy"],
             "camera=(), microphone=(), geolocation=(), payment=()",
