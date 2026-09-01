@@ -29,3 +29,5 @@ jobs:
       - run: python manage.py check --deploy --settings=sami_project.test_settings
       - run: python manage.py makemigrations --check --dry-run --settings=sami_project.test_settings
       - run: python manage.py test --settings=sami_project.test_settings
+        env:
+          DJANGO_SECURE_SSL_REDIRECT: "False"
