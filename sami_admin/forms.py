@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.files.base import ContentFile
 from django.db.models import Q
+from django.utils import timezone
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from core.models import SolicitudContacto
@@ -573,6 +574,9 @@ class CotizacionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        minimum_flight_date = timezone.localdate().isoformat()
+        self.fields["fecha_ida"].widget.attrs["min"] = minimum_flight_date
+        self.fields["fecha_vuelta"].widget.attrs["min"] = minimum_flight_date
         self._original_lugar_id = self.instance.lugar_turistico_id
         self._original_tour_id = self.instance.tour_id
         pais_id = self.data.get("pais") if self.is_bound else None
@@ -820,6 +824,20 @@ class CotizacionForm(forms.ModelForm):
                     self.add_error(name, message)
             if cleaned_data.get("cantidad_adultos") is not None and cleaned_data["cantidad_adultos"] < 1:
                 self.add_error("cantidad_adultos", "Debe viajar al menos un adulto.")
+            today = timezone.localdate()
+            departure_date = cleaned_data.get("fecha_ida")
+            return_date = cleaned_data.get("fecha_vuelta")
+            if departure_date and departure_date < today:
+                self.add_error("fecha_ida", "La fecha de ida no puede estar en el pasado.")
+            if return_date and return_date < today:
+                self.add_error(
+                    "fecha_vuelta", "La fecha de vuelta no puede estar en el pasado."
+                )
+            if departure_date and return_date and return_date < departure_date:
+                self.add_error(
+                    "fecha_vuelta",
+                    "La fecha de vuelta debe ser igual o posterior a la fecha de ida.",
+                )
         if tipo == Cotizacion.TipoCotizacion.TOURS:
             for field_name in self.FLIGHT_FIELDS:
                 cleaned_data[field_name] = None

@@ -46,7 +46,7 @@
                                     <div id="destination-field-wrapper" class="relative">
                                         <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">Destino<span class="text-rose-600" aria-hidden="true"> *</span><span class="sr-only"> (obligatorio)</span></label>
                                         {{ field }}
-                                        <div id="destination-airport-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de destino"></div>
+                                        <div id="destination-airport-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de destino" aria-live="polite"></div>
                                         {% for error in field.errors %}<p {% if forloop.first %}id="{{ field.id_for_label }}_error"{% endif %} class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}
                                     </div>
                                 </div>
@@ -86,7 +86,7 @@
                         <div class="relative">
                             <label for="id_origen" class="mb-2 block text-sm font-semibold text-brand-navy">Origen<span class="text-rose-600" aria-hidden="true"> *</span><span class="sr-only"> (obligatorio)</span></label>
                             <input id="id_origen" name="origen" type="text" autocomplete="off" placeholder="Ciudad o código IATA" class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-red focus:ring-4 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="origin-airport-results" aria-expanded="false">
-                            <div id="origin-airport-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de origen"></div>
+                            <div id="origin-airport-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de origen" aria-live="polite"></div>
                         </div>
                         <div id="flight-destination-slot"></div>
                         {{ form.ruta_vuelo.as_hidden }}
@@ -102,7 +102,7 @@
                         <svg class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
                         <input id="flight-date-range" type="text" readonly placeholder="Selecciona fecha de ida y regreso" class="block w-full cursor-pointer rounded-xl border border-slate-300 bg-white py-3 pl-12 pr-4 text-brand-navy shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-red focus:ring-4 focus:ring-brand-red/10">
                     </div>
-                    <p class="mt-2 text-xs text-slate-500">También puedes abrir el calendario desde cualquiera de los campos de fecha.</p>
+                    <p class="mt-2 text-xs text-slate-500">Primero selecciona la salida y luego el regreso. Solo se permiten fechas desde hoy en adelante.</p>
                 </fieldset>
 
                 <div class="grid gap-8 lg:grid-cols-2">
@@ -225,8 +225,9 @@
             mode: 'range',
             dateFormat: 'd/m/Y',
             defaultDate: defaultDates,
+            minDate: 'today',
             disableMobile: true,
-            locale: window.flatpickr.l10ns.es,
+            locale: window.flatpickr.l10ns?.es || 'default',
             onChange(selectedDates, _dateText, instance) {
                 departureField.value = selectedDates[0]
                     ? instance.formatDate(selectedDates[0], 'Y-m-d')
@@ -304,11 +305,17 @@
                 input.dispatchEvent(new Event('change', {bubbles: true}));
                 close();
             };
-            const render = airports => {
+            const render = (airports, showPopularHeading = false) => {
                 dropdown.replaceChildren();
                 if (!airports.length) {
                     showMessage('No encontramos aeropuertos para esta búsqueda.');
                     return;
+                }
+                if (showPopularHeading) {
+                    const heading = document.createElement('p');
+                    heading.className = 'px-3 pb-1 pt-2 text-xs font-bold uppercase tracking-wide text-slate-400';
+                    heading.textContent = 'Aeropuertos populares';
+                    dropdown.appendChild(heading);
                 }
                 airports.forEach(airport => {
                     const button = document.createElement('button');
@@ -326,9 +333,9 @@
                 resultButtons = [...dropdown.querySelectorAll('[role="option"]')];
                 open();
             };
-            const search = async () => {
+            const search = async (showPopular = false) => {
                 const query = input.value.trim();
-                if (query.length < 2) {
+                if ((!query && !showPopular) || query.length === 1) {
                     close();
                     return;
                 }
@@ -342,7 +349,7 @@
                     });
                     if (!response.ok) throw new Error('Airport search failed');
                     const data = await response.json();
-                    render(data.results || []);
+                    render(data.results || [], !query);
                 } catch (error) {
                     if (error.name !== 'AbortError') {
                         showMessage('No fue posible consultar los aeropuertos. Intenta de nuevo.');
@@ -357,6 +364,11 @@
             input.addEventListener('input', () => {
                 window.clearTimeout(debounceTimer);
                 debounceTimer = window.setTimeout(search, 300);
+            });
+            input.addEventListener('focus', () => {
+                if (!input.value.trim() && dropdown.classList.contains('hidden')) {
+                    search(true);
+                }
             });
             input.addEventListener('keydown', event => {
                 if (event.key === 'Escape') {

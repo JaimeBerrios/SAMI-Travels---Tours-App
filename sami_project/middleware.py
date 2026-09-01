@@ -12,7 +12,8 @@ class SecurityHeadersMiddleware:
             "Content-Security-Policy",
             "default-src 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net "
             "https://www.googletagmanager.com https://tagmanager.google.com; "
-            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.googletagmanager.com "
+            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net "
+            "https://www.googletagmanager.com "
             "https://tagmanager.google.com https://fonts.googleapis.com; "
             "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
             "img-src 'self' data: https:; "

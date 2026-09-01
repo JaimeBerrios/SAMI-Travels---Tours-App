@@ -493,6 +493,7 @@ class BasicProductionViewsTests(TestCase):
         self.assertIn("https://www.googletagmanager.com", directives["script-src"])
         self.assertIn("https://tagmanager.google.com", directives["script-src"])
         self.assertIn("https://fonts.googleapis.com", directives["style-src"])
+        self.assertIn("https://cdn.jsdelivr.net", directives["style-src"])
         self.assertIn("https://fonts.gstatic.com", directives["font-src"])
         self.assertIn("https://www.googletagmanager.com", directives["frame-src"])
         for analytics_source in (

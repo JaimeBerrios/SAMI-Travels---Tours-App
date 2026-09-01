@@ -862,6 +862,41 @@ class CotizacionModelTests(TestCase):
             "id_aerolinea_helptext",
         )
 
+    def test_flight_form_rejects_past_dates_and_sets_native_minimum(self):
+        today = timezone.localdate()
+        form = CotizacionForm(
+            data={
+                "cliente_nombre": "Ana Pérez",
+                "cliente_correo": "ana@example.com",
+                "tipo_cotizacion": Cotizacion.TipoCotizacion.VUELOS,
+                "destino": "(MIA) Miami, Estados Unidos",
+                "ruta_vuelo": "(SAL) San Salvador, El Salvador → (MIA) Miami, Estados Unidos",
+                "cantidad_adultos": "1",
+                "cantidad_ninos": "0",
+                "fecha_ida": (today - timedelta(days=1)).isoformat(),
+                "fecha_vuelta": today.isoformat(),
+                "precio_estimado": "500.00",
+                "estado": Cotizacion.Estado.PENDIENTE,
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "La fecha de ida no puede estar en el pasado.", form.errors["fecha_ida"]
+        )
+        self.assertEqual(form.fields["fecha_ida"].widget.attrs["min"], today.isoformat())
+        self.assertEqual(form.fields["fecha_vuelta"].widget.attrs["min"], today.isoformat())
+
+        reversed_range_data = form.data.copy()
+        reversed_range_data["fecha_ida"] = (today + timedelta(days=5)).isoformat()
+        reversed_range_data["fecha_vuelta"] = (today + timedelta(days=2)).isoformat()
+        reversed_range_form = CotizacionForm(data=reversed_range_data)
+        self.assertFalse(reversed_range_form.is_valid())
+        self.assertIn(
+            "La fecha de vuelta debe ser igual o posterior a la fecha de ida.",
+            reversed_range_form.errors["fecha_vuelta"],
+        )
+
 
 class DestinationCatalogTests(TestCase):
     def setUp(self):
@@ -935,6 +970,15 @@ class DestinationCatalogTests(TestCase):
         response = self.client.get(reverse("sami_admin:airports-json"), {"q": "m"})
         self.assertEqual(response.json()["results"], [])
 
+        popular = self.client.get(reverse("sami_admin:airports-json"))
+        self.assertEqual(len(popular.json()["results"]), 8)
+        self.assertEqual(popular.json()["results"][0]["iata"], "SAL")
+
+        orlando = self.client.get(
+            reverse("sami_admin:airports-json"), {"q": "Orlando"}
+        )
+        self.assertEqual(orlando.json()["results"][0]["iata"], "MCO")
+
     def test_airport_endpoint_requires_staff_authentication(self):
         self.client.logout()
 
@@ -955,6 +999,10 @@ class DestinationCatalogTests(TestCase):
         self.assertContains(response, 'id="destination-airport-results"')
         self.assertContains(response, reverse("sami_admin:airports-json"))
         self.assertContains(response, "window.setTimeout(search, 300)")
+        self.assertContains(response, "minDate: 'today'")
+        self.assertContains(response, "search(true)")
+        self.assertContains(response, "Aeropuertos populares")
+        self.assertContains(response, f'min="{timezone.localdate().isoformat()}"', count=2)
 
     def test_edit_form_initializes_the_full_location_hierarchy(self):
         quotation = Cotizacion(

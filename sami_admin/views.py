@@ -72,6 +72,37 @@ AIRPORTS = (
     {"iata": "MAD", "ciudad": "Madrid", "pais": "España"},
     {"iata": "BOG", "ciudad": "Bogotá", "pais": "Colombia"},
     {"iata": "LIM", "ciudad": "Lima", "pais": "Perú"},
+    {"iata": "MDE", "ciudad": "Medellín", "pais": "Colombia"},
+    {"iata": "CLO", "ciudad": "Cali", "pais": "Colombia"},
+    {"iata": "UIO", "ciudad": "Quito", "pais": "Ecuador"},
+    {"iata": "GYE", "ciudad": "Guayaquil", "pais": "Ecuador"},
+    {"iata": "SCL", "ciudad": "Santiago", "pais": "Chile"},
+    {"iata": "EZE", "ciudad": "Buenos Aires", "pais": "Argentina"},
+    {"iata": "GRU", "ciudad": "São Paulo", "pais": "Brasil"},
+    {"iata": "PUJ", "ciudad": "Punta Cana", "pais": "República Dominicana"},
+    {"iata": "SDQ", "ciudad": "Santo Domingo", "pais": "República Dominicana"},
+    {"iata": "HAV", "ciudad": "La Habana", "pais": "Cuba"},
+    {"iata": "MBJ", "ciudad": "Montego Bay", "pais": "Jamaica"},
+    {"iata": "BZE", "ciudad": "Ciudad de Belice", "pais": "Belice"},
+    {"iata": "RTB", "ciudad": "Roatán", "pais": "Honduras"},
+    {"iata": "MCO", "ciudad": "Orlando", "pais": "Estados Unidos"},
+    {"iata": "FLL", "ciudad": "Fort Lauderdale", "pais": "Estados Unidos"},
+    {"iata": "IAH", "ciudad": "Houston", "pais": "Estados Unidos"},
+    {"iata": "DFW", "ciudad": "Dallas", "pais": "Estados Unidos"},
+    {"iata": "ATL", "ciudad": "Atlanta", "pais": "Estados Unidos"},
+    {"iata": "ORD", "ciudad": "Chicago", "pais": "Estados Unidos"},
+    {"iata": "IAD", "ciudad": "Washington D. C.", "pais": "Estados Unidos"},
+    {"iata": "BOS", "ciudad": "Boston", "pais": "Estados Unidos"},
+    {"iata": "SFO", "ciudad": "San Francisco", "pais": "Estados Unidos"},
+    {"iata": "YYZ", "ciudad": "Toronto", "pais": "Canadá"},
+    {"iata": "YUL", "ciudad": "Montreal", "pais": "Canadá"},
+    {"iata": "BCN", "ciudad": "Barcelona", "pais": "España"},
+    {"iata": "CDG", "ciudad": "París", "pais": "Francia"},
+    {"iata": "LHR", "ciudad": "Londres", "pais": "Reino Unido"},
+    {"iata": "AMS", "ciudad": "Ámsterdam", "pais": "Países Bajos"},
+    {"iata": "FCO", "ciudad": "Roma", "pais": "Italia"},
+    {"iata": "FRA", "ciudad": "Fráncfort", "pais": "Alemania"},
+    {"iata": "LIS", "ciudad": "Lisboa", "pais": "Portugal"},
 )
 
 
@@ -612,6 +643,8 @@ def airports_json(request):
         )
 
     query = normalize_search(request.GET.get("q", ""))
+    if not query:
+        return JsonResponse({"results": list(AIRPORTS[:8])})
     if len(query) < 2:
         return JsonResponse({"results": []})
 
