@@ -11,7 +11,7 @@
   html { overflow-x: hidden; }
   body { overflow-x: hidden; }
   button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
-  :focus-visible { outline: 2px solid #e11d48; outline-offset: 3px; }
+  :focus-visible { outline: 2px solid #FF131C; outline-offset: 3px; }
   button:disabled, input:disabled, select:disabled, textarea:disabled { cursor: not-allowed; opacity: .55; }
 }
 

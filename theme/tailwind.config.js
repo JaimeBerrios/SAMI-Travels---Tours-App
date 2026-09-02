@@ -11,12 +11,12 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          navy: "#0B1F3A",
-          "navy-dark": "#06152B",
-          "navy-light": "#173F6B",
-          red: "#E11D48",
-          "red-dark": "#BE123C",
-          "red-soft": "#FFF1F2",
+          navy: "#002756",
+          "navy-dark": "#001A3D",
+          "navy-light": "#174A80",
+          red: "#FF131C",
+          "red-dark": "#D90008",
+          "red-soft": "#FFF0F1",
           white: "#FFFFFF",
         },
       },
