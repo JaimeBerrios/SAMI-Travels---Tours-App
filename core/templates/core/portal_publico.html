@@ -16,8 +16,39 @@
     .flatpickr-months .flatpickr-prev-month,
     .flatpickr-months .flatpickr-next-month { color: #fff; fill: #fff; }
     .flatpickr-day.selected,
-    .flatpickr-day.selected:hover { background: #e11d48; border-color: #e11d48; }
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange,
+    .flatpickr-day.startRange:hover,
+    .flatpickr-day.endRange:hover { background: #e11d48; border-color: #e11d48; }
+    .flatpickr-day.inRange {
+        background: #fff1f2;
+        border-color: #ffe4e6;
+        box-shadow: -5px 0 0 #fff1f2, 5px 0 0 #fff1f2;
+    }
     .flatpickr-day.today { border-color: #e11d48; color: #e11d48; font-weight: 700; }
+    .flatpickr-calendar.trip-date-calendar { max-width: calc(100vw - 2rem); }
+    .trip-date-calendar .flatpickr-innerContainer { overflow-x: auto; }
+    .trip-date-calendar__footer {
+        align-items: center;
+        background: #fff;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        gap: .75rem;
+        justify-content: space-between;
+        padding: .75rem 1rem;
+    }
+    .trip-date-calendar__status { color: #475569; font-size: .75rem; line-height: 1.25rem; }
+    .trip-date-calendar__confirm {
+        background: #e11d48;
+        border-radius: .65rem;
+        color: #fff;
+        flex: none;
+        font-size: .8rem;
+        font-weight: 800;
+        padding: .6rem 1rem;
+    }
+    .trip-date-calendar__confirm:disabled { cursor: not-allowed; opacity: .45; }
+    .trip-date-trigger[aria-pressed="true"] { border-color: #e11d48; box-shadow: 0 0 0 3px rgb(225 29 72 / 10%); }
     .flight-animation {
         aspect-ratio: 3 / 2;
         position: relative;
@@ -175,13 +206,27 @@
                 </div>
             </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div>
+                <div id="quick-departure-native-field">
                     <label for="quick-departure" class="mb-1.5 block text-sm font-bold">Ida</label>
                     <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><input id="quick-departure" type="date" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
                 </div>
                 <div id="quick-return-field">
                     <label for="quick-return" class="mb-1.5 block text-sm font-bold">Regreso</label>
                     <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><input id="quick-return" type="date" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
+                </div>
+                <div id="quick-date-range" class="relative hidden md:col-span-2 lg:col-span-2" data-date-range>
+                    <span class="mb-1.5 block text-sm font-bold">Fechas del viaje</span>
+                    <div class="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-300 bg-white">
+                        <button id="quick-departure-trigger" type="button" class="trip-date-trigger min-h-12 border-r border-slate-200 px-4 py-2 text-left transition hover:bg-slate-50 focus:outline-none" aria-pressed="false">
+                            <span class="block text-xs font-semibold text-slate-500">Ida</span>
+                            <span id="quick-departure-display" class="mt-0.5 block font-bold text-brand-navy">Elegir fecha</span>
+                        </button>
+                        <button id="quick-return-trigger" type="button" class="trip-date-trigger min-h-12 px-4 py-2 text-left transition hover:bg-slate-50 focus:outline-none" aria-pressed="false">
+                            <span class="block text-xs font-semibold text-slate-500">Vuelta</span>
+                            <span id="quick-return-display" class="mt-0.5 block font-bold text-brand-navy">Elegir fecha</span>
+                        </button>
+                    </div>
+                    <p id="quick-date-range-status" class="sr-only" aria-live="polite"></p>
                 </div>
                 <div>
                     <label for="quick-adults" class="mb-1.5 block text-sm font-bold">Adultos</label>
@@ -333,14 +378,37 @@
                     <button type="button" class="flight-mode rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-flight-mode="vuelo privado" aria-pressed="false"><i class="fa-solid fa-jet-fighter-up mr-1" aria-hidden="true"></i> Privado</button>
                 </div>
             </div>
+            <div id="main-trip-options" class="mb-7 rounded-2xl border border-slate-200 p-4" data-flight-field>
+                <p class="mb-3 text-sm font-bold text-slate-700">Tipo de trayecto</p>
+                <div class="grid grid-cols-2 gap-2" role="group" aria-label="Tipo de trayecto de la solicitud">
+                    <button type="button" class="main-trip-type rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-main-trip-type="roundtrip" aria-pressed="false">Ida y vuelta</button>
+                    <button type="button" class="main-trip-type rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-main-trip-type="oneway" aria-pressed="false">Solo ida</button>
+                </div>
+                <input id="main-trip-type" type="hidden" name="tipo_trayecto" value="{{ form.tipo_trayecto.value|default:'roundtrip' }}">
+            </div>
             <div class="grid gap-5 sm:grid-cols-2">
                 <div><label for="nombre" class="mb-2 block text-sm font-bold text-slate-700">Nombre completo</label><input type="text" id="nombre" name="nombre" value="{{ form.nombre.value|default:'' }}" required autocomplete="name" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.nombre.errors }}</div>
                 <div><label for="correo" class="mb-2 block text-sm font-bold text-slate-700">Correo electrónico</label><input type="email" id="correo" name="correo" value="{{ form.correo.value|default:'' }}" required autocomplete="email" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.correo.errors }}</div>
                 <div><label for="telefono" class="mb-2 block text-sm font-bold text-slate-700">Teléfono / WhatsApp</label><input type="tel" id="telefono" name="telefono" value="{{ form.telefono.value|default:'' }}" autocomplete="tel" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
                 <div data-flight-field><label for="origen" class="mb-2 block text-sm font-bold text-slate-700">Origen</label><input type="text" id="origen" name="origen" value="{{ form.origen.value|default:'' }}" placeholder="Ej. San Salvador" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
                 <div><label for="destino" class="mb-2 block text-sm font-bold text-slate-700">Destino deseado</label><input type="text" id="destino" name="destino" value="{{ form.destino.value|default:'' }}" placeholder="Ej. Cancún" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-                <div><label for="fecha_ida" class="mb-2 block text-sm font-bold text-slate-700">Fecha de ida</label><input type="date" id="fecha_ida" name="fecha_ida" value="{{ form.fecha_ida.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-                <div><label for="fecha_regreso" class="mb-2 block text-sm font-bold text-slate-700">Fecha de regreso</label><input type="date" id="fecha_regreso" name="fecha_regreso" value="{{ form.fecha_regreso.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.fecha_regreso.errors }}</div>
+                <div id="main-departure-native-field"><label for="fecha_ida" class="mb-2 block text-sm font-bold text-slate-700">Fecha de ida</label><input type="date" id="fecha_ida" name="fecha_ida" value="{{ form.fecha_ida.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.fecha_ida.errors }}</div>
+                <div id="main-return-native-field"><label for="fecha_regreso" class="mb-2 block text-sm font-bold text-slate-700">Fecha de regreso</label><input type="date" id="fecha_regreso" name="fecha_regreso" value="{{ form.fecha_regreso.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.fecha_regreso.errors }}</div>
+                <div id="main-date-range" class="relative hidden sm:col-span-2" data-date-range>
+                    <span class="mb-2 block text-sm font-bold text-slate-700">Fechas del viaje</span>
+                    <div class="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-300 bg-white">
+                        <button id="main-departure-trigger" type="button" class="trip-date-trigger min-h-14 border-r border-slate-200 px-4 py-2 text-left transition hover:bg-slate-50 focus:outline-none" aria-pressed="false">
+                            <span class="block text-xs font-semibold text-slate-500">Ida</span>
+                            <span id="main-departure-display" class="mt-0.5 block font-bold text-brand-navy">Elegir fecha</span>
+                        </button>
+                        <button id="main-return-trigger" type="button" class="trip-date-trigger min-h-14 px-4 py-2 text-left transition hover:bg-slate-50 focus:outline-none" aria-pressed="false">
+                            <span class="block text-xs font-semibold text-slate-500">Vuelta</span>
+                            <span id="main-return-display" class="mt-0.5 block font-bold text-brand-navy">Elegir fecha</span>
+                        </button>
+                    </div>
+                    <p id="main-date-range-status" class="sr-only" aria-live="polite"></p>
+                    <div id="main-date-errors">{{ form.fecha_ida.errors }}{{ form.fecha_regreso.errors }}</div>
+                </div>
                 <div><label for="adultos" class="mb-2 block text-sm font-bold text-slate-700">Adultos</label><input type="number" min="1" id="adultos" name="adultos" value="{{ form.adultos.value|default:1 }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
                 <div><label for="ninos" class="mb-2 block text-sm font-bold text-slate-700">Niños</label><input type="number" min="0" id="ninos" name="ninos" value="{{ form.ninos.value|default:0 }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
                 <div id="children-ages" class="hidden sm:col-span-2"><label for="edades_ninos" class="mb-2 block text-sm font-bold text-slate-700">Edades de los niños</label><input type="text" id="edades_ninos" name="edades_ninos" value="{{ form.edades_ninos.value|default:'' }}" placeholder="Ej. 5, 11" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
@@ -440,6 +508,8 @@
     const quickTripOptions = document.getElementById("quick-trip-options");
     const quickTripType = document.getElementById("quick-trip-type");
     const quickTripButtons = document.querySelectorAll(".quick-trip-type");
+    const mainTripType = document.getElementById("main-trip-type");
+    const mainTripButtons = document.querySelectorAll(".main-trip-type");
     const quickError = document.getElementById("quick-quote-error");
     const service = document.getElementById("servicio");
     const tabs = document.querySelectorAll(".quote-tab");
@@ -459,60 +529,199 @@
     quickDeparture?.setAttribute("min", minimumDate);
     quickReturn?.setAttribute("min", minimumDate);
 
-    const setupDatePair = (departureField, returnField, shouldOpenReturn) => {
-        if (!departureField || !returnField || !window.flatpickr) return null;
+    const setupTripDateRange = ({
+        departureField,
+        returnField,
+        departureNativeField,
+        returnNativeField,
+        container,
+        departureButton,
+        returnButton,
+        departureDisplay,
+        returnDisplay,
+        liveStatus,
+        roundTrip,
+    }) => {
+        if (
+            !departureField || !returnField || !container || !departureButton
+            || !returnButton || !window.flatpickr
+        ) return null;
+
         const locale = (window.flatpickr.l10ns && window.flatpickr.l10ns.es) || "default";
-        const sharedOptions = {
-            altInput: true,
-            altFormat: "d/m/Y",
+        const pickerAnchor = document.createElement("input");
+        pickerAnchor.type = "text";
+        pickerAnchor.tabIndex = -1;
+        pickerAnchor.setAttribute("aria-hidden", "true");
+        pickerAnchor.className = "pointer-events-none absolute bottom-0 left-1/2 size-px opacity-0";
+        container.appendChild(pickerAnchor);
+
+        departureField.type = "hidden";
+        returnField.type = "hidden";
+        departureNativeField?.classList.add("hidden");
+        returnNativeField?.classList.add("hidden");
+        container.classList.remove("hidden");
+
+        let isRoundTrip = roundTrip;
+        let calendarStatus;
+        let confirmButton;
+        const buttonGrid = departureButton.parentElement;
+        const friendlyFormatter = new Intl.DateTimeFormat("es-SV", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        });
+        const formatFriendly = date => friendlyFormatter.format(date).replace(/\.$/, "");
+        const formatValue = (date, instance) => instance.formatDate(date, "Y-m-d");
+        const setStatus = message => {
+            if (liveStatus) liveStatus.textContent = message;
+            if (calendarStatus) calendarStatus.textContent = message;
+        };
+        const updateDisplay = () => {
+            if (departureDisplay) {
+                departureDisplay.textContent = departureField.value
+                    ? formatFriendly(window.flatpickr.parseDate(departureField.value, "Y-m-d"))
+                    : "Elegir fecha";
+            }
+            if (returnDisplay) {
+                returnDisplay.textContent = !isRoundTrip
+                    ? "No aplica"
+                    : returnField.value
+                        ? formatFriendly(window.flatpickr.parseDate(returnField.value, "Y-m-d"))
+                        : "Elegir fecha";
+            }
+        };
+        const updateSelectionState = selectedDates => {
+            const complete = Boolean(selectedDates[0] && (!isRoundTrip || selectedDates[1]));
+            if (!selectedDates.length) {
+                setStatus("Selecciona la fecha de ida.");
+            } else if (isRoundTrip && selectedDates.length === 1) {
+                setStatus("Ahora selecciona la fecha de vuelta.");
+            } else if (isRoundTrip) {
+                const nights = Math.round((selectedDates[1] - selectedDates[0]) / 86400000);
+                setStatus(`${nights} ${nights === 1 ? "noche" : "noches"} de viaje.`);
+            } else {
+                setStatus("Fecha de ida seleccionada.");
+            }
+            if (confirmButton) confirmButton.disabled = !complete;
+        };
+        const commitDates = (selectedDates, instance) => {
+            departureField.value = selectedDates[0]
+                ? formatValue(selectedDates[0], instance)
+                : "";
+            returnField.value = isRoundTrip && selectedDates[1]
+                ? formatValue(selectedDates[1], instance)
+                : "";
+            updateDisplay();
+            updateSelectionState(selectedDates);
+        };
+
+        const initialDates = [departureField.value, isRoundTrip ? returnField.value : ""]
+            .filter(Boolean);
+        const picker = window.flatpickr(pickerAnchor, {
+            ariaDateFormat: "l, j F Y",
             dateFormat: "Y-m-d",
             disableMobile: true,
             locale,
             minDate: "today",
-        };
-        const connectAccessibleInput = (field, picker) => {
-            if (!picker.altInput || !field.id) return;
-            const publicId = field.id;
-            const labelText = field.labels?.[0]?.textContent || "Fecha";
-            field.id = `${publicId}-value`;
-            picker.altInput.id = publicId;
-            picker.altInput.setAttribute("aria-label", labelText);
-        };
-        const returnPicker = window.flatpickr(returnField, {
-            ...sharedOptions,
-            minDate: departureField.value || "today",
-        });
-        const departurePicker = window.flatpickr(departureField, {
-            ...sharedOptions,
-            onChange(selectedDates) {
-                const selectedDate = selectedDates[0];
-                returnPicker.set("minDate", selectedDate || "today");
-                if (
-                    selectedDate
-                    && returnPicker.selectedDates[0]
-                    && returnPicker.selectedDates[0] < selectedDate
-                ) {
-                    returnPicker.clear();
+            mode: "range",
+            monthSelectorType: "static",
+            positionElement: container,
+            showMonths: window.matchMedia("(min-width: 768px)").matches ? 2 : 1,
+            defaultDate: initialDates,
+            closeOnSelect: false,
+            onReady(selectedDates, dateText, instance) {
+                instance.calendarContainer.classList.add("trip-date-calendar");
+                const footer = document.createElement("div");
+                footer.className = "trip-date-calendar__footer";
+                calendarStatus = document.createElement("p");
+                calendarStatus.className = "trip-date-calendar__status";
+                confirmButton = document.createElement("button");
+                confirmButton.type = "button";
+                confirmButton.className = "trip-date-calendar__confirm";
+                confirmButton.textContent = "Elegir";
+                confirmButton.addEventListener("click", () => {
+                    if (!confirmButton.disabled) instance.close();
+                });
+                footer.append(calendarStatus, confirmButton);
+                instance.calendarContainer.appendChild(footer);
+                commitDates(selectedDates, instance);
+            },
+            onChange(selectedDates, dateText, instance) {
+                if (!isRoundTrip && selectedDates.length > 1) {
+                    instance.setDate([selectedDates.at(-1)], false);
                 }
-                if (selectedDate && shouldOpenReturn()) {
-                    window.setTimeout(() => returnPicker.open(), 150);
-                }
+                commitDates(isRoundTrip ? selectedDates : selectedDates.slice(-1), instance);
+            },
+            onClose() {
+                departureButton.setAttribute("aria-pressed", "false");
+                returnButton.setAttribute("aria-pressed", "false");
             },
         });
-        connectAccessibleInput(departureField, departurePicker);
-        connectAccessibleInput(returnField, returnPicker);
-        return {departurePicker, returnPicker};
+
+        const openPicker = activeButton => {
+            departureButton.setAttribute("aria-pressed", String(activeButton === departureButton));
+            returnButton.setAttribute("aria-pressed", String(activeButton === returnButton));
+            if (activeButton === returnButton && departureField.value) {
+                const departureDate = window.flatpickr.parseDate(departureField.value, "Y-m-d");
+                picker.setDate([departureDate], false);
+                returnField.value = "";
+                updateDisplay();
+                updateSelectionState([departureDate]);
+            }
+            picker.open();
+        };
+        departureButton.addEventListener("click", () => openPicker(departureButton));
+        returnButton.addEventListener("click", () => openPicker(returnButton));
+
+        const setRoundTrip = enabled => {
+            isRoundTrip = enabled;
+            returnButton.classList.toggle("hidden", !enabled);
+            buttonGrid?.classList.toggle("grid-cols-2", enabled);
+            buttonGrid?.classList.toggle("grid-cols-1", !enabled);
+            if (!enabled) {
+                returnField.value = "";
+                picker.setDate(picker.selectedDates.slice(0, 1), false);
+            }
+            updateDisplay();
+            updateSelectionState(picker.selectedDates);
+        };
+        const setDates = (departureValue, returnValue = "") => {
+            const values = [departureValue, isRoundTrip ? returnValue : ""].filter(Boolean);
+            picker.setDate(values, false);
+            departureField.value = departureValue || "";
+            returnField.value = isRoundTrip ? returnValue || "" : "";
+            updateDisplay();
+            updateSelectionState(picker.selectedDates);
+        };
+        setRoundTrip(isRoundTrip);
+        return {picker, setDates, setRoundTrip};
     };
-    const quickDatePair = setupDatePair(
-        quickDeparture,
-        quickReturn,
-        () => quickTripType?.value !== "oneway",
-    );
-    const mainDatePair = setupDatePair(
-        document.getElementById("fecha_ida"),
-        document.getElementById("fecha_regreso"),
-        () => true,
-    );
+    const quickDateRange = setupTripDateRange({
+        departureField: quickDeparture,
+        returnField: quickReturn,
+        departureNativeField: document.getElementById("quick-departure-native-field"),
+        returnNativeField: quickReturnField,
+        container: document.getElementById("quick-date-range"),
+        departureButton: document.getElementById("quick-departure-trigger"),
+        returnButton: document.getElementById("quick-return-trigger"),
+        departureDisplay: document.getElementById("quick-departure-display"),
+        returnDisplay: document.getElementById("quick-return-display"),
+        liveStatus: document.getElementById("quick-date-range-status"),
+        roundTrip: quickTripType?.value !== "oneway",
+    });
+    const mainDateRange = setupTripDateRange({
+        departureField: document.getElementById("fecha_ida"),
+        returnField: document.getElementById("fecha_regreso"),
+        departureNativeField: document.getElementById("main-departure-native-field"),
+        returnNativeField: document.getElementById("main-return-native-field"),
+        container: document.getElementById("main-date-range"),
+        departureButton: document.getElementById("main-departure-trigger"),
+        returnButton: document.getElementById("main-return-trigger"),
+        departureDisplay: document.getElementById("main-departure-display"),
+        returnDisplay: document.getElementById("main-return-display"),
+        liveStatus: document.getElementById("main-date-range-status"),
+        roundTrip: mainTripType?.value !== "oneway",
+    });
 
     const setupLocationAutocomplete = (input, results, serviceValue) => {
         if (!input || !results) return;
@@ -680,6 +889,18 @@
         quickChildrenAges.appendChild(help);
     };
 
+    const syncTripTypeButtons = (buttons, selectedValue, dataKey) => {
+        buttons.forEach(button => {
+            const active = button.dataset[dataKey] === selectedValue;
+            button.classList.toggle("border-rose-200", active);
+            button.classList.toggle("bg-rose-50", active);
+            button.classList.toggle("text-rose-700", active);
+            button.classList.toggle("border-slate-300", !active);
+            button.classList.toggle("text-slate-600", !active);
+            button.setAttribute("aria-pressed", String(active));
+        });
+    };
+
     const syncQuickTabs = () => {
         const value = quickService.value;
         const primaryValue = value === "vuelo privado" ? "vuelo" : value;
@@ -703,7 +924,9 @@
         });
         quickOriginField?.classList.toggle("hidden", value === "tour");
         quickTripOptions?.classList.toggle("hidden", value === "tour");
-        quickReturnField?.classList.toggle("hidden", value !== "tour" && quickTripType.value === "oneway");
+        const usesReturn = value === "tour" || quickTripType.value !== "oneway";
+        if (quickDateRange) quickDateRange.setRoundTrip(usesReturn);
+        else quickReturnField?.classList.toggle("hidden", !usesReturn);
     };
     quickTabs.forEach(tab => tab.addEventListener("click", () => {
         const previousWasTour = quickService.value === "tour";
@@ -721,20 +944,19 @@
     }));
     quickTripButtons.forEach(button => button.addEventListener("click", () => {
         quickTripType.value = button.dataset.tripType;
-        quickTripButtons.forEach(item => {
-            const active = item === button;
-            item.classList.toggle("border-rose-200", active);
-            item.classList.toggle("bg-rose-50", active);
-            item.classList.toggle("text-rose-700", active);
-            item.classList.toggle("border-slate-300", !active);
-            item.classList.toggle("text-slate-600", !active);
-            item.setAttribute("aria-pressed", String(active));
-        });
-        if (quickTripType.value === "oneway") {
-            if (quickDatePair) quickDatePair.returnPicker.clear();
-            else quickReturn.value = "";
-        }
+        syncTripTypeButtons(quickTripButtons, quickTripType.value, "tripType");
         syncQuickTabs();
+    }));
+    mainTripButtons.forEach(button => button.addEventListener("click", () => {
+        mainTripType.value = button.dataset.mainTripType;
+        syncTripTypeButtons(mainTripButtons, mainTripType.value, "mainTripType");
+        mainDateRange?.setRoundTrip(mainTripType.value !== "oneway");
+        if (mainTripType.value === "oneway" && !mainDateRange) {
+            document.getElementById("fecha_regreso").value = "";
+            document.getElementById("main-return-native-field")?.classList.add("hidden");
+        } else if (!mainDateRange) {
+            document.getElementById("main-return-native-field")?.classList.remove("hidden");
+        }
     }));
     quickDeparture?.addEventListener("change", () => {
         quickReturn.min = quickDeparture.value || minimumDate;
@@ -745,9 +967,29 @@
     quickForm?.addEventListener("submit", event => {
         event.preventDefault();
         const destination = quickDestination.value.trim();
-        quickError?.classList.toggle("hidden", Boolean(destination));
+        const isFlightRequest = quickService.value !== "tour";
+        const missingDeparture = isFlightRequest && !quickDeparture.value;
+        const missingReturn = isFlightRequest
+            && quickTripType.value !== "oneway"
+            && !quickReturn.value;
+        const hasError = !destination || missingDeparture || missingReturn;
+        if (quickError) {
+            quickError.textContent = !destination
+                ? "Indica el destino para continuar."
+                : missingDeparture
+                    ? "Selecciona la fecha de ida."
+                    : "Selecciona la fecha de vuelta.";
+            quickError.classList.toggle("hidden", !hasError);
+        }
         quickDestination.setAttribute("aria-invalid", String(!destination));
-        if (!destination) {
+        if (hasError) {
+            if (missingDeparture || missingReturn) {
+                document.getElementById(
+                    missingReturn ? "quick-return-trigger" : "quick-departure-trigger",
+                )?.focus();
+                if (!quickDateRange) (missingReturn ? quickReturn : quickDeparture).focus();
+                return;
+            }
             quickDestination.focus();
             return;
         }
@@ -755,11 +997,15 @@
         document.getElementById("origen").value = quickOrigin.value.trim();
         document.getElementById("destino").value = destination;
         const departureValue = quickDeparture.value;
-        const returnValue = quickTripType.value === "oneway" ? "" : quickReturn.value;
-        if (mainDatePair) {
-            mainDatePair.departurePicker.setDate(departureValue, false);
-            mainDatePair.returnPicker.set("minDate", departureValue || "today");
-            mainDatePair.returnPicker.setDate(returnValue, false);
+        const effectiveTripType = quickService.value === "tour"
+            ? "roundtrip"
+            : quickTripType.value;
+        const returnValue = effectiveTripType === "oneway" ? "" : quickReturn.value;
+        mainTripType.value = effectiveTripType;
+        syncTripTypeButtons(mainTripButtons, mainTripType.value, "mainTripType");
+        if (mainDateRange) {
+            mainDateRange.setRoundTrip(mainTripType.value !== "oneway");
+            mainDateRange.setDates(departureValue, returnValue);
         } else {
             document.getElementById("fecha_ida").value = departureValue;
             document.getElementById("fecha_regreso").value = returnValue;
@@ -787,7 +1033,11 @@
         quickDestination.value = route.dataset.destination;
         syncQuickTabs();
         quickForm.scrollIntoView({behavior: "smooth", block: "center"});
-        window.setTimeout(() => quickDeparture.focus({preventScroll: true}), 500);
+        window.setTimeout(
+            () => (document.getElementById("quick-departure-trigger") || quickDeparture)
+                .focus({preventScroll: true}),
+            500,
+        );
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({event: "popular_route_select", route_destination: route.dataset.destination});
     }));
@@ -834,6 +1084,7 @@
         flightFields.forEach(field => field.classList.toggle("hidden", value === "tour"));
         tourFields.forEach(field => field.classList.toggle("hidden", !["tour", "vuelo y tour"].includes(value)));
         privateFlightFields.forEach(field => field.classList.toggle("hidden", value !== "vuelo privado"));
+        mainDateRange?.setRoundTrip(value === "tour" || mainTripType.value !== "oneway");
     };
     tabs.forEach(tab => tab.addEventListener("click", () => {
         service.value = tab.dataset.service;
@@ -854,6 +1105,8 @@
     sync();
     syncAges();
     place?.dispatchEvent(new Event("change"));
+    syncTripTypeButtons(quickTripButtons, quickTripType.value, "tripType");
+    syncTripTypeButtons(mainTripButtons, mainTripType.value, "mainTripType");
     syncQuickTabs();
     renderQuickChildrenAges();
 })();

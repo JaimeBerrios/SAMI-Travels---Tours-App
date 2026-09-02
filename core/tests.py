@@ -39,17 +39,22 @@ class BasicProductionViewsTests(TestCase):
         self.assertNotContains(response, reverse("sami_admin:dashboard"))
         self.assertNotContains(response, "SAMI Admin")
 
-    def test_public_quote_loads_guided_locations_and_synced_calendars(self):
+    def test_public_quote_loads_guided_locations_and_trip_date_ranges(self):
         response = self.client.get(reverse("core:portal-publico"))
 
         self.assertContains(response, "flatpickr@4.6.13")
         self.assertContains(response, 'id="quick-origin-results"')
         self.assertContains(response, 'id="quick-destination-results"')
         self.assertContains(response, reverse("core:travel-locations-json"))
-        self.assertContains(response, "setupDatePair")
-        self.assertContains(response, 'returnPicker.set("minDate"')
-        self.assertContains(response, "returnPicker.clear()")
-        self.assertContains(response, "mainDatePair.departurePicker.setDate")
+        self.assertContains(response, "setupTripDateRange")
+        self.assertContains(response, 'id="quick-date-range"')
+        self.assertContains(response, 'id="quick-departure-trigger"')
+        self.assertContains(response, 'id="quick-return-trigger"')
+        self.assertContains(response, 'id="main-date-range"')
+        self.assertContains(response, 'name="tipo_trayecto"')
+        self.assertContains(response, 'mode: "range"')
+        self.assertContains(response, "trip-date-calendar__confirm")
+        self.assertContains(response, "mainDateRange.setDates")
         self.assertContains(response, "quickDestination.dataset.placeId")
 
     def test_public_location_endpoint_returns_airports_without_login(self):
@@ -119,6 +124,40 @@ class BasicProductionViewsTests(TestCase):
             "La fecha de regreso no puede ser anterior a la fecha de ida.",
             form.errors["fecha_regreso"],
         )
+
+    def test_roundtrip_requires_return_when_trip_type_is_submitted(self):
+        departure = timezone.localdate() + timedelta(days=10)
+        form = SolicitudContactoForm(
+            data={
+                "nombre": "Cliente",
+                "correo": "cliente@example.com",
+                "servicio": "vuelo",
+                "tipo_trayecto": "roundtrip",
+                "fecha_ida": departure.isoformat(),
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Selecciona la fecha de vuelta o cambia el trayecto a Solo ida.",
+            form.errors["fecha_regreso"],
+        )
+
+    def test_oneway_trip_discards_any_return_date(self):
+        departure = timezone.localdate() + timedelta(days=10)
+        form = SolicitudContactoForm(
+            data={
+                "nombre": "Cliente",
+                "correo": "cliente@example.com",
+                "servicio": "vuelo",
+                "tipo_trayecto": "oneway",
+                "fecha_ida": departure.isoformat(),
+                "fecha_regreso": (departure + timedelta(days=5)).isoformat(),
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.cleaned_data["fecha_regreso"])
 
     def test_removed_san_miguel_landing_returns_not_found(self):
         response = self.client.get("/agencia-de-viajes-san-miguel/")
