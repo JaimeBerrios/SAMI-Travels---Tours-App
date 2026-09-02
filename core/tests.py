@@ -237,12 +237,6 @@ class BasicProductionViewsTests(TestCase):
         self.assertNotContains(
             response, "Tu próximo destino está más cerca de lo que imaginas."
         )
-        campaign.refresh_from_db()
-        self.assertEqual(campaign.impresiones, 1)
-
-        self.client.get(reverse("core:portal-publico"))
-        campaign.refresh_from_db()
-        self.assertEqual(campaign.impresiones, 1)
 
     def test_video_campaign_uses_responsive_media_and_static_fallback(self):
         campaign = CampanaPromocional.objects.create(
@@ -318,10 +312,6 @@ class BasicProductionViewsTests(TestCase):
             },
         )
         self.assertRedirects(quote_response, reverse("core:portal-publico"))
-        campaign.refresh_from_db()
-        self.assertEqual(campaign.impresiones, 1)
-        self.assertEqual(campaign.clics, 1)
-        self.assertEqual(campaign.conversiones, 1)
 
     def test_archived_campaign_is_not_published_or_clickable(self):
         campaign = CampanaPromocional.objects.create(

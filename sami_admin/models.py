@@ -431,9 +431,6 @@ class CampanaPromocional(models.Model):
     activo = models.BooleanField(default=True, db_index=True)
     mostrar_avion = models.BooleanField(default=True)
     archivada_en = models.DateTimeField(null=True, blank=True, db_index=True)
-    impresiones = models.PositiveBigIntegerField(default=0, editable=False)
-    clics = models.PositiveBigIntegerField(default=0, editable=False)
-    conversiones = models.PositiveBigIntegerField(default=0, editable=False)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
     creado_por = models.ForeignKey(
@@ -471,18 +468,6 @@ class CampanaPromocional(models.Model):
         if self.fecha_fin and self.fecha_fin < now:
             return "Finalizada"
         return "Publicada"
-
-    @property
-    def tasa_clics(self):
-        if not self.impresiones:
-            return 0
-        return (self.clics / self.impresiones) * 100
-
-    @property
-    def tasa_conversion(self):
-        if not self.impresiones:
-            return 0
-        return (self.conversiones / self.impresiones) * 100
 
     @staticmethod
     def _mime_for_file(file_field, media_type):

@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import F, Q
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -144,11 +144,7 @@ def portal_publico(request):
         elif form.is_valid():
             cache.set(rate_key, attempts + 1, settings.PUBLIC_FORM_RATE_WINDOW)
             solicitud = form.save()
-            attributed_campaign = request.session.pop("attributed_campaign", None)
-            if attributed_campaign:
-                CampanaPromocional.objects.filter(
-                    pk=attributed_campaign, archivada_en__isnull=True
-                ).update(conversiones=F("conversiones") + 1)
+            request.session.pop("attributed_campaign", None)
             messages.success(
                 request,
                 (
@@ -198,13 +194,6 @@ def portal_publico(request):
     ).order_by("-prioridad", "orden", "-fecha_inicio", "-id").first()
     campaign_url = ""
     if campaign:
-        viewed_campaigns = request.session.get("viewed_campaigns", [])
-        if campaign.pk not in viewed_campaigns:
-            CampanaPromocional.objects.filter(pk=campaign.pk).update(
-                impresiones=F("impresiones") + 1
-            )
-            request.session["viewed_campaigns"] = (viewed_campaigns + [campaign.pk])[-20:]
-        request.session["attributed_campaign"] = campaign.pk
         campaign_url = reverse("core:campaign-click", args=[campaign.pk])
     return render(
         request,
@@ -260,5 +249,4 @@ def campaign_click(request, campaign_id):
     campaign = get_object_or_404(
         CampanaPromocional, pk=campaign_id, archivada_en__isnull=True
     )
-    CampanaPromocional.objects.filter(pk=campaign.pk).update(clics=F("clics") + 1)
     return redirect(campaign.get_target_url())
