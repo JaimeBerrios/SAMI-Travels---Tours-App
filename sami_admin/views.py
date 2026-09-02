@@ -596,6 +596,10 @@ def request_convert(request, request_id):
 @staff_required
 def quotation_list(request):
     can_view_all = can_view_all_quotes(request.user)
+    Cotizacion.objects.filter(
+        vigencia_cotizacion__lt=timezone.localdate(),
+        estado__in=(Cotizacion.Estado.PENDIENTE, Cotizacion.Estado.ENVIADA, Cotizacion.Estado.NEGOCIACION),
+    ).update(estado=Cotizacion.Estado.VENCIDA)
     quotations = quotations_for(request.user)
     return render(
         request,

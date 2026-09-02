@@ -169,6 +169,21 @@
     });
 })();
 </script>
+<script>
+(() => {
+    const code = document.getElementById('id_cliente_codigo_pais');
+    const number = document.getElementById('id_cliente_telefono');
+    if (!code || !number) return;
+    const preview = document.createElement('p');
+    preview.id = 'client-phone-preview'; preview.className = 'mt-2 text-xs font-semibold text-slate-500';
+    number.closest('.grid')?.parentElement?.appendChild(preview);
+    const update = () => {
+        const digits = number.value.replace(/\D/g, '');
+        preview.textContent = digits ? `WhatsApp utilizará: ${code.value.trim()} ${digits}` : 'Escribe un número para ver el formato de WhatsApp.';
+    };
+    code.addEventListener('input', update); number.addEventListener('input', update); update();
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js"></script>
 <script>
@@ -198,7 +213,9 @@
         if (form.dataset.bound !== 'true') {
             try {
                 const saved = JSON.parse(localStorage.getItem(key) || 'null');
-                if (saved?.values) {
+                if (saved && Date.now() - Number(saved.savedAt || 0) > 7 * 24 * 60 * 60 * 1000) {
+                    localStorage.removeItem(key);
+                } else if (saved?.values) {
                     Object.entries(saved.values).forEach(([name, value]) => {
                         const field = form.elements.namedItem(name);
                         if (!field || field.type === 'file') return;

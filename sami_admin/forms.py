@@ -934,7 +934,7 @@ class CotizacionForm(forms.ModelForm):
         lugar = self.cleaned_data.get("lugar_turistico")
         if lugar:
             quotation.destino = lugar.translated("nombre", document_language)
-            if not quotation.pk or lugar.pk != self._original_lugar_id:
+            if not quotation.pk or lugar.pk != self._original_lugar_id or document_language != getattr(self.instance, "idioma_documento", "es"):
                 quotation.nombre_destino_cotizado = lugar.translated("nombre", document_language)
                 quotation.ubicacion_destino_cotizada = (
                     f"{lugar.departamento.nombre}, {lugar.departamento.pais.nombre}"
