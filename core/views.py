@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import F, Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -10,6 +11,83 @@ from sami_admin.models import CampanaPromocional, LugarTuristico, Tour
 
 from .forms import SolicitudContactoForm
 from .models import SolicitudContacto
+
+
+def _normalize_location_search(value):
+    from unicodedata import combining, normalize
+
+    return "".join(
+        character
+        for character in normalize("NFKD", value.strip().casefold())
+        if not combining(character)
+    )
+
+
+def travel_locations_json(request):
+    """Return selectable airports or catalog destinations for the public quote."""
+    query = _normalize_location_search(request.GET.get("q", ""))
+    service = request.GET.get("service", "vuelo")
+    if query and len(query) < 2:
+        return JsonResponse({"results": []})
+
+    if service == SolicitudContacto.Servicio.TOUR:
+        places = LugarTuristico.objects.filter(
+            activo=True,
+            departamento__activo=True,
+            departamento__pais__activo=True,
+        ).select_related("departamento__pais")
+        if query:
+            places = [
+                place
+                for place in places
+                if query in _normalize_location_search(place.nombre)
+                or query in _normalize_location_search(place.departamento.nombre)
+                or query in _normalize_location_search(
+                    place.departamento.pais.nombre
+                )
+            ][:8]
+        else:
+            places = places.order_by("-destacado", "nombre")
+        results = [
+            {
+                "id": f"place-{place.pk}",
+                "kind": "place",
+                "place_id": place.pk,
+                "value": place.nombre,
+                "primary": place.nombre,
+                "secondary": (
+                    f"{place.departamento.nombre} · {place.departamento.pais.nombre}"
+                ),
+            }
+            for place in places[:8]
+        ]
+        return JsonResponse({"results": results})
+
+    # Imported lazily to keep the existing shared mock-GDS catalog in one place.
+    from sami_admin.views import AIRPORTS
+
+    airports = AIRPORTS
+    if query:
+        airports = tuple(
+            airport
+            for airport in AIRPORTS
+            if query in _normalize_location_search(airport["iata"])
+            or query in _normalize_location_search(airport["ciudad"])
+            or query in _normalize_location_search(airport["pais"])
+        )
+    results = [
+        {
+            "id": f"airport-{airport['iata']}",
+            "kind": "airport",
+            "value": (
+                f"({airport['iata']}) {airport['ciudad']}, {airport['pais']}"
+            ),
+            "primary": f"{airport['ciudad']} ({airport['iata']})",
+            "secondary": airport["pais"],
+        }
+        for airport in airports[:8]
+    ]
+    return JsonResponse({"results": results})
 
 
 def _client_ip(request):

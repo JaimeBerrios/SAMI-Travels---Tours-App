@@ -6,7 +6,7 @@ from decimal import Decimal, InvalidOperation
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.utils import timezone
@@ -326,12 +326,12 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
     """Authenticate only active members of the SAMI administrative team."""
 
     username = forms.CharField(
-        label="Usuario",
+        label="Correo o usuario",
         widget=forms.TextInput(
             attrs={
                 "autocomplete": "username",
                 "autofocus": True,
-                "placeholder": "Nombre de usuario",
+                "placeholder": "correo@ejemplo.com",
                 "class": (
                     "block w-full rounded-xl border border-slate-300 bg-white "
                     "py-3 pl-11 pr-4 text-brand-navy shadow-sm outline-none transition "
@@ -362,6 +362,17 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         apply_error_attributes(self)
 
+    def clean(self):
+        identifier = self.cleaned_data.get("username", "").strip()
+        if "@" in identifier:
+            matching_usernames = list(
+                get_user_model().objects.filter(email__iexact=identifier)
+                .values_list("username", flat=True)[:2]
+            )
+            if len(matching_usernames) == 1:
+                self.cleaned_data["username"] = matching_usernames[0]
+        return super().clean()
+
     def confirm_login_allowed(self, user):
         super().confirm_login_allowed(user)
         if not user.is_staff:
@@ -371,30 +382,34 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
             )
 
 
-class StaffUserCreationForm(StaffUserFieldsMixin, UserCreationForm):
-    """Create a staff account with an administrator or adviser role."""
+class StaffUserCreationForm(StaffUserFieldsMixin, forms.Form):
+    """Invite a staff member without assigning a password on their behalf."""
 
+    email = forms.EmailField(label="Correo electrónico", max_length=150)
     role = forms.ChoiceField(label="Rol", choices=ROLE_CHOICES)
-
-    class Meta(UserCreationForm.Meta):
-        model = get_user_model()
-        fields = ("username", "first_name", "last_name", "email")
-        labels = {
-            "username": "Usuario",
-            "first_name": "Nombres",
-            "last_name": "Apellidos",
-            "email": "Correo electrónico",
-        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.apply_tailwind_classes()
 
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if get_user_model().objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError(
+                "Ya existe una cuenta o invitación para este correo."
+            )
+        return email
+
     def save(self, commit=True):
-        user = super().save(commit=False)
-        user.is_active = True
-        user.is_staff = True
-        user.is_superuser = False
+        email = self.cleaned_data["email"]
+        user = get_user_model()(
+            username=email,
+            email=email,
+            is_active=False,
+            is_staff=True,
+            is_superuser=False,
+        )
+        user.set_unusable_password()
         if commit:
             user.save()
         return user
@@ -408,7 +423,12 @@ class StaffUserUpdateForm(StaffUserFieldsMixin, forms.ModelForm):
     class Meta:
         model = get_user_model()
         fields = ("username", "first_name", "last_name", "email", "role")
-        labels = StaffUserCreationForm.Meta.labels
+        labels = {
+            "username": "Usuario",
+            "first_name": "Nombres",
+            "last_name": "Apellidos",
+            "email": "Correo electrónico",
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

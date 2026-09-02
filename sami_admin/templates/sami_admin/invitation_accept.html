@@ -1,0 +1,44 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Activar cuenta | SAMI Admin</title>
+    <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
+</head>
+<body class="min-h-[100dvh] bg-slate-900 text-slate-900 antialiased">
+    <main class="flex min-h-[100dvh] items-center justify-center px-4 py-8 sm:px-6">
+        <section class="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-2xl shadow-black/30 sm:p-10">
+            <header class="text-center">
+                <div class="mx-auto grid size-16 place-items-center rounded-2xl bg-slate-900 text-white"><svg class="size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+                <p class="mt-4 text-xl font-extrabold">SAMI <span class="text-rose-600">Travels &amp; Tours</span></p>
+                {% if invitation_valid %}
+                    <h1 class="mt-7 text-2xl font-bold">Crea tu contraseña</h1>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">Activa la cuenta asociada a {{ invited_email }}.</p>
+                {% else %}
+                    <h1 class="mt-7 text-2xl font-bold">Invitación no disponible</h1>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">El enlace es inválido, ya fue utilizado o ha vencido. Solicita al administrador que reenvíe la invitación.</p>
+                {% endif %}
+            </header>
+            {% if invitation_valid %}
+                <form method="post" class="sami-form mt-7 space-y-5">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="mt-2 text-xs leading-5 text-slate-500">{{ field.help_text|safe }}</div>{% endif %}
+                            {% for error in field.errors %}<p class="mt-2 text-sm font-medium text-rose-600" role="alert">{{ error }}</p>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn-primary w-full">Activar mi cuenta</button>
+                </form>
+            {% else %}
+                <a href="{% url 'sami_admin:login' %}" class="btn-secondary mt-7 w-full">Volver al inicio de sesión</a>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

@@ -97,6 +97,16 @@ urlpatterns = [
     ),
     path("usuarios/", views.user_list, name="user-list"),
     path("usuarios/nuevo/", views.user_create, name="user-create"),
+    path(
+        "usuarios/invitacion/<uidb64>/<token>/",
+        views.invitation_accept,
+        name="invitation-accept",
+    ),
+    path(
+        "usuarios/<int:user_id>/reenviar-invitacion/",
+        views.invitation_resend,
+        name="invitation-resend",
+    ),
     path("usuarios/<int:user_id>/editar/", views.user_update, name="user-update"),
     path(
         "usuarios/<int:user_id>/desactivar/",

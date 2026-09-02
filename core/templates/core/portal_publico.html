@@ -6,7 +6,18 @@
 {% block twitter_title %}Agencia de viajes en El Salvador | SAMI Travels & Tours{% endblock %}
 {% block twitter_description %}Cotiza vuelos, tours y paquetes turísticos con asesoría personalizada desde El Salvador.{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 <style>
+    .flatpickr-calendar { border: 0; border-radius: 1rem; box-shadow: 0 20px 45px rgb(15 23 42 / 18%); overflow: hidden; }
+    .flatpickr-months { background: #0b1f3a; color: #fff; padding: .35rem 0; }
+    .flatpickr-months .flatpickr-month,
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year { color: #fff; fill: #fff; }
+    .flatpickr-months .flatpickr-prev-month,
+    .flatpickr-months .flatpickr-next-month { color: #fff; fill: #fff; }
+    .flatpickr-day.selected,
+    .flatpickr-day.selected:hover { background: #e11d48; border-color: #e11d48; }
+    .flatpickr-day.today { border-color: #e11d48; color: #e11d48; font-weight: 700; }
     .flight-animation {
         aspect-ratio: 3 / 2;
         position: relative;
@@ -156,11 +167,11 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div id="quick-origin-field">
                     <label for="quick-origin" class="mb-1.5 block text-sm font-bold">Origen</label>
-                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><input id="quick-origin" type="text" autocomplete="address-level2" placeholder="San Salvador" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
+                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-6 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><input id="quick-origin" type="text" autocomplete="off" placeholder="Ciudad o aeropuerto" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="quick-origin-results" aria-expanded="false"><div id="quick-origin-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de origen"></div></div>
                 </div>
                 <div>
                     <label for="quick-destination" class="mb-1.5 block text-sm font-bold">Destino</label>
-                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg><input id="quick-destination" type="text" autocomplete="off" placeholder="¿A dónde vas?" required class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
+                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-6 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg><input id="quick-destination" type="text" autocomplete="off" placeholder="Escribe o selecciona de la lista" required class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="quick-destination-results" aria-expanded="false"><div id="quick-destination-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Lugares de destino"></div></div>
                 </div>
             </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -345,6 +356,8 @@
 </section>
 {% endblock %}
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js"></script>
 <script type="module">
     import { animate, svg } from "https://esm.sh/animejs";
 
@@ -415,7 +428,9 @@
     const quickPrivateFlightWarning = document.getElementById("quick-private-flight-warning");
     const quickOriginField = document.getElementById("quick-origin-field");
     const quickOrigin = document.getElementById("quick-origin");
+    const quickOriginResults = document.getElementById("quick-origin-results");
     const quickDestination = document.getElementById("quick-destination");
+    const quickDestinationResults = document.getElementById("quick-destination-results");
     const quickDeparture = document.getElementById("quick-departure");
     const quickReturn = document.getElementById("quick-return");
     const quickReturnField = document.getElementById("quick-return-field");
@@ -437,11 +452,191 @@
     const ages = document.getElementById("children-ages");
     const place = document.getElementById("lugar_turistico");
     const tour = document.getElementById("tour");
+    const locationEndpoint = "{% url 'core:travel-locations-json' %}";
     const today = new Date();
     today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
     const minimumDate = today.toISOString().split("T")[0];
     quickDeparture?.setAttribute("min", minimumDate);
     quickReturn?.setAttribute("min", minimumDate);
+
+    const setupDatePair = (departureField, returnField, shouldOpenReturn) => {
+        if (!departureField || !returnField || !window.flatpickr) return null;
+        const locale = (window.flatpickr.l10ns && window.flatpickr.l10ns.es) || "default";
+        const sharedOptions = {
+            altInput: true,
+            altFormat: "d/m/Y",
+            dateFormat: "Y-m-d",
+            disableMobile: true,
+            locale,
+            minDate: "today",
+        };
+        const connectAccessibleInput = (field, picker) => {
+            if (!picker.altInput || !field.id) return;
+            const publicId = field.id;
+            const labelText = field.labels?.[0]?.textContent || "Fecha";
+            field.id = `${publicId}-value`;
+            picker.altInput.id = publicId;
+            picker.altInput.setAttribute("aria-label", labelText);
+        };
+        const returnPicker = window.flatpickr(returnField, {
+            ...sharedOptions,
+            minDate: departureField.value || "today",
+        });
+        const departurePicker = window.flatpickr(departureField, {
+            ...sharedOptions,
+            onChange(selectedDates) {
+                const selectedDate = selectedDates[0];
+                returnPicker.set("minDate", selectedDate || "today");
+                if (
+                    selectedDate
+                    && returnPicker.selectedDates[0]
+                    && returnPicker.selectedDates[0] < selectedDate
+                ) {
+                    returnPicker.clear();
+                }
+                if (selectedDate && shouldOpenReturn()) {
+                    window.setTimeout(() => returnPicker.open(), 150);
+                }
+            },
+        });
+        connectAccessibleInput(departureField, departurePicker);
+        connectAccessibleInput(returnField, returnPicker);
+        return {departurePicker, returnPicker};
+    };
+    const quickDatePair = setupDatePair(
+        quickDeparture,
+        quickReturn,
+        () => quickTripType?.value !== "oneway",
+    );
+    const mainDatePair = setupDatePair(
+        document.getElementById("fecha_ida"),
+        document.getElementById("fecha_regreso"),
+        () => true,
+    );
+
+    const setupLocationAutocomplete = (input, results, serviceValue) => {
+        if (!input || !results) return;
+        let debounceTimer;
+        let controller;
+        let buttons = [];
+        let activeIndex = -1;
+
+        const close = () => {
+            window.clearTimeout(debounceTimer);
+            controller?.abort();
+            results.classList.add("hidden");
+            results.replaceChildren();
+            input.setAttribute("aria-expanded", "false");
+            buttons = [];
+            activeIndex = -1;
+        };
+        const showMessage = message => {
+            const status = document.createElement("p");
+            status.className = "px-3 py-2.5 text-sm text-slate-500";
+            status.textContent = message;
+            results.replaceChildren(status);
+            results.classList.remove("hidden");
+            input.setAttribute("aria-expanded", "true");
+            buttons = [];
+        };
+        const choose = location => {
+            input.value = location.value;
+            input.dataset.placeId = location.place_id || "";
+            input.dispatchEvent(new Event("change", {bubbles: true}));
+            close();
+        };
+        const render = locations => {
+            if (!locations.length) {
+                showMessage("No encontramos lugares para esta búsqueda.");
+                return;
+            }
+            results.replaceChildren();
+            locations.forEach(location => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-rose-50 focus:bg-rose-50 focus:outline-none";
+                button.setAttribute("role", "option");
+                const icon = document.createElement("span");
+                icon.className = "mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-slate-100 text-brand-red";
+                icon.innerHTML = location.kind === "airport"
+                    ? '<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg>'
+                    : '<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+                const copy = document.createElement("span");
+                copy.className = "min-w-0";
+                const primary = document.createElement("strong");
+                primary.className = "block text-sm text-brand-navy";
+                primary.textContent = location.primary;
+                const secondary = document.createElement("span");
+                secondary.className = "mt-0.5 block text-xs text-slate-500";
+                secondary.textContent = location.secondary;
+                copy.append(primary, secondary);
+                button.append(icon, copy);
+                button.addEventListener("click", () => choose(location));
+                results.appendChild(button);
+            });
+            buttons = [...results.querySelectorAll('[role="option"]')];
+            results.classList.remove("hidden");
+            input.setAttribute("aria-expanded", "true");
+        };
+        const search = async (showPopular = false) => {
+            const query = input.value.trim();
+            if ((!query && !showPopular) || query.length === 1) {
+                close();
+                return;
+            }
+            controller?.abort();
+            controller = window.AbortController ? new AbortController() : null;
+            showMessage("Buscando lugares…");
+            const params = new URLSearchParams({
+                q: query,
+                service: serviceValue(),
+            });
+            try {
+                const response = await fetch(`${locationEndpoint}?${params}`, {
+                    headers: {"X-Requested-With": "XMLHttpRequest"},
+                    signal: controller?.signal,
+                });
+                if (!response.ok) throw new Error("Location search failed");
+                const data = await response.json();
+                render(data.results || []);
+            } catch (error) {
+                if (error.name !== "AbortError") {
+                    showMessage("No fue posible consultar los lugares. Intenta de nuevo.");
+                }
+            }
+        };
+
+        input.addEventListener("input", () => {
+            input.dataset.placeId = "";
+            window.clearTimeout(debounceTimer);
+            debounceTimer = window.setTimeout(search, 250);
+        });
+        input.addEventListener("focus", () => {
+            if (!input.value.trim()) search(true);
+        });
+        input.addEventListener("keydown", event => {
+            if (event.key === "Escape") return close();
+            if (!buttons.length || !["ArrowDown", "ArrowUp", "Enter"].includes(event.key)) return;
+            event.preventDefault();
+            if (event.key === "Enter" && activeIndex >= 0) return buttons[activeIndex].click();
+            activeIndex = event.key === "ArrowDown"
+                ? (activeIndex + 1) % buttons.length
+                : (activeIndex - 1 + buttons.length) % buttons.length;
+            buttons.forEach((button, index) => {
+                button.classList.toggle("bg-rose-50", index === activeIndex);
+                button.setAttribute("aria-selected", String(index === activeIndex));
+            });
+        });
+        document.addEventListener("click", event => {
+            if (event.target !== input && !results.contains(event.target)) close();
+        });
+    };
+    setupLocationAutocomplete(quickOrigin, quickOriginResults, () => "vuelo");
+    setupLocationAutocomplete(
+        quickDestination,
+        quickDestinationResults,
+        () => quickService?.value || "vuelo",
+    );
 
     const renderQuickChildrenAges = () => {
         if (!quickChildrenAges) return;
@@ -511,6 +706,12 @@
         quickReturnField?.classList.toggle("hidden", value !== "tour" && quickTripType.value === "oneway");
     };
     quickTabs.forEach(tab => tab.addEventListener("click", () => {
+        const previousWasTour = quickService.value === "tour";
+        const nextIsTour = tab.dataset.quickService === "tour";
+        if (previousWasTour !== nextIsTour) {
+            quickDestination.value = "";
+            quickDestination.dataset.placeId = "";
+        }
         quickService.value = tab.dataset.quickService;
         syncQuickTabs();
     }));
@@ -529,7 +730,10 @@
             item.classList.toggle("text-slate-600", !active);
             item.setAttribute("aria-pressed", String(active));
         });
-        if (quickTripType.value === "oneway") quickReturn.value = "";
+        if (quickTripType.value === "oneway") {
+            if (quickDatePair) quickDatePair.returnPicker.clear();
+            else quickReturn.value = "";
+        }
         syncQuickTabs();
     }));
     quickDeparture?.addEventListener("change", () => {
@@ -550,13 +754,25 @@
         service.value = quickService.value;
         document.getElementById("origen").value = quickOrigin.value.trim();
         document.getElementById("destino").value = destination;
-        document.getElementById("fecha_ida").value = quickDeparture.value;
-        document.getElementById("fecha_regreso").value = quickTripType.value === "oneway" ? "" : quickReturn.value;
+        const departureValue = quickDeparture.value;
+        const returnValue = quickTripType.value === "oneway" ? "" : quickReturn.value;
+        if (mainDatePair) {
+            mainDatePair.departurePicker.setDate(departureValue, false);
+            mainDatePair.returnPicker.set("minDate", departureValue || "today");
+            mainDatePair.returnPicker.setDate(returnValue, false);
+        } else {
+            document.getElementById("fecha_ida").value = departureValue;
+            document.getElementById("fecha_regreso").value = returnValue;
+        }
         document.getElementById("adultos").value = quickAdults.value;
         document.getElementById("ninos").value = quickChildren.value;
         document.getElementById("edades_ninos").value = [
             ...quickChildrenAges.querySelectorAll("select"),
         ].map(select => select.value).join(", ");
+        if (quickService.value === "tour" && quickDestination.dataset.placeId) {
+            place.value = quickDestination.dataset.placeId;
+            place.dispatchEvent(new Event("change", {bubbles: true}));
+        }
         sync();
         syncAges();
         window.dataLayer = window.dataLayer || [];

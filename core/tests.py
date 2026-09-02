@@ -11,6 +11,7 @@ from sami_admin.models import (
 )
 
 from .models import SolicitudContacto
+from .forms import SolicitudContactoForm
 
 
 @override_settings(
@@ -37,6 +38,65 @@ class BasicProductionViewsTests(TestCase):
         self.assertNotIn("X-Robots-Tag", response)
         self.assertNotContains(response, reverse("sami_admin:dashboard"))
         self.assertNotContains(response, "SAMI Admin")
+
+    def test_public_quote_loads_guided_locations_and_synced_calendars(self):
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, "flatpickr@4.6.13")
+        self.assertContains(response, 'id="quick-origin-results"')
+        self.assertContains(response, 'id="quick-destination-results"')
+        self.assertContains(response, reverse("core:travel-locations-json"))
+        self.assertContains(response, "setupDatePair")
+
+    def test_public_location_endpoint_returns_airports_without_login(self):
+        response = self.client.get(
+            reverse("core:travel-locations-json"),
+            {"service": "vuelo", "q": "mexico"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [result["id"] for result in response.json()["results"]],
+            ["airport-MEX", "airport-CUN", "airport-GDL"],
+        )
+
+    def test_public_location_endpoint_finds_accented_catalog_places(self):
+        country = Pais.objects.create(nombre="Nicaragua")
+        department = Departamento.objects.create(
+            pais=country,
+            nombre="León",
+        )
+        place = LugarTuristico.objects.create(
+            departamento=department,
+            nombre="Centro histórico de León",
+            descripcion_historica="Arquitectura colonial.",
+        )
+
+        response = self.client.get(
+            reverse("core:travel-locations-json"),
+            {"service": "tour", "q": "leon"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["results"][0]["place_id"], place.pk)
+
+    def test_public_form_rejects_past_travel_dates(self):
+        yesterday = timezone.localdate() - timedelta(days=1)
+        form = SolicitudContactoForm(
+            data={
+                "nombre": "Cliente",
+                "correo": "cliente@example.com",
+                "servicio": "vuelo",
+                "fecha_ida": yesterday.isoformat(),
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("fecha_ida", form.errors)
+        self.assertEqual(
+            form.fields["fecha_ida"].widget.attrs["min"],
+            timezone.localdate().isoformat(),
+        )
 
     def test_removed_san_miguel_landing_returns_not_found(self):
         response = self.client.get("/agencia-de-viajes-san-miguel/")

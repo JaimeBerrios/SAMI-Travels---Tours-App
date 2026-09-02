@@ -13,7 +13,7 @@
         </div>
         <a href="{% url 'sami_admin:user-create' %}" class="btn-primary w-full sm:w-auto">
             <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M19 8v6m-3-3h6"/></svg>
-            Nuevo usuario
+            Invitar usuario
         </a>
     </div>
 
@@ -51,7 +51,9 @@
                                 {% endif %}
                             </td>
                             <td data-label="Estado" class="whitespace-nowrap px-6 py-4">
-                                {% if user.is_active %}
+                                {% if user.invitation_pending %}
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800"><span class="size-2 rounded-full bg-amber-500"></span>Invitación pendiente</span>
+                                {% elif user.is_active %}
                                     <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800"><span class="size-2 rounded-full bg-emerald-500"></span>Activo</span>
                                 {% else %}
                                     <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"><span class="size-2 rounded-full bg-slate-400"></span>Inactivo</span>
@@ -63,10 +65,18 @@
                                     <a href="{% url 'sami_admin:user-update' user.id %}" class="grid size-10 place-items-center rounded-lg border border-slate-300 text-brand-navy transition hover:border-brand-navy hover:bg-brand-navy hover:text-white" title="Editar usuario" aria-label="Editar usuario {{ user.username }}">
                                         <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="m14 4 6 6M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"/></svg>
                                     </a>
-                                    {% if user.is_active %}
+                                    {% if user.invitation_pending %}
+                                        <form method="post" action="{% url 'sami_admin:invitation-resend' user.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="grid size-10 place-items-center rounded-lg border border-amber-300 text-amber-700 transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2" title="Reenviar invitación" aria-label="Reenviar invitación a {{ user.email }}">
+                                                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="m4 7 8 6 8-6M18 3v4m-2-2h4"/></svg>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    {% if user.is_active or user.invitation_pending %}
                                         <form method="post" action="{% url 'sami_admin:user-delete' user.id %}" onsubmit="return confirm('¿Eliminar el acceso de {{ user.username|escapejs }}? Sus cotizaciones y el historial se conservarán.');">
                                             {% csrf_token %}
-                                            <button type="submit" class="grid size-10 place-items-center rounded-lg border border-rose-300 text-rose-600 transition hover:bg-rose-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 {% if user.id == request.user.id %}cursor-not-allowed opacity-40{% endif %}" aria-label="Eliminar usuario {{ user.username }}" {% if user.id == request.user.id %}disabled title="No puedes eliminar tu propia cuenta"{% else %}title="Eliminar usuario"{% endif %}>
+                                            <button type="submit" class="grid size-10 place-items-center rounded-lg border border-rose-300 text-rose-600 transition hover:bg-rose-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 {% if user.id == request.user.id %}cursor-not-allowed opacity-40{% endif %}" aria-label="{% if user.invitation_pending %}Revocar invitación de{% else %}Eliminar usuario{% endif %} {{ user.username }}" {% if user.id == request.user.id %}disabled title="No puedes eliminar tu propia cuenta"{% elif user.invitation_pending %}title="Revocar invitación"{% else %}title="Eliminar usuario"{% endif %}>
                                                 <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 8 5 5m0-5-5 5"/></svg>
                                             </button>
                                         </form>

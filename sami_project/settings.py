@@ -140,6 +140,23 @@ CONTACT_EMAIL = os.environ.get(
     "CONTACT_EMAIL",
     "contacto@samitravelstours.com",
 )
+EMAIL_BACKEND = os.environ.get(
+    "DJANGO_EMAIL_BACKEND",
+    "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() in {
+    "1", "true", "yes", "on"
+}
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL",
+    "SAMI Travels & Tours <no-reply@samitravelstours.com>",
+)
+INVITATION_TIMEOUT = int(os.environ.get("INVITATION_TIMEOUT", "86400"))
+PASSWORD_RESET_TIMEOUT = INVITATION_TIMEOUT
 PUBLIC_FORM_RATE_LIMIT = int(os.environ.get("PUBLIC_FORM_RATE_LIMIT", "5"))
 PUBLIC_FORM_RATE_WINDOW = int(os.environ.get("PUBLIC_FORM_RATE_WINDOW", "3600"))
 ADMIN_LOGIN_RATE_LIMIT = int(os.environ.get("ADMIN_LOGIN_RATE_LIMIT", "5"))

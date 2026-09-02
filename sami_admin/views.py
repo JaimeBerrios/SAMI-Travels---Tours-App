@@ -8,9 +8,11 @@ from django.contrib.auth import (
     logout,
     update_session_auth_hash,
 )
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 from django.contrib.auth.models import Group
+from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.db.models import Count, Prefetch, Sum
 from django.db.models import Q
@@ -20,7 +22,12 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import (
+    url_has_allowed_host_and_scheme,
+    urlsafe_base64_decode,
+    urlsafe_base64_encode,
+)
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -32,6 +39,7 @@ from .decorators import (
 from .forms import (
     MANAGED_GROUPS,
     ROLE_ADMIN,
+    ROLE_CHOICES,
     CampanaPromocionalForm,
     CotizacionForm,
     DepartamentoForm,
@@ -117,6 +125,37 @@ def assign_user_role(user, role):
     if group_name:
         group, _ = Group.objects.get_or_create(name=group_name)
         user.groups.add(group)
+
+
+def send_staff_invitation(request, user):
+    """Send a one-time password setup link to an inactive staff account."""
+    invitation_url = request.build_absolute_uri(
+        reverse(
+            "sami_admin:invitation-accept",
+            kwargs={
+                "uidb64": urlsafe_base64_encode(force_bytes(user.pk)),
+                "token": default_token_generator.make_token(user),
+            },
+        )
+    )
+    context = {
+        "user": user,
+        "invitation_url": invitation_url,
+        "expires_hours": settings.INVITATION_TIMEOUT // 3600,
+        "role_label": dict(ROLE_CHOICES).get(get_user_role(user), "Asesor"),
+    }
+    message = EmailMultiAlternatives(
+        subject="Invitación al panel de SAMI Travels & Tours",
+        body=render_to_string("sami_admin/emails/user_invitation.txt", context),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user.email],
+    )
+    message.attach_alternative(
+        render_to_string("sami_admin/emails/user_invitation.html", context),
+        "text/html",
+    )
+    if message.send() != 1:
+        raise RuntimeError("El servidor de correo no confirmó el envío.")
 
 
 @administrator_required
@@ -1027,27 +1066,98 @@ def user_list(request):
     )
     for user in users:
         user.sami_role = get_user_role(user)
+        user.invitation_pending = (
+            not user.is_active and not user.has_usable_password()
+        )
     return render(request, "sami_admin/user_list.html", {"users": users})
 
 
 @administrator_required
 def user_create(request):
-    """Create a staff account with an administrator or adviser role."""
+    """Create an inactive staff account and email a password setup link."""
     form = StaffUserCreationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             user = form.save()
             assign_user_role(user, form.cleaned_data["role"])
-        messages.success(
-            request,
-            f"El usuario {user.username} fue creado correctamente.",
-        )
+        try:
+            send_staff_invitation(request, user)
+        except Exception:
+            messages.warning(
+                request,
+                "La invitación quedó pendiente, pero el correo no pudo enviarse. "
+                "Revisa la configuración SMTP y usa Reenviar invitación.",
+            )
+        else:
+            messages.success(
+                request,
+                f"Enviamos la invitación a {user.email}.",
+            )
         return redirect("sami_admin:user-list")
 
     return render(
         request,
         "sami_admin/user_form.html",
         {"form": form, "form_title": "Crear usuario", "is_editing": False},
+    )
+
+
+@require_POST
+@administrator_required
+def invitation_resend(request, user_id):
+    user = get_object_or_404(get_user_model(), pk=user_id, is_staff=True)
+    if user.is_active or user.has_usable_password():
+        messages.error(request, "Esta cuenta ya no tiene una invitación pendiente.")
+    else:
+        try:
+            send_staff_invitation(request, user)
+        except Exception:
+            messages.error(
+                request,
+                "No fue posible enviar la invitación. Revisa la configuración SMTP.",
+            )
+        else:
+            messages.success(request, f"Reenviamos la invitación a {user.email}.")
+    return redirect("sami_admin:user-list")
+
+
+def invitation_accept(request, uidb64, token):
+    """Allow an invited staff member to set their first password once."""
+    try:
+        user_id = force_str(urlsafe_base64_decode(uidb64))
+        user = get_user_model().objects.get(pk=user_id, is_staff=True)
+    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+        user = None
+
+    invitation_valid = bool(
+        user
+        and not user.is_active
+        and not user.has_usable_password()
+        and default_token_generator.check_token(user, token)
+    )
+    if not invitation_valid:
+        return render(
+            request,
+            "sami_admin/invitation_accept.html",
+            {"invitation_valid": False},
+            status=400,
+        )
+
+    form = SetPasswordForm(user, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save(commit=False)
+        user.is_active = True
+        user.save(update_fields=["password", "is_active"])
+        messages.success(
+            request,
+            "Tu contraseña fue creada. Ya puedes iniciar sesión.",
+        )
+        return redirect("sami_admin:login")
+
+    return render(
+        request,
+        "sami_admin/invitation_accept.html",
+        {"form": form, "invitation_valid": True, "invited_email": user.email},
     )
 
 
@@ -1137,7 +1247,7 @@ def user_delete(request, user_id):
         is_active=True,
         groups__name=MANAGED_GROUPS[ROLE_ADMIN],
     ).distinct()
-    if is_administrator and active_administrators.count() <= 1:
+    if user.is_active and is_administrator and active_administrators.count() <= 1:
         messages.error(request, "Debe permanecer al menos un administrador activo.")
         return redirect("sami_admin:user-list")
 

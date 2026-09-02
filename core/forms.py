@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 from sami_admin.models import LugarTuristico, Tour
 
@@ -42,6 +43,9 @@ class SolicitudContactoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        minimum_date = timezone.localdate().isoformat()
+        self.fields["fecha_ida"].widget.attrs["min"] = minimum_date
+        self.fields["fecha_regreso"].widget.attrs["min"] = minimum_date
         self.fields["correo"].required = True
         self.fields["adultos"].required = False
         self.fields["adultos"].initial = 1
@@ -65,6 +69,17 @@ class SolicitudContactoForm(forms.ModelForm):
         cleaned["ninos"] = cleaned.get("ninos") or 0
         fecha_ida = cleaned.get("fecha_ida")
         fecha_regreso = cleaned.get("fecha_regreso")
+        today = timezone.localdate()
+        if fecha_ida and fecha_ida < today:
+            self.add_error(
+                "fecha_ida",
+                "La fecha de ida no puede estar en el pasado.",
+            )
+        if fecha_regreso and fecha_regreso < today:
+            self.add_error(
+                "fecha_regreso",
+                "La fecha de regreso no puede estar en el pasado.",
+            )
         if fecha_ida and fecha_regreso and fecha_regreso < fecha_ida:
             self.add_error(
                 "fecha_regreso",
