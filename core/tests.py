@@ -47,6 +47,10 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, 'id="quick-destination-results"')
         self.assertContains(response, reverse("core:travel-locations-json"))
         self.assertContains(response, "setupDatePair")
+        self.assertContains(response, 'returnPicker.set("minDate"')
+        self.assertContains(response, "returnPicker.clear()")
+        self.assertContains(response, "mainDatePair.departurePicker.setDate")
+        self.assertContains(response, "quickDestination.dataset.placeId")
 
     def test_public_location_endpoint_returns_airports_without_login(self):
         response = self.client.get(
@@ -96,6 +100,24 @@ class BasicProductionViewsTests(TestCase):
         self.assertEqual(
             form.fields["fecha_ida"].widget.attrs["min"],
             timezone.localdate().isoformat(),
+        )
+
+    def test_public_form_rejects_return_before_departure(self):
+        departure = timezone.localdate() + timedelta(days=10)
+        form = SolicitudContactoForm(
+            data={
+                "nombre": "Cliente",
+                "correo": "cliente@example.com",
+                "servicio": "vuelo",
+                "fecha_ida": departure.isoformat(),
+                "fecha_regreso": (departure - timedelta(days=2)).isoformat(),
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "La fecha de regreso no puede ser anterior a la fecha de ida.",
+            form.errors["fecha_regreso"],
         )
 
     def test_removed_san_miguel_landing_returns_not_found(self):

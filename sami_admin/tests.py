@@ -6,8 +6,6 @@ from io import BytesIO
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.contrib.auth.tokens import default_token_generator
-from django.core import mail
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -15,8 +13,6 @@ from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
 from django.utils import timezone
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from PIL import Image
 
 from core.models import SolicitudContacto
@@ -577,14 +573,6 @@ class LoginRateLimitTests(TestCase):
 
         self.assertContains(response, "Demasiados intentos de acceso")
 
-    def test_staff_can_sign_in_with_email(self):
-        response = self.client.post(
-            reverse("sami_admin:login"),
-            {"username": "staff@example.com", "password": "valid-password-123"},
-        )
-
-        self.assertRedirects(response, reverse("sami_admin:dashboard"))
-
 
 class DashboardTests(TestCase):
     @patch("sami_admin.views.Cotizacion.objects")
@@ -697,21 +685,20 @@ class PublicRequestWorkflowTests(TestCase):
         self.assertIn("Jet mediano", quotation.notas_importantes)
 
 
-class StaffUserCreationFormTests(TestCase):
-    def test_save_creates_inactive_staff_invitation_without_password(self):
-        form = StaffUserCreationForm(
-            data={"email": "Nuevo@Example.com", "role": ROLE_ADMIN}
-        )
+class StaffUserCreationFormTests(SimpleTestCase):
+    def test_save_forces_limited_staff_permissions(self):
+        user = get_user_model()(is_staff=False, is_superuser=True, is_active=False)
+        form = StaffUserCreationForm()
 
-        self.assertTrue(form.is_valid(), form.errors)
-        saved_user = form.save(commit=False)
+        with patch(
+            "django.contrib.auth.forms.UserCreationForm.save",
+            return_value=user,
+        ):
+            saved_user = form.save(commit=False)
 
-        self.assertFalse(saved_user.is_active)
+        self.assertTrue(saved_user.is_active)
         self.assertTrue(saved_user.is_staff)
         self.assertFalse(saved_user.is_superuser)
-        self.assertFalse(saved_user.has_usable_password())
-        self.assertEqual(saved_user.email, "nuevo@example.com")
-        self.assertEqual(saved_user.username, "nuevo@example.com")
 
 
 class RoleAssignmentTests(SimpleTestCase):
@@ -778,68 +765,9 @@ class AdministratorUserManagementTests(TestCase):
     def test_administrator_can_open_user_management_and_sees_menu_link(self):
         response = self.client.get(reverse("sami_admin:user-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Invitar usuario")
+        self.assertContains(response, "Nuevo usuario")
         self.assertContains(response, reverse("sami_admin:user-list"))
         self.assertNotContains(response, "Superusuario")
-
-    def test_administrator_invites_user_who_sets_their_own_password(self):
-        response = self.client.post(
-            reverse("sami_admin:user-create"),
-            {"email": "invitado@example.com", "role": "asesor"},
-        )
-
-        self.assertRedirects(response, reverse("sami_admin:user-list"))
-        invited = get_user_model().objects.get(email="invitado@example.com")
-        self.assertFalse(invited.is_active)
-        self.assertFalse(invited.has_usable_password())
-        self.assertTrue(invited.groups.filter(name="Asesor").exists())
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertIn("Crear mi contraseña", mail.outbox[0].alternatives[0][0])
-
-        invitation_url = reverse(
-            "sami_admin:invitation-accept",
-            kwargs={
-                "uidb64": urlsafe_base64_encode(force_bytes(invited.pk)),
-                "token": default_token_generator.make_token(invited),
-            },
-        )
-        response = self.client.post(
-            invitation_url,
-            {
-                "new_password1": "Clave-segura-SAMI-2026",
-                "new_password2": "Clave-segura-SAMI-2026",
-            },
-        )
-
-        self.assertRedirects(
-            response,
-            reverse("sami_admin:login"),
-            fetch_redirect_response=False,
-        )
-        invited.refresh_from_db()
-        self.assertTrue(invited.is_active)
-        self.assertTrue(invited.check_password("Clave-segura-SAMI-2026"))
-
-        reused = self.client.get(invitation_url)
-        self.assertEqual(reused.status_code, 400)
-
-    def test_pending_invitation_can_be_resent(self):
-        invited = get_user_model().objects.create_user(
-            username="pendiente@example.com",
-            email="pendiente@example.com",
-            is_active=False,
-            is_staff=True,
-        )
-        invited.set_unusable_password()
-        invited.save(update_fields=["password"])
-
-        response = self.client.post(
-            reverse("sami_admin:invitation-resend", args=[invited.pk])
-        )
-
-        self.assertRedirects(response, reverse("sami_admin:user-list"))
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertIn("pendiente@example.com", mail.outbox[0].to)
 
     def test_administrator_can_delete_an_adviser_access(self):
         response = self.client.post(
