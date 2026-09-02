@@ -14,7 +14,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Count, Prefetch, Sum
+from django.db.models import Count, Prefetch
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -170,11 +170,6 @@ def campaign_list(request):
         activo=True,
         fecha_inicio__lte=now,
     ).filter(Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=now)).first()
-    totals = CampanaPromocional.objects.filter(archivada_en__isnull=True).aggregate(
-        impresiones=Sum("impresiones"),
-        clics=Sum("clics"),
-        conversiones=Sum("conversiones"),
-    )
     campaign_counts = CampanaPromocional.objects.aggregate(
         active=Count("id", filter=Q(archivada_en__isnull=True)),
         trash=Count("id", filter=Q(archivada_en__isnull=False)),
@@ -188,7 +183,6 @@ def campaign_list(request):
             "current_campaign_id": current_campaign.pk if current_campaign else None,
             "query": query,
             "status": status,
-            "totals": {key: value or 0 for key, value in totals.items()},
             "campaign_counts": campaign_counts,
         },
     )

@@ -591,7 +591,14 @@ class Cotizacion(models.Model):
         VUELOS_TOURS = "vuelos_tours", "Vuelos y Tours"
 
     class Estado(models.TextChoices):
+        BORRADOR = "borrador", "Borrador"
         PENDIENTE = "pendiente", "Pendiente"
+        ENVIADA = "enviada", "Enviada"
+        NEGOCIACION = "negociacion", "En negociación"
+        CONFIRMADA = "confirmada", "Confirmada"
+        CANCELADA = "cancelada", "Cancelada"
+        VENCIDA = "vencida", "Vencida"
+        # Valores heredados conservados para registros existentes.
         APROBADA = "aprobada", "Aprobada"
         RECHAZADA = "rechazada", "Rechazada"
 
@@ -678,7 +685,7 @@ class Cotizacion(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True, db_index=True)
     archivada = models.BooleanField(default=False, db_index=True)
     estado = models.CharField(
-        max_length=12,
+        max_length=20,
         choices=Estado.choices,
         default=Estado.PENDIENTE,
         db_index=True,

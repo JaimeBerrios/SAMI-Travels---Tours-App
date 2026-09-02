@@ -131,10 +131,43 @@
             </div>
 
             <div class="form-actions -mx-5 bg-white/95 px-5 pb-0 backdrop-blur sm:sticky sm:bottom-0 sm:-mx-8 sm:px-8 sm:pb-4 lg:-mx-10 lg:px-10"><span id="draft-status" class="mr-auto text-xs font-semibold text-slate-500" aria-live="polite">Borrador automático activo</span><a href="{% url 'sami_admin:quotation-list' %}" class="btn-secondary">Cancelar</a><button type="submit" class="btn-primary"><svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>Guardar cotización</button></div>
+            <div id="quotation-check" class="mb-5 hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="alert" aria-live="polite"><p class="font-bold">Antes de guardar, revisa:</p><ul id="quotation-check-list" class="mt-2 list-disc space-y-1 pl-5"></ul></div>
         </form>
     </div>
     {% if historial %}<section class="surface-card-raised mt-6 p-6"><h2 class="text-lg font-bold text-brand-navy">Historial reciente</h2><ol class="mt-4 divide-y divide-slate-200">{% for evento in historial %}<li class="flex flex-wrap justify-between gap-2 py-3 text-sm"><span><strong class="capitalize text-brand-navy">{{ evento.accion|cut:"_" }}</strong> por {{ evento.usuario.get_full_name|default:evento.usuario.username|default:"Sistema" }}</span><time class="text-slate-500">{{ evento.creado_en|date:"d/m/Y H:i" }}</time></li>{% endfor %}</ol></section>{% endif %}
 </section>
+<script>
+(() => {
+    const form = document.getElementById('quotation-form');
+    const panel = document.getElementById('quotation-check');
+    const list = document.getElementById('quotation-check-list');
+    if (!form || !panel || !list) return;
+    form.addEventListener('submit', event => {
+        const missing = [];
+        const value = name => (form.elements[name]?.value || '').trim();
+        if (!value('cliente_nombre')) missing.push('Nombre del cliente');
+        if (!value('cliente_correo')) missing.push('Correo del cliente');
+        const type = value('tipo_cotizacion');
+        if ((type === 'tours' || type === 'vuelos_tours')) {
+            const rows = [...form.querySelectorAll('.destination-row')];
+            if (!rows.length) missing.push('Agrega al menos un destino');
+            rows.forEach((row, index) => {
+                if (!row.querySelector('.row-place')?.value) missing.push(`Destino ${index + 1}: lugar turístico`);
+                if (!row.querySelector('.row-date')?.value) missing.push(`Destino ${index + 1}: fecha de visita`);
+            });
+        }
+        if (type === 'vuelos' || type === 'vuelos_tours') {
+            if (!value('ruta_vuelo')) missing.push('Ruta del vuelo');
+            if (!value('fecha_ida')) missing.push('Fecha de ida');
+            if (!value('cantidad_adultos')) missing.push('Cantidad de adultos');
+            if (value('tipo_trayecto') === 'roundtrip' && !value('fecha_vuelta')) missing.push('Fecha de vuelta');
+        }
+        list.replaceChildren(...missing.map(item => { const li = document.createElement('li'); li.textContent = item; return li; }));
+        panel.classList.toggle('hidden', missing.length === 0);
+        if (missing.length) { event.preventDefault(); panel.scrollIntoView({behavior: 'smooth', block: 'center'}); }
+    });
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js"></script>
 <script>
