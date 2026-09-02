@@ -9,7 +9,7 @@
         @page { size: Letter; margin: 0; }
         :root { --navy: #0b1f3a; --navy-dark: #06152b; --navy-light: #173f6b; --red: #e11d48; --red-dark: #be123c; --red-soft: #fff1f2; --ink: #1e293b; --muted: #64748b; --line: #dce3eb; --soft: #f5f7fa; }
         * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; background: #e8edf3; color: var(--ink); font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { margin: 0; padding: 0; background: #e8edf3; color: var(--ink); font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         svg { display: block; }
         .actions { position: fixed; z-index: 20; top: 0; left: 0; right: 0; display: flex; justify-content: center; gap: 12px; padding: 14px 20px; background: rgba(6, 21, 43, .97); box-shadow: 0 5px 22px rgba(6, 21, 43, .28); }
         .button { display: inline-flex; align-items: center; gap: 8px; border-radius: 9px; padding: 10px 18px; color: white; font-size: 13px; font-weight: 700; text-decoration: none; transition: background .2s ease; }
@@ -22,20 +22,21 @@
         .document { position: relative; width: 215.9mm; max-width: 100%; min-height: 279.4mm; margin: 0 auto; overflow: hidden; border-radius: 3px; background: white; box-shadow: 0 18px 55px rgba(11,31,58,.18); }
         .top-line { width: 100%; height: 7px; background: var(--red); }
         .header { display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 25px 2cm; background: var(--navy-dark); color: white; }
-        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand { display: flex; min-width: 0; align-items: center; gap: 14px; }
         .brand-mark { display: flex; width: 55px; height: 55px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.35); border-radius: 14px; background: var(--red); }
         .brand-mark svg { width: 30px; height: 30px; }
         .brand h1 { margin: 0; font-size: 22px; letter-spacing: .3px; }
         .brand p { margin: 2px 0 0; color: #cbd5e1; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; }
-        .agency { text-align: right; }
+        .agency { flex: none; margin-left: 18px; text-align: right; }
         .agency strong { display: block; margin-bottom: 4px; color: white; font-size: 11px; letter-spacing: .8px; text-transform: uppercase; }
         .agency span { display: block; color: #cbd5e1; font-size: 10px; }
         .content { padding: 2cm 2cm 42mm; }
-        .intro { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 23px; border-bottom: 1px solid var(--line); }
+        .intro { display: flex; justify-content: space-between; align-items: flex-start; gap: 22px; padding-bottom: 23px; border-bottom: 1px solid var(--line); }
+        .intro > div:first-child { min-width: 0; }
         .eyebrow { margin: 0 0 4px; color: var(--red); font-size: 10px; font-weight: 800; letter-spacing: 1.7px; text-transform: uppercase; }
         h2 { margin: 0; color: var(--navy-dark); font-size: 29px; line-height: 1.15; }
         .intro-copy { max-width: 390px; margin: 7px 0 0; color: var(--muted); font-size: 11px; }
-        .quote-meta { min-width: 120px; border-left: 3px solid var(--red); padding: 5px 0 5px 13px; }
+        .quote-meta { min-width: 120px; flex: none; border-left: 3px solid var(--red); padding: 5px 0 5px 13px; }
         .quote-meta span { display: block; color: var(--muted); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
         .quote-meta strong { display: block; margin: 1px 0 5px; color: var(--navy); font-size: 17px; }
         .quote-meta time { color: var(--muted); font-size: 10px; }
@@ -44,7 +45,8 @@
         .section-title span { width: 7px; height: 7px; border-radius: 50%; background: var(--red); }
         .details { display: flex; flex-wrap: wrap; margin: -5px; }
         .detail { width: 50%; padding: 5px; }
-        .detail-card { display: flex; min-height: 78px; align-items: center; gap: 13px; border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: white; break-inside: avoid; }
+        .detail-card { display: flex; min-height: 78px; align-items: center; gap: 13px; border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: white; break-inside: avoid; page-break-inside: avoid; }
+        .detail-card > div:last-child { min-width: 0; }
         .detail-icon { display: flex; width: 39px; height: 39px; flex: 0 0 39px; align-items: center; justify-content: center; border-radius: 10px; background: var(--red-soft); color: var(--red); }
         .detail-icon svg { width: 21px; height: 21px; }
         .detail-label { display: block; margin-bottom: 2px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
@@ -52,8 +54,8 @@
         .detail-subvalue { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; }
         .flight-summary { margin-top: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
         .flight-heading { display: flex; align-items: center; justify-content: space-between; padding: 11px 15px; background: var(--navy); color: white; }
-        .flight-heading strong { font-size: 12px; }
-        .flight-heading span { border-radius: 999px; padding: 3px 8px; background: var(--red); font-size: 8px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
+        .flight-heading strong { min-width: 0; font-size: 12px; overflow-wrap: anywhere; }
+        .flight-heading span { flex: none; border-radius: 999px; padding: 3px 8px; background: var(--red); font-size: 8px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
         .passengers { display: flex; gap: 22px; padding: 10px 15px; border-bottom: 1px solid var(--line); background: var(--soft); color: var(--muted); font-size: 9px; }
         .passengers strong { color: var(--navy); font-size: 11px; }
         .flight-legs { display: flex; }
@@ -79,22 +81,25 @@
         .tour-meta span { color: var(--ink); font-size: 9px; }
         .tour-grid { display: flex; flex-wrap: wrap; margin: 6px -4px -4px; }
         .tour-block-wrap { width: 50%; padding: 4px; }
-        .tour-block { min-height: 64px; border: 1px solid var(--line); border-top: 3px solid var(--red); border-radius: 8px; padding: 10px 11px; color: var(--muted); font-size: 9px; break-inside: avoid; }
-        .destination-day { margin-top: 18px; break-inside: avoid; }
+        .tour-block { min-height: 64px; border: 1px solid var(--line); border-top: 3px solid var(--red); border-radius: 8px; padding: 10px 11px; color: var(--muted); font-size: 9px; break-inside: avoid; page-break-inside: avoid; }
+        .tour-block + .tour-block { margin-top: 8px; }
+        .tour-block p { margin: 5px 0 0; }
+        .destination-day { margin-top: 18px; break-inside: avoid; page-break-inside: avoid; }
         .destination-day-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--navy); font-size: 12px; font-weight: 800; }
         .destination-day-title:after { height: 1px; flex: 1; background: var(--line); content: ""; }
-        .destination-card { display: flex; gap: 12px; margin-bottom: 7px; border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 9px; padding: 10px 12px; break-inside: avoid; }
+        .destination-card { display: flex; gap: 12px; margin-bottom: 7px; border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 9px; padding: 10px 12px; break-inside: avoid; page-break-inside: avoid; }
+        .destination-card > div { min-width: 0; flex: 1; }
         .destination-thumb { width: 58px; height: 48px; border-radius: 7px; object-fit: cover; }
         .destination-card h4 { margin: 0; color: var(--navy-dark); font-size: 11px; }
         .destination-card p { margin: 2px 0 0; color: var(--muted); font-size: 9px; }
-        .destination-card .destination-price { margin-left: auto; color: var(--navy); font-size: 10px; font-weight: 800; white-space: nowrap; }
+        .destination-card .destination-price { flex: none; margin-left: auto; color: var(--navy); font-size: 10px; font-weight: 800; white-space: nowrap; }
         .investment { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; overflow: hidden; border-radius: 12px; background: var(--navy); color: white; }
-        .investment-copy { display: flex; align-items: center; gap: 13px; padding: 18px 21px; }
+        .investment-copy { display: flex; min-width: 0; flex: 1; align-items: center; gap: 13px; padding: 18px 21px; }
         .investment-icon { display: flex; width: 42px; height: 42px; align-items: center; justify-content: center; border-radius: 11px; background: rgba(255,255,255,.1); color: white; }
         .investment-icon svg { width: 23px; height: 23px; }
         .investment-copy span, .investment-price span { display: block; color: #cbd5e1; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
         .investment-copy strong { display: block; margin-top: 2px; font-size: 13px; }
-        .investment-price { min-width: 210px; padding: 18px 22px; border-left: 5px solid var(--red); background: var(--navy-dark); text-align: right; }
+        .investment-price { min-width: 210px; flex: none; padding: 18px 22px; border-left: 5px solid var(--red); background: var(--navy-dark); text-align: right; }
         .investment-price strong { display: block; margin-top: 1px; font-size: 26px; line-height: 1.2; }
         .note { margin-top: 20px; border-left: 3px solid var(--red); border-radius: 0 8px 8px 0; padding: 13px 15px; background: var(--soft); color: var(--muted); font-size: 10px; }
         .note strong { color: var(--navy); }
@@ -105,9 +110,9 @@
         .social { display: flex; gap: 9px; }
         .social a { display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: 7px 9px; color: white; font-size: 9px; font-weight: 700; text-decoration: none; }
         .social svg { width: 14px; height: 14px; color: var(--red); }
-        .footer-bottom { display: flex; justify-content: space-between; padding: 8px 2cm; background: #030d1d; color: #94a3b8; font-size: 8px; letter-spacing: .3px; }
-        @media screen and (max-width: 680px) { .actions { position: static; justify-content: stretch; padding: 10px 8px; } .button { flex: 1; justify-content: center; padding: 10px 7px; text-align: center; } .preview-shell { padding: 8px; } .document { min-height: auto; } .header, .intro, .investment, .footer-main, .flight-legs, .tour-hero { display: block; } .header, .content, .footer-main, .footer-bottom { padding-left: 18px; padding-right: 18px; } .content { padding-top: 24px; padding-bottom: 24px; } h2 { font-size: 24px; } .agency { margin-top: 15px; text-align: left; } .quote-meta { margin-top: 17px; } .detail, .flight-leg, .tour-block-wrap, .tour-image { width: 100%; } .flight-leg + .flight-leg { border-top: 1px solid var(--line); border-left: 0; } .flight-extras { display: block; } .flight-extra + .flight-extra { margin-top: 8px; } .investment-price { min-width: 0; border-top: 4px solid var(--red); border-left: 0; text-align: left; } .footer { position: static; margin-top: 20px; } .social { flex-wrap: wrap; margin-top: 13px; } .footer-bottom { gap: 8px; } }
-        @media print { body { background: white; } .actions { display: none; } .preview-shell { padding: 0; } .document { width: auto; min-height: auto; overflow: visible; border-radius: 0; box-shadow: none; } .content { padding-bottom: 36mm; } .footer { position: fixed; bottom: 0; } .tour-hero, .tour-block, .investment, .flight-summary { break-inside: avoid; } }
+        .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 12px; padding: 8px 2cm; background: #030d1d; color: #94a3b8; font-size: 8px; letter-spacing: .3px; }
+        @media screen and (max-width: 680px) { .actions { position: static; justify-content: stretch; padding: 10px 8px; } .button { flex: 1; justify-content: center; padding: 10px 7px; text-align: center; } .preview-shell { padding: 8px; } .document { min-height: auto; } .header, .intro, .investment, .footer-main, .flight-legs, .tour-hero { display: block; } .header, .content, .footer-main, .footer-bottom { padding-left: 18px; padding-right: 18px; } .content { padding-top: 24px; padding-bottom: 24px; } h2 { font-size: 24px; } .brand h1 { font-size: 18px; } .agency { margin-top: 15px; margin-left: 0; text-align: left; } .quote-meta { margin-top: 17px; } .detail, .flight-leg, .tour-block-wrap, .tour-image, .tour-image-placeholder { width: 100%; } .flight-heading { flex-wrap: wrap; gap: 7px; } .flight-leg + .flight-leg { border-top: 1px solid var(--line); border-left: 0; } .flight-extras { display: block; } .flight-extra + .flight-extra { margin-top: 8px; } .destination-card { flex-wrap: wrap; } .destination-card .destination-price { width: 100%; margin-left: 70px; } .investment-price { min-width: 0; border-top: 4px solid var(--red); border-left: 0; text-align: left; } .footer { position: static; margin-top: 20px; } .social { flex-wrap: wrap; margin-top: 13px; } }
+        @media print { body { background: white; } .actions { display: none; } .preview-shell { padding: 0; } .document { width: auto; min-height: auto; overflow: visible; border-radius: 0; box-shadow: none; } .content { padding-bottom: 12mm; } .footer { position: static; break-inside: avoid; page-break-inside: avoid; } .header, .details, .tour-hero, .tour-block, .investment, .flight-summary, .note { break-inside: avoid; page-break-inside: avoid; } h2, h3 { break-after: avoid; page-break-after: avoid; } p { orphans: 3; widows: 3; } }
     </style>
 </head>
 <body>
@@ -156,7 +161,7 @@
                         {% regroup destinos by fecha_visita as dias %}
                         {% for destino in destinos %}{% if destino.descripcion_historica %}<div class="tour-block"><strong>{{ destino.nombre_destino }}: {% bilingual "reseña histórica" "destination overview" %}</strong>{{ destino.descripcion_historica|linebreaksbr }}</div>{% endif %}{% endfor %}
                         {% for destino in destinos %}{% if destino.duracion_tour or destino.punto_encuentro or destino.incluye or destino.no_incluye or destino.itinerario or destino.recomendaciones or destino.que_llevar or destino.restricciones or destino.politica_cancelacion %}<div class="tour-block"><strong>{{ destino.nombre_destino }} · {% bilingual "detalles" "details" %}</strong>{% if destino.duracion_tour %}<p><b>{% bilingual "Duración:" "Duration:" %}</b> {{ destino.duracion_tour }}</p>{% endif %}{% if destino.punto_encuentro %}<p><b>{% bilingual "Punto de encuentro:" "Meeting point:" %}</b> {{ destino.punto_encuentro }}</p>{% endif %}{% if destino.incluye %}<p><b>{% bilingual "Incluye:" "Included:" %}</b> {{ destino.incluye|linebreaksbr }}</p>{% endif %}{% if destino.no_incluye %}<p><b>{% bilingual "No incluye:" "Not included:" %}</b> {{ destino.no_incluye|linebreaksbr }}</p>{% endif %}{% if destino.itinerario %}<p><b>{% bilingual "Itinerario resumido:" "Itinerary summary:" %}</b> {{ destino.itinerario|linebreaksbr }}</p>{% endif %}{% if destino.recomendaciones %}<p><b>{% bilingual "Recomendaciones al viajero:" "Traveler recommendations:" %}</b> {{ destino.recomendaciones|linebreaksbr }}</p>{% endif %}{% if destino.que_llevar %}<p><b>{% bilingual "Qué llevar:" "What to bring:" %}</b> {{ destino.que_llevar|linebreaksbr }}</p>{% endif %}{% if destino.restricciones %}<p><b>{% bilingual "Restricciones:" "Restrictions:" %}</b> {{ destino.restricciones|linebreaksbr }}</p>{% endif %}{% if destino.politica_cancelacion %}<p><b>{% bilingual "Política de cancelación:" "Cancellation policy:" %}</b> {{ destino.politica_cancelacion|linebreaksbr }}</p>{% endif %}</div>{% endif %}{% endfor %}
-                        {% for dia in dias %}<div class="destination-day"><div class="destination-day-title">{{ dia.grouper|date:"d \d\e F \d\e Y" }}</div>{% for destino in dia.list %}<div class="destination-card">{% if destino.imagen_url %}<img class="destination-thumb" src="{{ destino.imagen_url }}" alt="">{% endif %}<div><h4>{{ forloop.counter }}. {{ destino.nombre_destino }}</h4><p>{{ destino.ubicacion_destino }}{% if destino.nombre_tour %} · {{ destino.nombre_tour }}{% endif %}</p>{% if destino.notas %}<p>{{ destino.notas|linebreaksbr }}</p>{% endif %}</div>{% if destino.precio_manual is not None %}<span class="destination-price">USD ${{ destino.precio_manual|floatformat:2 }}</span>{% endif %}</div>{% endfor %}</div>{% endfor %}
+                        {% for dia in dias %}<div class="destination-day"><div class="destination-day-title">{% if cotizacion.idioma_documento == "en" %}{{ dia.grouper|date:"F j, Y" }}{% else %}{{ dia.grouper|date:"d \d\e F \d\e Y" }}{% endif %}</div>{% for destino in dia.list %}<div class="destination-card">{% if destino.imagen_url %}<img class="destination-thumb" src="{{ destino.imagen_url }}" alt="">{% endif %}<div><h4>{{ forloop.counter }}. {{ destino.nombre_destino }}</h4><p>{{ destino.ubicacion_destino }}{% if destino.nombre_tour %} · {{ destino.nombre_tour }}{% endif %}</p>{% if destino.notas %}<p>{{ destino.notas|linebreaksbr }}</p>{% endif %}</div>{% if destino.precio_manual is not None %}<span class="destination-price">USD ${{ destino.precio_manual|floatformat:2 }}</span>{% endif %}</div>{% endfor %}</div>{% endfor %}
                         {% if cotizacion.notas_tour %}<div class="tour-block"><strong>{% bilingual "Notas importantes del tour" "Important tour notes" %}</strong>{{ cotizacion.notas_tour|linebreaksbr }}</div>{% endif %}
                     </section>
                 {% endif %}

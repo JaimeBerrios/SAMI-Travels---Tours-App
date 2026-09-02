@@ -1050,6 +1050,10 @@ class DepartamentoForm(CatalogFormMixin, forms.ModelForm):
         if self.instance and self.instance.pais_id:
             queryset = Pais.objects.filter(Q(activo=True) | Q(pk=self.instance.pais_id))
         self.fields["pais"].queryset = queryset
+        division = self.instance.pais.tipo_division_administrativa if self.instance and self.instance.pais_id else "departamento / estado / provincia"
+        article = "de la" if division in {"Provincia", "División administrativa"} else "del"
+        self.fields["nombre"].label = f"Nombre {article} {division.lower()}"
+        self.fields["nombre"].help_text = "Usa la denominación territorial habitual del país (departamento, estado, provincia o distrito)."
         self.apply_tailwind_classes()
 
 
@@ -1057,7 +1061,7 @@ class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
     class Meta:
         model = LugarTuristico
         fields = (
-            "departamento", "nombre", "nombre_en", "imagen", "resumen_publico",
+            "departamento", "nombre", "imagen", "resumen_publico",
             "resumen_publico_en", "descripcion_historica", "descripcion_historica_en",
             "mejor_epoca", "mejor_epoca_en", "duracion_recomendada",
             "duracion_recomendada_en", "aeropuerto_principal",
@@ -1110,7 +1114,7 @@ class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
                     source = source.convert("RGB")
                 output = BytesIO()
                 source.save(output, format="JPEG", quality=82, optimize=True)
-        except (UnidentifiedImageError, OSError):
+        except (UnidentifiedImageError, OSError, ValueError, SyntaxError):
             raise forms.ValidationError("El archivo no es una imagen válida.")
         filename = f"{Path(uploaded.name).stem}.jpg"
         return ContentFile(output.getvalue(), name=filename)

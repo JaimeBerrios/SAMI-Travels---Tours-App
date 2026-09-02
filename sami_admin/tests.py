@@ -1000,7 +1000,7 @@ class CotizacionModelTests(TestCase):
         form.save_destinations(quotation)
         destination = quotation.destinos.get()
 
-        self.assertEqual(quotation.destino, "El Tunco Beach")
+        self.assertEqual(quotation.destino, "El Tunco")
         self.assertEqual(quotation.nombre_tour_cotizado, "Coastal adventure")
         self.assertEqual(destination.incluye, "Guide")
         self.assertEqual(destination.itinerario, "Beach tour")

@@ -45,6 +45,20 @@ class Pais(models.Model):
     def __str__(self):
         return self.nombre
 
+    @property
+    def tipo_division_administrativa(self):
+        """Nombre habitual de la división territorial para mostrar al usuario."""
+        nombre = self.nombre.casefold()
+        for source, target in (("á", "a"), ("é", "e"), ("í", "i"), ("ó", "o"), ("ú", "u")):
+            nombre = nombre.replace(source, target)
+        if nombre in {"estados unidos", "mexico", "brasil", "australia", "india", "venezuela"}:
+            return "Estado"
+        if nombre in {"argentina", "canada", "chile", "ecuador", "panama", "costa rica"}:
+            return "Provincia"
+        if nombre in {"el salvador", "guatemala", "honduras", "nicaragua", "paraguay", "colombia", "bolivia", "peru"}:
+            return "Departamento"
+        return "División administrativa"
+
 
 class Departamento(models.Model):
     pais = models.ForeignKey(
@@ -158,6 +172,8 @@ class LugarTuristico(models.Model):
         return [item.strip() for item in self.actividades_destacadas.splitlines() if item.strip()]
 
     def translated(self, field_name, language=None):
+        if field_name == "nombre":
+            return self.nombre
         language = (language or get_language() or "es").lower()
         if language.startswith("en"):
             translated_value = getattr(self, f"{field_name}_en", "")
