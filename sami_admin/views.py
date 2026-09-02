@@ -611,8 +611,11 @@ def quotation_list(request):
 def quotation_create(request):
     form = CotizacionForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
+        preview_requested = request.POST.get("action") == "preview"
         quotation = form.save(commit=False)
         quotation.asesor = request.user
+        if preview_requested:
+            quotation.estado = Cotizacion.Estado.BORRADOR
         quotation.save()
         form.save_destinations(quotation)
         HistorialCotizacion.objects.create(
@@ -623,6 +626,8 @@ def quotation_create(request):
             datos={"tipo": quotation.tipo_cotizacion, "precio": str(quotation.precio_estimado)},
         )
         messages.success(request, "La cotización fue creada correctamente.")
+        if preview_requested:
+            return redirect("sami_admin:quotation-preview", quotation_id=quotation.pk)
         return redirect(f"{reverse('sami_admin:quotation-list')}?clear_draft=create")
     return render(
         request,
@@ -919,7 +924,11 @@ def quotation_update(request, quotation_id):
     quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
     form = CotizacionForm(request.POST or None, instance=quotation)
     if request.method == "POST" and form.is_valid():
+        preview_requested = request.POST.get("action") == "preview"
         quotation = form.save()
+        if preview_requested:
+            quotation.estado = Cotizacion.Estado.BORRADOR
+            quotation.save(update_fields=["estado"])
         form.save_destinations(quotation)
         HistorialCotizacion.objects.create(
             cotizacion=quotation,
@@ -929,6 +938,8 @@ def quotation_update(request, quotation_id):
             datos={"tipo": quotation.tipo_cotizacion, "precio": str(quotation.precio_estimado)},
         )
         messages.success(request, "La cotización fue actualizada.")
+        if preview_requested:
+            return redirect("sami_admin:quotation-preview", quotation_id=quotation.pk)
         return redirect(f"{reverse('sami_admin:quotation-list')}?clear_draft={quotation.pk}")
     return render(
         request,
