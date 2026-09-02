@@ -70,6 +70,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -89,6 +90,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "sami_admin.context_processors.administrative_permissions",
@@ -138,8 +140,9 @@ LOGOUT_REDIRECT_URL = "/"
 
 CONTACT_EMAIL = os.environ.get(
     "CONTACT_EMAIL",
-    "contacto@samitravelstours.com",
+    "samitravelstours@gmail.com",
 )
+CONTACT_PHONE = os.environ.get("CONTACT_PHONE", "+503 7055 1768")
 PUBLIC_FORM_RATE_LIMIT = int(os.environ.get("PUBLIC_FORM_RATE_LIMIT", "5"))
 PUBLIC_FORM_RATE_WINDOW = int(os.environ.get("PUBLIC_FORM_RATE_WINDOW", "3600"))
 ADMIN_LOGIN_RATE_LIMIT = int(os.environ.get("ADMIN_LOGIN_RATE_LIMIT", "5"))
@@ -161,6 +164,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "es"
+LANGUAGES = (
+    ("es", "Español"),
+    ("en", "English"),
+)
+LOCALE_PATHS = (BASE_DIR / "locale",)
 TIME_ZONE = "America/El_Salvador"
 USE_I18N = True
 USE_TZ = True

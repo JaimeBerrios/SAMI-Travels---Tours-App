@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import get_language
 
 from sami_admin.models import CampanaPromocional, LugarTuristico, Tour
 
@@ -53,8 +54,8 @@ def travel_locations_json(request):
                 "id": f"place-{place.pk}",
                 "kind": "place",
                 "place_id": place.pk,
-                "value": place.nombre,
-                "primary": place.nombre,
+                "value": place.nombre_localizado,
+                "primary": place.nombre_localizado,
                 "secondary": (
                     f"{place.departamento.nombre} · {place.departamento.pais.nombre}"
                 ),
@@ -111,7 +112,7 @@ def portal_publico(request):
                         "servicio": SolicitudContacto.Servicio.TOUR,
                         "tour": selected_tour,
                         "lugar_turistico": selected_tour.lugar_turistico,
-                        "destino": selected_tour.lugar_turistico.nombre,
+                        "destino": selected_tour.lugar_turistico.nombre_localizado,
                     }
                 )
         elif request.GET.get("lugar", "").isdigit():
@@ -123,17 +124,22 @@ def portal_publico(request):
                     {
                         "servicio": SolicitudContacto.Servicio.TOUR,
                         "lugar_turistico": selected_place,
-                        "destino": selected_place.nombre,
+                        "destino": selected_place.nombre_localizado,
                     }
                 )
     form = SolicitudContactoForm(request.POST or None, initial=initial)
+    english = (get_language() or "es").startswith("en")
     if request.method == "POST":
         rate_key = f"public-form:{_client_ip(request)}"
         attempts = cache.get(rate_key, 0)
         if attempts >= settings.PUBLIC_FORM_RATE_LIMIT:
             messages.error(
                 request,
-                "Has enviado varias solicitudes. Inténtalo de nuevo más tarde.",
+                (
+                    "You have submitted several requests. Please try again later."
+                    if english else
+                    "Has enviado varias solicitudes. Inténtalo de nuevo más tarde."
+                ),
             )
         elif form.is_valid():
             cache.set(rate_key, attempts + 1, settings.PUBLIC_FORM_RATE_WINDOW)
@@ -145,15 +151,24 @@ def portal_publico(request):
                 ).update(conversiones=F("conversiones") + 1)
             messages.success(
                 request,
-                f"¡Gracias, {solicitud.nombre}! Tu solicitud fue registrada. "
-                "Un asesor se pondrá en contacto contigo muy pronto.",
+                (
+                    f"Thank you, {solicitud.nombre}! Your request was received. "
+                    "An adviser will contact you shortly."
+                    if english else
+                    f"¡Gracias, {solicitud.nombre}! Tu solicitud fue registrada. "
+                    "Un asesor se pondrá en contacto contigo muy pronto."
+                ),
             )
             return redirect("core:portal-publico")
         else:
             cache.set(rate_key, attempts + 1, settings.PUBLIC_FORM_RATE_WINDOW)
             messages.error(
                 request,
-                "Revisa los datos del formulario e inténtalo nuevamente.",
+                (
+                    "Review the form and try again."
+                    if english else
+                    "Revisa los datos del formulario e inténtalo nuevamente."
+                ),
             )
 
     destinations = LugarTuristico.objects.filter(

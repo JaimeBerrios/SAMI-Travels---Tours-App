@@ -1,4 +1,6 @@
+from copy import copy
 from unicodedata import combining, normalize
+from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib import messages
@@ -15,13 +17,14 @@ from django.db import transaction
 from django.db.models import Count, Prefetch, Sum
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
+from django.utils.translation import override
 from django.views.decorators.http import require_POST
 
 from .decorators import (
@@ -46,6 +49,7 @@ from .forms import (
     get_user_role,
 )
 from core.models import SolicitudContacto
+from core.phone import whatsapp_digits
 
 from .models import (
     CampanaPromocional, Cotizacion, CotizacionDestino, Departamento, HistorialCotizacion,
@@ -505,6 +509,7 @@ def request_convert(request, request_id):
             asesor=adviser,
             cliente_nombre=solicitud.nombre,
             cliente_correo=solicitud.correo,
+            cliente_telefono=solicitud.telefono,
             tipo_cotizacion=type_mapping[solicitud.servicio],
             destino=solicitud.destino or (place.nombre if place else "Por definir"),
             lugar_turistico=place,
@@ -624,7 +629,7 @@ def quotation_create(request):
             datos={"tipo": quotation.tipo_cotizacion, "precio": str(quotation.precio_estimado)},
         )
         messages.success(request, "La cotización fue creada correctamente.")
-        return redirect("sami_admin:quotation-list")
+        return redirect(f"{reverse('sami_admin:quotation-list')}?clear_draft=create")
     return render(
         request,
         "sami_admin/cotizacion_form.html",
@@ -707,15 +712,25 @@ def tours_json(request):
         {
             "id": tour.pk,
             "nombre": tour.nombre_comercial,
+            "nombre_en": tour.nombre_comercial_en,
             "duracion": tour.duracion,
+            "duracion_en": tour.duracion_en,
             "punto_encuentro": tour.punto_encuentro,
+            "punto_encuentro_en": tour.punto_encuentro_en,
             "incluye": tour.incluye,
+            "incluye_en": tour.incluye_en,
             "no_incluye": tour.no_incluye,
+            "no_incluye_en": tour.no_incluye_en,
             "itinerario": tour.itinerario,
+            "itinerario_en": tour.itinerario_en,
             "recomendaciones": tour.recomendaciones,
+            "recomendaciones_en": tour.recomendaciones_en,
             "que_llevar": tour.que_llevar,
+            "que_llevar_en": tour.que_llevar_en,
             "restricciones": tour.restricciones,
+            "restricciones_en": tour.restricciones_en,
             "politica_cancelacion": tour.politica_cancelacion,
+            "politica_cancelacion_en": tour.politica_cancelacion_en,
             "precio_base": str(tour.precio_base),
         }
         for tour in tours
@@ -920,7 +935,7 @@ def quotation_update(request, quotation_id):
             datos={"tipo": quotation.tipo_cotizacion, "precio": str(quotation.precio_estimado)},
         )
         messages.success(request, "La cotización fue actualizada.")
-        return redirect("sami_admin:quotation-list")
+        return redirect(f"{reverse('sami_admin:quotation-list')}?clear_draft={quotation.pk}")
     return render(
         request,
         "sami_admin/cotizacion_form.html",
@@ -933,32 +948,34 @@ def quotation_update(request, quotation_id):
     )
 
 
+def _quotation_context(quotation, preview):
+    return {
+        "cotizacion": quotation,
+        "preview": preview,
+        "contact_email": settings.CONTACT_EMAIL,
+        "contact_phone": settings.CONTACT_PHONE,
+    }
+
+
+def _render_quotation(request, quotation, preview=False):
+    with override(getattr(quotation, "idioma_documento", "es") or "es"):
+        return render_to_string(
+            "sami_admin/cotizacion_documento.html",
+            _quotation_context(quotation, preview),
+            request=request,
+        )
+
+
 @staff_required
 def quotation_preview(request, quotation_id):
     quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
-    return render(
-        request,
-        "sami_admin/cotizacion_documento.html",
-        {
-            "cotizacion": quotation,
-            "preview": True,
-            "contact_email": settings.CONTACT_EMAIL,
-        },
-    )
+    return HttpResponse(_render_quotation(request, quotation, preview=True))
 
 
 @staff_required
 def quotation_pdf(request, quotation_id):
     quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
-    html = render_to_string(
-        "sami_admin/cotizacion_documento.html",
-        {
-            "cotizacion": quotation,
-            "preview": False,
-            "contact_email": settings.CONTACT_EMAIL,
-        },
-        request=request,
-    )
+    html = _render_quotation(request, quotation, preview=False)
     base_url = request.build_absolute_uri("/")
     pdf = generate_quotation_pdf(html, base_url=base_url)
     HistorialCotizacion.objects.create(
@@ -972,6 +989,64 @@ def quotation_pdf(request, quotation_id):
         f'attachment; filename="Cotizacion_SAMI_{quotation.pk}.pdf"'
     )
     return response
+
+
+@require_POST
+@staff_required
+def quotation_whatsapp(request, quotation_id):
+    quotation = get_object_or_404(quotations_for(request.user), pk=quotation_id)
+    phone = whatsapp_digits(quotation.cliente_telefono)
+    if not phone:
+        messages.error(request, "Agrega el teléfono del cliente antes de usar WhatsApp.")
+        return redirect("sami_admin:quotation-update", quotation_id=quotation.pk)
+    english = quotation.idioma_documento == Cotizacion.IdiomaDocumento.INGLES
+    message = (
+        f"Hello {quotation.cliente_nombre}, your SAMI Travels & Tours quotation #{quotation.pk} "
+        f"for {quotation.destino} is ready. Estimated total: USD ${quotation.precio_estimado:.2f}."
+        if english else
+        f"Hola {quotation.cliente_nombre}, tu cotización #{quotation.pk} de SAMI Travels & Tours "
+        f"para {quotation.destino} está lista. Total estimado: USD ${quotation.precio_estimado:.2f}."
+    )
+    HistorialCotizacion.objects.create(
+        cotizacion=quotation,
+        usuario=request.user,
+        accion="compartida_whatsapp",
+        estado=quotation.estado,
+        datos={"destinatario": quotation.cliente_telefono},
+    )
+    return HttpResponseRedirect(f"https://wa.me/{phone}?text={quote(message)}")
+
+
+@require_POST
+@staff_required
+def quotation_duplicate(request, quotation_id):
+    original = get_object_or_404(quotations_for(request.user), pk=quotation_id)
+    original_destinations = list(original.destinos.all())
+    duplicated = copy(original)
+    duplicated.pk = None
+    duplicated.id = None
+    duplicated._state.adding = True
+    duplicated.asesor = request.user
+    duplicated.estado = Cotizacion.Estado.PENDIENTE
+    duplicated.archivada = False
+    with transaction.atomic():
+        duplicated.save(force_insert=True)
+        for original_destination in original_destinations:
+            destination = copy(original_destination)
+            destination.pk = None
+            destination.id = None
+            destination._state.adding = True
+            destination.cotizacion = duplicated
+            destination.save(force_insert=True)
+        HistorialCotizacion.objects.create(
+            cotizacion=duplicated,
+            usuario=request.user,
+            accion="duplicada",
+            estado=duplicated.estado,
+            datos={"cotizacion_origen": original.pk},
+        )
+    messages.success(request, f"Cotización #{original.pk} duplicada.")
+    return redirect("sami_admin:quotation-update", quotation_id=duplicated.pk)
 
 
 @require_POST

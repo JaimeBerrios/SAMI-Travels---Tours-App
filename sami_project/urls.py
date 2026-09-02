@@ -21,6 +21,7 @@ def robots_txt(request):
 
 
 urlpatterns = [
+    path("i18n/", include("django.conf.urls.i18n")),
     path("robots.txt", robots_txt, name="robots-txt"),
     path(
         "sitemap.xml",

@@ -159,6 +159,41 @@ class BasicProductionViewsTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertIsNone(form.cleaned_data["fecha_regreso"])
 
+    def test_public_phone_is_saved_with_country_code(self):
+        form = SolicitudContactoForm(
+            data={
+                "nombre": "Cliente",
+                "correo": "cliente@example.com",
+                "telefono": "7055 1768",
+                "codigo_pais": "+503",
+                "servicio": "tour",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        solicitud = form.save(commit=False)
+        self.assertEqual(solicitud.telefono, "+503 7055 1768")
+
+    def test_public_portal_uses_current_contact_details(self):
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, "samitravelstours@gmail.com")
+        self.assertContains(response, "+503 7055 1768")
+        self.assertContains(response, "https://wa.me/50370551768")
+        self.assertContains(response, 'name="codigo_pais"')
+
+    def test_language_selector_renders_english_navigation_and_form(self):
+        self.client.post(
+            reverse("set_language"),
+            {"language": "en", "next": reverse("core:portal-publico")},
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, ">Home</a>")
+        self.assertContains(response, "Full name")
+        self.assertContains(response, "Request a personalized proposal")
+
     def test_removed_san_miguel_landing_returns_not_found(self):
         response = self.client.get("/agencia-de-viajes-san-miguel/")
 

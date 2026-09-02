@@ -13,6 +13,7 @@ from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
 from django.utils import timezone
+from django.utils.translation import override
 from PIL import Image
 
 from core.models import SolicitudContacto
@@ -23,7 +24,7 @@ from .forms import (
     StaffUserCreationForm,
 )
 from .models import (
-    AEROLINEAS_CHOICES, CampanaPromocional, Cotizacion, Departamento, HistorialCotizacion,
+    AEROLINEAS_CHOICES, CampanaPromocional, Cotizacion, CotizacionDestino, Departamento, HistorialCotizacion,
     LugarTuristico, Pais, Tour,
 )
 from .views import (
@@ -900,6 +901,110 @@ class CotizacionModelTests(TestCase):
             reversed_range_form.errors["fecha_vuelta"],
         )
 
+    def test_oneway_flight_accepts_one_date_and_ignores_empty_tour_row(self):
+        today = timezone.localdate()
+        form = CotizacionForm(
+            data={
+                "cliente_nombre": "Ana Pérez",
+                "cliente_correo": "ana@example.com",
+                "tipo_cotizacion": Cotizacion.TipoCotizacion.VUELOS,
+                "destino": "(MIA) Miami, Estados Unidos",
+                "ruta_vuelo": "(SAL) San Salvador → (MIA) Miami",
+                "cantidad_adultos": "1",
+                "cantidad_ninos": "0",
+                "tipo_trayecto": CotizacionForm.TRIP_ONEWAY,
+                "fecha_ida": today.isoformat(),
+                "fecha_vuelta": (today + timedelta(days=5)).isoformat(),
+                "destinos_json": '[{"lugar":"","fecha":""}]',
+                "precio_estimado": "500.00",
+                "estado": Cotizacion.Estado.PENDIENTE,
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.cleaned_data["fecha_vuelta"])
+        self.assertEqual(form.cleaned_data["destinos"], [])
+
+    def test_tour_detail_fields_and_children_ages_are_optional(self):
+        pais = Pais.objects.create(nombre="Honduras")
+        departamento = Departamento.objects.create(pais=pais, nombre="Islas de la Bahía")
+        lugar = LugarTuristico.objects.create(
+            departamento=departamento,
+            nombre="Roatán",
+            descripcion_historica="Destino de playa.",
+        )
+        form = CotizacionForm(
+            data={
+                "cliente_nombre": "Ana Pérez",
+                "cliente_correo": "ana@example.com",
+                "tipo_cotizacion": Cotizacion.TipoCotizacion.TOURS,
+                "destino": "Roatán",
+                "pais": pais.pk,
+                "departamento": departamento.pk,
+                "lugar_turistico": lugar.pk,
+                "precio_estimado": "300.00",
+                "estado": Cotizacion.Estado.PENDIENTE,
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        for field_name in (
+            "duracion_tour", "punto_encuentro", "incluye", "no_incluye",
+            "itinerario_resumido", "recomendaciones_tour", "que_llevar_tour",
+            "restricciones_tour", "politica_cancelacion", "notas_tour",
+            "edades_ninos",
+        ):
+            self.assertFalse(form.fields[field_name].required)
+
+    def test_english_tour_quote_uses_english_catalog_snapshot(self):
+        adviser = get_user_model().objects.create_user(username="english-adviser")
+        country = Pais.objects.create(nombre="El Salvador")
+        department = Departamento.objects.create(pais=country, nombre="La Libertad")
+        place = LugarTuristico.objects.create(
+            departamento=department,
+            nombre="El Tunco",
+            nombre_en="El Tunco Beach",
+            descripcion_historica="Destino costero.",
+            descripcion_historica_en="Coastal destination.",
+        )
+        tour = Tour.objects.create(
+            lugar_turistico=place,
+            nombre_comercial="Aventura costera",
+            nombre_comercial_en="Coastal adventure",
+            duracion="1 día",
+            duracion_en="1 day",
+            incluye="Guía",
+            incluye_en="Guide",
+            itinerario="Recorrido por la playa",
+            itinerario_en="Beach tour",
+            precio_base=120,
+        )
+        form = CotizacionForm(data={
+            "cliente_nombre": "John Smith",
+            "cliente_correo": "john@example.com",
+            "idioma_documento": Cotizacion.IdiomaDocumento.INGLES,
+            "tipo_cotizacion": Cotizacion.TipoCotizacion.TOURS,
+            "destino": "El Tunco",
+            "pais": country.pk,
+            "departamento": department.pk,
+            "lugar_turistico": place.pk,
+            "tour": tour.pk,
+            "precio_estimado": "120.00",
+            "estado": Cotizacion.Estado.PENDIENTE,
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
+        quotation = form.save(commit=False)
+        quotation.asesor = adviser
+        quotation.save()
+        form.save_destinations(quotation)
+        destination = quotation.destinos.get()
+
+        self.assertEqual(quotation.destino, "El Tunco Beach")
+        self.assertEqual(quotation.nombre_tour_cotizado, "Coastal adventure")
+        self.assertEqual(destination.incluye, "Guide")
+        self.assertEqual(destination.itinerario, "Beach tour")
+
 
 class DestinationCatalogTests(TestCase):
     def setUp(self):
@@ -1127,8 +1232,92 @@ class QuotationAuditTests(TestCase):
             ).exists()
         )
 
+    def test_duplicate_quotation_copies_destinations_as_pending(self):
+        pais = Pais.objects.create(nombre="El Salvador")
+        departamento = Departamento.objects.create(pais=pais, nombre="La Libertad")
+        lugar = LugarTuristico.objects.create(
+            departamento=departamento,
+            nombre="El Tunco",
+            descripcion_historica="Playa.",
+        )
+        quotation = Cotizacion.objects.create(
+            asesor=self.user,
+            cliente_nombre="Cliente",
+            cliente_correo="cliente@example.com",
+            cliente_telefono="+503 7055 1768",
+            destino="El Tunco",
+            precio_estimado=250,
+            estado=Cotizacion.Estado.APROBADA,
+        )
+        CotizacionDestino.objects.create(
+            cotizacion=quotation,
+            lugar_turistico=lugar,
+            fecha_visita=timezone.localdate(),
+            nombre_destino="El Tunco",
+        )
+
+        response = self.client.post(
+            reverse("sami_admin:quotation-duplicate", args=[quotation.pk])
+        )
+
+        duplicated = Cotizacion.objects.exclude(pk=quotation.pk).get()
+        self.assertRedirects(
+            response,
+            reverse("sami_admin:quotation-update", args=[duplicated.pk]),
+        )
+        self.assertEqual(duplicated.estado, Cotizacion.Estado.PENDIENTE)
+        self.assertEqual(duplicated.destinos.count(), 1)
+
+    def test_whatsapp_action_uses_customer_phone_and_document_language(self):
+        quotation = Cotizacion.objects.create(
+            asesor=self.user,
+            cliente_nombre="John",
+            cliente_correo="john@example.com",
+            cliente_telefono="+1 3055551212",
+            idioma_documento=Cotizacion.IdiomaDocumento.INGLES,
+            destino="Miami",
+            precio_estimado=500,
+        )
+
+        response = self.client.post(
+            reverse("sami_admin:quotation-whatsapp", args=[quotation.pk])
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].startswith("https://wa.me/13055551212"))
+        self.assertIn("is%20ready", response["Location"])
 
 class QuotationPdfTests(SimpleTestCase):
+    def test_english_document_translates_labels(self):
+        quotation = SimpleNamespace(
+            id=52,
+            cliente_nombre="John Smith",
+            cliente_correo="john@example.com",
+            cliente_telefono="+1 305 555 1212",
+            idioma_documento=Cotizacion.IdiomaDocumento.INGLES,
+            tipo_cotizacion=Cotizacion.TipoCotizacion.VUELOS,
+            destino="Miami",
+            nombre_destino_documento="Miami",
+            fecha_creacion=None,
+            precio_estimado=900,
+            asesor=SimpleNamespace(get_full_name=lambda: "SAMI Adviser"),
+        )
+
+        with override("en"):
+            html = get_template("sami_admin/cotizacion_documento.html").render(
+                {
+                    "cotizacion": quotation,
+                    "preview": False,
+                    "contact_email": "samitravelstours@gmail.com",
+                    "contact_phone": "+503 7055 1768",
+                }
+            )
+
+        self.assertIn("Personalized proposal", html)
+        self.assertIn("Estimated total", html)
+        self.assertIn("Customer details", html)
+        self.assertNotIn("Propuesta personalizada", html)
+
     def test_tour_document_renders_destination_experience(self):
         quotation = SimpleNamespace(
             id=31,

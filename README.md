@@ -250,6 +250,12 @@ destino y de los detalles comerciales editados. Los cambios posteriores del
 catálogo no alteran el documento ya cotizado. Las cotizaciones se archivan en
 lugar de borrarse y mantienen historial de creación, edición, PDF y archivo.
 
+El portal permite alternar entre español e inglés. Los lugares turísticos y
+tours disponen de campos editoriales en ambos idiomas, y cada cotización define
+el idioma que se utilizará en su vista previa, PDF y mensaje de WhatsApp. El
+panel también permite duplicar cotizaciones y guarda borradores
+automáticos en el navegador mientras se completa el formulario.
+
 ## Variables de entorno
 
 La configuración actual reconoce estas variables:
@@ -263,7 +269,8 @@ La configuración actual reconoce estas variables:
 | `MYSQL_PASSWORD` | Contraseña del usuario de MySQL. | Vacío |
 | `MYSQL_HOST` | Host o nombre del contenedor MySQL. | `mysql_server` |
 | `MYSQL_PORT` | Puerto de MySQL. | `3306` |
-| `CONTACT_EMAIL` | Correo mostrado en la política de privacidad. | `contacto@samitravelstours.com` |
+| `CONTACT_EMAIL` | Correo de contacto mostrado en el sitio y las cotizaciones. | `samitravelstours@gmail.com` |
+| `CONTACT_PHONE` | Teléfono de contacto mostrado en las cotizaciones. | `+503 7055 1768` |
 | `DJANGO_SECURE_SSL_REDIRECT` | Redirige las solicitudes de Django hacia HTTPS. | `False` |
 | `DJANGO_SECURE_HSTS_SECONDS` | Duración de HSTS; `0` lo desactiva. | `0` |
 | `PUBLIC_FORM_RATE_LIMIT` | Solicitudes públicas permitidas por IP y ventana. | `5` |

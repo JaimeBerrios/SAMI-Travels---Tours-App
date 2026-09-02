@@ -13,6 +13,11 @@ from django.utils import timezone
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from core.models import SolicitudContacto
+from core.phone import (
+    COUNTRY_CODES,
+    normalize_international_phone,
+    split_international_phone,
+)
 
 from .models import (
     CampanaPromocional, Cotizacion, CotizacionDestino, Departamento,
@@ -418,7 +423,25 @@ class StaffUserUpdateForm(StaffUserFieldsMixin, forms.ModelForm):
 
 
 class CotizacionForm(forms.ModelForm):
+    TRIP_ROUNDTRIP = "roundtrip"
+    TRIP_ONEWAY = "oneway"
+
     destinos_json = forms.CharField(required=False, widget=forms.HiddenInput())
+    cliente_codigo_pais = forms.CharField(
+        label="Código de país",
+        initial="+503",
+        required=False,
+        max_length=5,
+    )
+    tipo_trayecto = forms.ChoiceField(
+        label="Tipo de trayecto",
+        choices=(
+            (TRIP_ROUNDTRIP, "Ida y vuelta"),
+            (TRIP_ONEWAY, "Solo ida"),
+        ),
+        initial=TRIP_ROUNDTRIP,
+        required=False,
+    )
     pais = forms.ModelChoiceField(
         label="País",
         queryset=Pais.objects.all(),
@@ -459,6 +482,9 @@ class CotizacionForm(forms.ModelForm):
         fields = (
             "cliente_nombre",
             "cliente_correo",
+            "cliente_codigo_pais",
+            "cliente_telefono",
+            "idioma_documento",
             "tipo_cotizacion",
             "destino",
             "pais",
@@ -481,6 +507,7 @@ class CotizacionForm(forms.ModelForm):
             "ruta_vuelo",
             "cantidad_adultos",
             "cantidad_ninos",
+            "tipo_trayecto",
             "fecha_ida",
             "hora_salida_ida",
             "hora_llegada_ida",
@@ -498,6 +525,8 @@ class CotizacionForm(forms.ModelForm):
         labels = {
             "cliente_nombre": "Nombre del cliente",
             "cliente_correo": "Correo del cliente",
+            "cliente_telefono": "Teléfono / WhatsApp del cliente",
+            "idioma_documento": "Idioma de la cotización",
             "tipo_cotizacion": "Tipo de cotización",
             "lugar_turistico": "Lugar turístico",
             "duracion_tour": "Duración del tour",
@@ -513,6 +542,7 @@ class CotizacionForm(forms.ModelForm):
             "edades_ninos": "Edades de los niños",
             "ruta_vuelo": "Ruta del vuelo",
             "cantidad_ninos": "Cantidad de niños",
+            "tipo_trayecto": "Tipo de trayecto",
             "escala_ida": "Escala de ida",
             "escala_vuelta": "Escala de vuelta",
             "aerolinea": "Aerolínea (uso interno)",
@@ -530,6 +560,9 @@ class CotizacionForm(forms.ModelForm):
             "cliente_nombre": forms.TextInput(attrs={"placeholder": "Nombre completo"}),
             "cliente_correo": forms.EmailInput(
                 attrs={"placeholder": "cliente@correo.com"}
+            ),
+            "cliente_telefono": forms.TextInput(
+                attrs={"placeholder": "7055 1768", "inputmode": "tel"}
             ),
             "destino": forms.TextInput(attrs={"placeholder": "Destino del viaje"}),
             "duracion_tour": forms.TextInput(
@@ -574,9 +607,43 @@ class CotizacionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.country_codes = COUNTRY_CODES
+        self.fields["idioma_documento"].required = False
+        if not self.is_bound:
+            code, number = split_international_phone(
+                getattr(self.instance, "cliente_telefono", "")
+            )
+            self.fields["cliente_codigo_pais"].initial = code
+            self.fields["cliente_telefono"].initial = number
         minimum_flight_date = timezone.localdate().isoformat()
         self.fields["fecha_ida"].widget.attrs["min"] = minimum_flight_date
         self.fields["fecha_vuelta"].widget.attrs["min"] = minimum_flight_date
+        if (
+            self.instance
+            and self.instance.pk
+            and self.instance.fecha_ida
+            and not self.instance.fecha_vuelta
+            and not self.is_bound
+        ):
+            self.fields["tipo_trayecto"].initial = self.TRIP_ONEWAY
+        for field_name in (
+            "hora_salida_ida",
+            "hora_llegada_ida",
+            "hora_salida_vuelta",
+            "hora_llegada_vuelta",
+            "duracion_tour",
+            "punto_encuentro",
+            "incluye",
+            "no_incluye",
+            "itinerario_resumido",
+            "recomendaciones_tour",
+            "que_llevar_tour",
+            "restricciones_tour",
+            "politica_cancelacion",
+            "notas_tour",
+            "edades_ninos",
+        ):
+            self.fields[field_name].required = False
         self.fields["destino"].widget.attrs["list"] = "airport-fallback-options"
         self._original_lugar_id = self.instance.lugar_turistico_id
         self._original_tour_id = self.instance.tour_id
@@ -655,6 +722,16 @@ class CotizacionForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        try:
+            cleaned_data["cliente_telefono"] = normalize_international_phone(
+                cleaned_data.get("cliente_codigo_pais"),
+                cleaned_data.get("cliente_telefono"),
+            )
+        except ValueError as exc:
+            if str(exc) == "invalid_country_code":
+                self.add_error("cliente_codigo_pais", "Selecciona un código de país válido.")
+            else:
+                self.add_error("cliente_telefono", "Ingresa un número telefónico internacional válido.")
         lugar = cleaned_data.get("lugar_turistico")
         departamento = cleaned_data.get("departamento")
         tour = cleaned_data.get("tour")
@@ -663,6 +740,16 @@ class CotizacionForm(forms.ModelForm):
         if tour and lugar and tour.lugar_turistico_id != lugar.pk:
             self.add_error("tour", "El tour no pertenece al lugar seleccionado.")
         tipo = cleaned_data.get("tipo_cotizacion")
+        document_language = cleaned_data.get("idioma_documento") or "es"
+        cleaned_data["idioma_documento"] = document_language
+        includes_tour = tipo in (
+            Cotizacion.TipoCotizacion.TOURS,
+            Cotizacion.TipoCotizacion.VUELOS_TOURS,
+        )
+        includes_flight = tipo in (
+            Cotizacion.TipoCotizacion.VUELOS,
+            Cotizacion.TipoCotizacion.VUELOS_TOURS,
+        )
         legacy_lugar = cleaned_data.get("lugar_turistico")
         legacy_tour = cleaned_data.get("tour")
         destinos = []
@@ -674,7 +761,7 @@ class CotizacionForm(forms.ModelForm):
         except (TypeError, ValueError, json.JSONDecodeError):
             self.add_error("destinos_json", "El itinerario de destinos no es válido.")
             parsed_destinos = []
-        for index, item in enumerate(parsed_destinos):
+        for index, item in enumerate(parsed_destinos if includes_tour else []):
             if not isinstance(item, dict):
                 self.add_error("destinos_json", f"La parada {index + 1} no es válida.")
                 continue
@@ -718,15 +805,15 @@ class CotizacionForm(forms.ModelForm):
                 "fecha": fecha_visita,
                 "precio": precio,
                 "notas": str(item.get("notas", ""))[:2000],
-                "duracion": str(item.get("duracion") or (tour.duracion if tour else "") or cleaned_data.get("duracion_tour") or ""),
-                "punto_encuentro": str(item.get("punto_encuentro") or (tour.punto_encuentro if tour else "") or cleaned_data.get("punto_encuentro") or ""),
-                "incluye": str(item.get("incluye") or (tour.incluye if tour else "") or cleaned_data.get("incluye") or ""),
-                "no_incluye": str(item.get("no_incluye") or (tour.no_incluye if tour else "") or cleaned_data.get("no_incluye") or ""),
-                "itinerario": str(item.get("itinerario") or (tour.itinerario if tour else "") or cleaned_data.get("itinerario_resumido") or ""),
-                "recomendaciones": str(item.get("recomendaciones") or (tour.recomendaciones if tour else "") or cleaned_data.get("recomendaciones_tour") or ""),
-                "que_llevar": str(item.get("que_llevar") or (tour.que_llevar if tour else "") or cleaned_data.get("que_llevar_tour") or ""),
-                "restricciones": str(item.get("restricciones") or (tour.restricciones if tour else "") or cleaned_data.get("restricciones_tour") or ""),
-                "politica_cancelacion": str(item.get("politica_cancelacion") or (tour.politica_cancelacion if tour else "") or cleaned_data.get("politica_cancelacion") or ""),
+                "duracion": str(item.get("duracion") or (tour.translated("duracion", document_language) if tour else "") or cleaned_data.get("duracion_tour") or ""),
+                "punto_encuentro": str(item.get("punto_encuentro") or (tour.translated("punto_encuentro", document_language) if tour else "") or cleaned_data.get("punto_encuentro") or ""),
+                "incluye": str(item.get("incluye") or (tour.translated("incluye", document_language) if tour else "") or cleaned_data.get("incluye") or ""),
+                "no_incluye": str(item.get("no_incluye") or (tour.translated("no_incluye", document_language) if tour else "") or cleaned_data.get("no_incluye") or ""),
+                "itinerario": str(item.get("itinerario") or (tour.translated("itinerario", document_language) if tour else "") or cleaned_data.get("itinerario_resumido") or ""),
+                "recomendaciones": str(item.get("recomendaciones") or (tour.translated("recomendaciones", document_language) if tour else "") or cleaned_data.get("recomendaciones_tour") or ""),
+                "que_llevar": str(item.get("que_llevar") or (tour.translated("que_llevar", document_language) if tour else "") or cleaned_data.get("que_llevar_tour") or ""),
+                "restricciones": str(item.get("restricciones") or (tour.translated("restricciones", document_language) if tour else "") or cleaned_data.get("restricciones_tour") or ""),
+                "politica_cancelacion": str(item.get("politica_cancelacion") or (tour.translated("politica_cancelacion", document_language) if tour else "") or cleaned_data.get("politica_cancelacion") or ""),
             })
         # Compatibilidad con cotizaciones de tour creadas antes del itinerario
         # múltiple: si el formulario legado trae un lugar, se convierte en una
@@ -741,15 +828,15 @@ class CotizacionForm(forms.ModelForm):
                 "fecha": date.today(),
                 "precio": None,
                 "notas": str(cleaned_data.get("notas_tour") or "")[:2000],
-                "duracion": str(cleaned_data.get("duracion_tour") or ""),
-                "punto_encuentro": str(cleaned_data.get("punto_encuentro") or ""),
-                "incluye": str(cleaned_data.get("incluye") or ""),
-                "no_incluye": str(cleaned_data.get("no_incluye") or ""),
-                "itinerario": str(cleaned_data.get("itinerario_resumido") or ""),
-                "recomendaciones": str(cleaned_data.get("recomendaciones_tour") or ""),
-                "que_llevar": str(cleaned_data.get("que_llevar_tour") or ""),
-                "restricciones": str(cleaned_data.get("restricciones_tour") or ""),
-                "politica_cancelacion": str(cleaned_data.get("politica_cancelacion") or ""),
+                "duracion": str(cleaned_data.get("duracion_tour") or (legacy_tour.translated("duracion", document_language) if legacy_tour else "")),
+                "punto_encuentro": str(cleaned_data.get("punto_encuentro") or (legacy_tour.translated("punto_encuentro", document_language) if legacy_tour else "")),
+                "incluye": str(cleaned_data.get("incluye") or (legacy_tour.translated("incluye", document_language) if legacy_tour else "")),
+                "no_incluye": str(cleaned_data.get("no_incluye") or (legacy_tour.translated("no_incluye", document_language) if legacy_tour else "")),
+                "itinerario": str(cleaned_data.get("itinerario_resumido") or (legacy_tour.translated("itinerario", document_language) if legacy_tour else "")),
+                "recomendaciones": str(cleaned_data.get("recomendaciones_tour") or (legacy_tour.translated("recomendaciones", document_language) if legacy_tour else "")),
+                "que_llevar": str(cleaned_data.get("que_llevar_tour") or (legacy_tour.translated("que_llevar", document_language) if legacy_tour else "")),
+                "restricciones": str(cleaned_data.get("restricciones_tour") or (legacy_tour.translated("restricciones", document_language) if legacy_tour else "")),
+                "politica_cancelacion": str(cleaned_data.get("politica_cancelacion") or (legacy_tour.translated("politica_cancelacion", document_language) if legacy_tour else "")),
             })
         cleaned_data["destinos"] = destinos
         if destinos:
@@ -769,25 +856,17 @@ class CotizacionForm(forms.ModelForm):
             }.items():
                 if not cleaned_data.get(field_name):
                     cleaned_data[field_name] = first_destination[destination_key]
-        includes_tour = tipo in (
-            Cotizacion.TipoCotizacion.TOURS,
-            Cotizacion.TipoCotizacion.VUELOS_TOURS,
-        )
-        includes_flight = tipo in (
-            Cotizacion.TipoCotizacion.VUELOS,
-            Cotizacion.TipoCotizacion.VUELOS_TOURS,
-        )
         if tour:
             defaults = {
-                "duracion_tour": tour.duracion,
-                "punto_encuentro": tour.punto_encuentro,
-                "incluye": tour.incluye,
-                "no_incluye": tour.no_incluye,
-                "itinerario_resumido": tour.itinerario,
-                "recomendaciones_tour": tour.recomendaciones,
-                "que_llevar_tour": tour.que_llevar,
-                "restricciones_tour": tour.restricciones,
-                "politica_cancelacion": tour.politica_cancelacion,
+                "duracion_tour": tour.translated("duracion", document_language),
+                "punto_encuentro": tour.translated("punto_encuentro", document_language),
+                "incluye": tour.translated("incluye", document_language),
+                "no_incluye": tour.translated("no_incluye", document_language),
+                "itinerario_resumido": tour.translated("itinerario", document_language),
+                "recomendaciones_tour": tour.translated("recomendaciones", document_language),
+                "que_llevar_tour": tour.translated("que_llevar", document_language),
+                "restricciones_tour": tour.translated("restricciones", document_language),
+                "politica_cancelacion": tour.translated("politica_cancelacion", document_language),
             }
             for name, value in defaults.items():
                 if name not in self.data:
@@ -795,9 +874,6 @@ class CotizacionForm(forms.ModelForm):
         if includes_tour:
             required_tour_fields = {
                 "lugar_turistico": "Selecciona un lugar turístico para la propuesta.",
-                "duracion_tour": "Indica la duración del tour.",
-                "incluye": "Detalla qué incluye el tour.",
-                "itinerario_resumido": "Agrega el itinerario resumido.",
             }
             for name, message in required_tour_fields.items():
                 if name == "lugar_turistico" and destinos:
@@ -816,6 +892,14 @@ class CotizacionForm(forms.ModelForm):
                 cleaned_data[name] = None
             cleaned_data["destinos"] = []
         if includes_flight:
+            if cleaned_data.get("tipo_trayecto") == self.TRIP_ONEWAY:
+                for field_name in (
+                    "fecha_vuelta",
+                    "hora_salida_vuelta",
+                    "hora_llegada_vuelta",
+                    "escala_vuelta",
+                ):
+                    cleaned_data[field_name] = None
             for name, message in {
                 "ruta_vuelo": "Indica la ruta del vuelo.",
                 "cantidad_adultos": "Indica la cantidad de adultos.",
@@ -846,20 +930,21 @@ class CotizacionForm(forms.ModelForm):
 
     def save(self, commit=True):
         quotation = super().save(commit=False)
+        document_language = self.cleaned_data.get("idioma_documento") or "es"
         lugar = self.cleaned_data.get("lugar_turistico")
         if lugar:
-            quotation.destino = lugar.nombre
+            quotation.destino = lugar.translated("nombre", document_language)
             if not quotation.pk or lugar.pk != self._original_lugar_id:
-                quotation.nombre_destino_cotizado = lugar.nombre
+                quotation.nombre_destino_cotizado = lugar.translated("nombre", document_language)
                 quotation.ubicacion_destino_cotizada = (
                     f"{lugar.departamento.nombre}, {lugar.departamento.pais.nombre}"
                 )
-                quotation.descripcion_historica_cotizada = lugar.descripcion_historica
+                quotation.descripcion_historica_cotizada = lugar.translated("descripcion_historica", document_language)
                 quotation.imagen_destino_cotizada = lugar.imagen.name if lugar.imagen else ""
             selected_tour = self.cleaned_data.get("tour")
             if not quotation.pk or getattr(selected_tour, "pk", None) != self._original_tour_id:
                 quotation.nombre_tour_cotizado = (
-                    selected_tour.nombre_comercial if selected_tour else ""
+                    selected_tour.translated("nombre_comercial", document_language) if selected_tour else ""
                 )
         else:
             quotation.nombre_destino_cotizado = ""
@@ -886,11 +971,11 @@ class CotizacionForm(forms.ModelForm):
                 orden=order,
                 precio_manual=item["precio"],
                 notas=item["notas"],
-                nombre_destino=lugar.nombre,
+                nombre_destino=lugar.translated("nombre", quotation.idioma_documento),
                 ubicacion_destino=f"{lugar.departamento.nombre}, {lugar.departamento.pais.nombre}",
-                descripcion_historica=lugar.descripcion_historica,
+                descripcion_historica=lugar.translated("descripcion_historica", quotation.idioma_documento),
                 imagen_destino=lugar.imagen.name if lugar.imagen else "",
-                nombre_tour=tour.nombre_comercial if tour else "",
+                nombre_tour=tour.translated("nombre_comercial", quotation.idioma_documento) if tour else "",
                 duracion_tour=item["duracion"],
                 punto_encuentro=item["punto_encuentro"],
                 incluye=item["incluye"],
@@ -905,14 +990,14 @@ class CotizacionForm(forms.ModelForm):
         if first:
             quotation.lugar_turistico = first["lugar"]
             quotation.tour = first["tour"]
-            quotation.destino = first["lugar"].nombre
-            quotation.nombre_destino_cotizado = first["lugar"].nombre
+            quotation.destino = first["lugar"].translated("nombre", quotation.idioma_documento)
+            quotation.nombre_destino_cotizado = first["lugar"].translated("nombre", quotation.idioma_documento)
             quotation.ubicacion_destino_cotizada = (
                 f"{first['lugar'].departamento.nombre}, {first['lugar'].departamento.pais.nombre}"
             )
-            quotation.descripcion_historica_cotizada = first["lugar"].descripcion_historica
+            quotation.descripcion_historica_cotizada = first["lugar"].translated("descripcion_historica", quotation.idioma_documento)
             quotation.imagen_destino_cotizada = first["lugar"].imagen.name if first["lugar"].imagen else ""
-            quotation.nombre_tour_cotizado = first["tour"].nombre_comercial if first["tour"] else ""
+            quotation.nombre_tour_cotizado = first["tour"].translated("nombre_comercial", quotation.idioma_documento) if first["tour"] else ""
             quotation.duracion_tour = first["duracion"]
             quotation.punto_encuentro = first["punto_encuentro"]
             quotation.incluye = first["incluye"]
@@ -972,15 +1057,21 @@ class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
     class Meta:
         model = LugarTuristico
         fields = (
-            "departamento", "nombre", "imagen", "resumen_publico",
-            "descripcion_historica", "mejor_epoca", "duracion_recomendada",
-            "aeropuerto_principal", "actividades_destacadas", "requisitos_viaje",
+            "departamento", "nombre", "nombre_en", "imagen", "resumen_publico",
+            "resumen_publico_en", "descripcion_historica", "descripcion_historica_en",
+            "mejor_epoca", "mejor_epoca_en", "duracion_recomendada",
+            "duracion_recomendada_en", "aeropuerto_principal",
+            "actividades_destacadas", "actividades_destacadas_en",
+            "requisitos_viaje", "requisitos_viaje_en",
             "destacado", "activo",
         )
         widgets = {
             "descripcion_historica": forms.Textarea(attrs={"rows": 7}),
+            "descripcion_historica_en": forms.Textarea(attrs={"rows": 7}),
             "actividades_destacadas": forms.Textarea(attrs={"rows": 5}),
+            "actividades_destacadas_en": forms.Textarea(attrs={"rows": 5}),
             "requisitos_viaje": forms.Textarea(attrs={"rows": 5}),
+            "requisitos_viaje_en": forms.Textarea(attrs={"rows": 5}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1029,16 +1120,21 @@ class TourForm(CatalogFormMixin, forms.ModelForm):
     class Meta:
         model = Tour
         fields = (
-            "lugar_turistico", "nombre_comercial", "duracion", "punto_encuentro",
-            "incluye", "no_incluye", "itinerario", "recomendaciones", "que_llevar",
-            "restricciones", "politica_cancelacion", "precio_base", "destacado",
+            "lugar_turistico", "nombre_comercial", "nombre_comercial_en",
+            "duracion", "duracion_en", "punto_encuentro", "punto_encuentro_en",
+            "incluye", "incluye_en", "no_incluye", "no_incluye_en",
+            "itinerario", "itinerario_en", "recomendaciones", "recomendaciones_en",
+            "que_llevar", "que_llevar_en", "restricciones", "restricciones_en",
+            "politica_cancelacion", "politica_cancelacion_en", "precio_base", "destacado",
             "en_promocion", "activo",
         )
         widgets = {
             name: forms.Textarea(attrs={"rows": 4})
             for name in (
-                "incluye", "no_incluye", "itinerario", "recomendaciones",
-                "que_llevar", "restricciones", "politica_cancelacion",
+                "incluye", "incluye_en", "no_incluye", "no_incluye_en",
+                "itinerario", "itinerario_en", "recomendaciones", "recomendaciones_en",
+                "que_llevar", "que_llevar_en", "restricciones", "restricciones_en",
+                "politica_cancelacion", "politica_cancelacion_en",
             )
         }
 

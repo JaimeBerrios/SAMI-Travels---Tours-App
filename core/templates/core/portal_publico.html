@@ -1,10 +1,11 @@
 {% extends "core/base.html" %}
-{% block title %}Agencia de viajes en El Salvador | SAMI Travels & Tours{% endblock %}
-{% block meta_description %}Agencia de viajes en El Salvador con asesoría para vuelos, tours y paquetes turísticos. Cotiza una experiencia personalizada con SAMI Travels & Tours.{% endblock %}
-{% block social_title %}Agencia de viajes en El Salvador | SAMI Travels & Tours{% endblock %}
-{% block social_description %}Cotiza vuelos, tours y paquetes turísticos con asesoría personalizada desde El Salvador.{% endblock %}
-{% block twitter_title %}Agencia de viajes en El Salvador | SAMI Travels & Tours{% endblock %}
-{% block twitter_description %}Cotiza vuelos, tours y paquetes turísticos con asesoría personalizada desde El Salvador.{% endblock %}
+{% load sami_i18n %}
+{% block title %}{% bilingual "Agencia de viajes en El Salvador" "Travel agency in El Salvador" %} | SAMI Travels & Tours{% endblock %}
+{% block meta_description %}{% bilingual "Agencia de viajes en El Salvador con asesoría para vuelos, tours y paquetes turísticos. Cotiza una experiencia personalizada con SAMI Travels & Tours." "Travel agency in El Salvador offering personalized flights, tours, and vacation packages. Request a tailored proposal from SAMI Travels & Tours." %}{% endblock %}
+{% block social_title %}{% bilingual "Agencia de viajes en El Salvador" "Travel agency in El Salvador" %} | SAMI Travels & Tours{% endblock %}
+{% block social_description %}{% bilingual "Cotiza vuelos, tours y paquetes turísticos con asesoría personalizada desde El Salvador." "Request flights, tours, and vacation packages with personalized assistance from El Salvador." %}{% endblock %}
+{% block twitter_title %}{% bilingual "Agencia de viajes en El Salvador" "Travel agency in El Salvador" %} | SAMI Travels & Tours{% endblock %}
+{% block twitter_description %}{% bilingual "Cotiza vuelos, tours y paquetes turísticos con asesoría personalizada desde El Salvador." "Request flights, tours, and vacation packages with personalized assistance from El Salvador." %}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 <style>
@@ -113,20 +114,20 @@
     {% endif %}
     <div class="mx-auto grid min-h-[70vh] max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-28">
         <div>
-            <span class="inline-flex rounded-full bg-brand-red px-4 py-2 text-xs font-extrabold uppercase tracking-[.2em] text-white">{% if campaign %}{{ campaign.etiqueta }}{% else %}Explora · Descubre · Disfruta{% endif %}</span>
-            <h1 class="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">{% if campaign %}{{ campaign.titulo }}{% else %}Tu agencia de viajes en El Salvador para descubrir el mundo{% endif %}</h1>
-            <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-200">{% if campaign %}{{ campaign.descripcion }}{% else %}Encontramos vuelos, tours y experiencias diseñadas para ti, con acompañamiento antes, durante y después de tu viaje.{% endif %}</p>
+            <span class="inline-flex rounded-full bg-brand-red px-4 py-2 text-xs font-extrabold uppercase tracking-[.2em] text-white">{% if campaign %}{{ campaign.etiqueta }}{% else %}{% bilingual "Explora · Descubre · Disfruta" "Explore · Discover · Enjoy" %}{% endif %}</span>
+            <h1 class="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">{% if campaign %}{{ campaign.titulo }}{% else %}{% bilingual "Tu agencia de viajes en El Salvador para descubrir el mundo" "Your travel agency in El Salvador for discovering the world" %}{% endif %}</h1>
+            <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-200">{% if campaign %}{{ campaign.descripcion }}{% else %}{% bilingual "Encontramos vuelos, tours y experiencias diseñadas para ti, con acompañamiento antes, durante y después de tu viaje." "We find flights, tours, and experiences designed for you, with support before, during, and after your trip." %}{% endif %}</p>
             <div class="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a href="{% if campaign %}{{ campaign_url|default:'#cotizar' }}{% else %}#cotizar{% endif %}" class="rounded-xl bg-brand-red px-6 py-3.5 text-center font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:ring-4 focus:ring-white/30"{% if campaign.tipo_enlace == 'personalizado' and campaign.url_personalizada %} target="_blank" rel="noopener noreferrer"{% endif %}>{% if campaign %}{{ campaign.texto_boton_publico }}{% else %}Solicitar cotización{% endif %}</a>
-                <a href="#servicios" class="rounded-xl border border-white/40 px-6 py-3.5 text-center font-bold transition hover:bg-white/10">Ver servicios</a>
+                <a href="{% if campaign %}{{ campaign_url|default:'#cotizar' }}{% else %}#cotizar{% endif %}" class="rounded-xl bg-brand-red px-6 py-3.5 text-center font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:ring-4 focus:ring-white/30"{% if campaign.tipo_enlace == 'personalizado' and campaign.url_personalizada %} target="_blank" rel="noopener noreferrer"{% endif %}>{% if campaign %}{{ campaign.texto_boton_publico }}{% else %}{% bilingual "Solicitar cotización" "Request a quote" %}{% endif %}</a>
+                <a href="#servicios" class="rounded-xl border border-white/40 px-6 py-3.5 text-center font-bold transition hover:bg-white/10">{% bilingual "Ver servicios" "View services" %}</a>
             </div>
         </div>
         {% if not campaign or campaign.mostrar_avion %}
         <div class="hidden justify-center lg:flex">
-            <button id="flight-animation-toggle" type="button" class="flight-animation rounded-3xl border border-white/20 bg-brand-navy/10 shadow-2xl shadow-brand-navy/20 backdrop-blur-[2px] focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-4 focus:ring-offset-brand-navy" aria-label="Pausar animación del avión" aria-pressed="false">
+            <button id="flight-animation-toggle" type="button" class="flight-animation rounded-3xl border border-white/20 bg-brand-navy/10 shadow-2xl shadow-brand-navy/20 backdrop-blur-[2px] focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-4 focus:ring-offset-brand-navy" aria-label="{% bilingual 'Pausar animación del avión' 'Pause airplane animation' %}" aria-pressed="false">
                 <svg class="flight-animation__route" viewBox="0 0 420 280" role="img" aria-labelledby="flight-route-title flight-route-description">
-                    <title id="flight-route-title">Ruta de vuelo de Sami Travels & Tours</title>
-                    <desc id="flight-route-description">Un avión rojo viaja alrededor de un globo terráqueo siguiendo una ruta animada.</desc>
+                    <title id="flight-route-title">{% bilingual "Ruta de vuelo de Sami Travels & Tours" "Sami Travels & Tours flight route" %}</title>
+                    <desc id="flight-route-description">{% bilingual "Un avión rojo viaja alrededor de un globo terráqueo siguiendo una ruta animada." "A red airplane travels around a globe along an animated route." %}</desc>
                     <defs>
                         <clipPath id="globe-clip">
                             <circle cx="210" cy="140" r="96"></circle>
@@ -161,7 +162,7 @@
                     <path d="M60 30L39 23L32 4H25L28 25L10 22L4 27L25 33L4 39L10 44L28 41L25 60H32L39 41L60 34Z" fill="#D71920" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"></path>
                     <path d="M18 31H47" stroke="#0B1F3A" stroke-width="2.5" stroke-linecap="round"></path>
                 </svg>
-                <span class="absolute bottom-4 left-0 right-0 text-center text-xs font-bold uppercase tracking-[.18em] text-white/70">Haz clic para pausar</span>
+                <span class="absolute bottom-4 left-0 right-0 text-center text-xs font-bold uppercase tracking-[.18em] text-white/70">{% bilingual "Haz clic para pausar" "Click to pause" %}</span>
             </button>
         </div>
         {% endif %}
@@ -172,85 +173,85 @@
     <form id="quick-quote" class="mx-auto max-w-7xl rounded-3xl border border-slate-200 bg-white p-4 text-brand-navy shadow-2xl shadow-brand-navy/20 sm:p-6" novalidate>
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <p class="text-xs font-extrabold uppercase tracking-[.18em] text-brand-red">Empieza aquí</p>
-                <h2 id="quick-quote-title" class="mt-1 text-xl font-black sm:text-2xl">Cotiza tu próximo viaje</h2>
-                <p class="mt-1 text-sm text-slate-500">Completa lo esencial; tus datos pasarán al formulario de solicitud.</p>
+                <p class="text-xs font-extrabold uppercase tracking-[.18em] text-brand-red">{% bilingual "Empieza aquí" "Start here" %}</p>
+                <h2 id="quick-quote-title" class="mt-1 text-xl font-black sm:text-2xl">{% bilingual "Cotiza tu próximo viaje" "Plan your next trip" %}</h2>
+                <p class="mt-1 text-sm text-slate-500">{% bilingual "Completa lo esencial; tus datos pasarán al formulario de solicitud." "Enter the essentials and we will transfer them to the request form." %}</p>
             </div>
             <div class="grid grid-cols-3 rounded-lg bg-slate-100 p-1" role="group" aria-label="Servicio para cotizar">
-                <button type="button" class="quick-quote-tab rounded-md bg-white px-3 py-2.5 text-sm font-bold shadow-sm transition" data-quick-service="vuelo" aria-pressed="true"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> Vuelo</button>
+                <button type="button" class="quick-quote-tab rounded-md bg-white px-3 py-2.5 text-sm font-bold shadow-sm transition" data-quick-service="vuelo" aria-pressed="true"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> {% bilingual "Vuelo" "Flight" %}</button>
                 <button type="button" class="quick-quote-tab rounded-md px-3 py-2.5 text-sm font-bold transition" data-quick-service="tour" aria-pressed="false"><i class="fa-solid fa-map-location-dot mr-1" aria-hidden="true"></i> Tour</button>
-                <button type="button" class="quick-quote-tab rounded-md px-3 py-2.5 text-sm font-bold transition" data-quick-service="vuelo y tour" aria-pressed="false"><i class="fa-solid fa-suitcase-rolling mr-1" aria-hidden="true"></i> Vuelo + tour</button>
+                <button type="button" class="quick-quote-tab rounded-md px-3 py-2.5 text-sm font-bold transition" data-quick-service="vuelo y tour" aria-pressed="false"><i class="fa-solid fa-suitcase-rolling mr-1" aria-hidden="true"></i> {% bilingual "Vuelo + tour" "Flight + tour" %}</button>
             </div>
         </div>
         <input id="quick-service" type="hidden" value="vuelo">
         <div id="quick-flight-mode-options" class="mt-4 flex flex-wrap items-center gap-2" role="group" aria-label="Tipo de vuelo">
-            <span class="mr-1 text-sm font-bold text-slate-600">Tipo de vuelo:</span>
-            <button type="button" class="quick-flight-mode rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700" data-quick-flight-mode="vuelo" aria-pressed="true"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> Comercial</button>
-            <button type="button" class="quick-flight-mode rounded-full border border-slate-300 px-4 py-2 text-sm font-bold" data-quick-flight-mode="vuelo privado" aria-pressed="false"><i class="fa-solid fa-jet-fighter-up mr-1" aria-hidden="true"></i> Privado</button>
+            <span class="mr-1 text-sm font-bold text-slate-600">{% bilingual "Tipo de vuelo:" "Flight type:" %}</span>
+            <button type="button" class="quick-flight-mode rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700" data-quick-flight-mode="vuelo" aria-pressed="true"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> {% bilingual "Comercial" "Commercial" %}</button>
+            <button type="button" class="quick-flight-mode rounded-full border border-slate-300 px-4 py-2 text-sm font-bold" data-quick-flight-mode="vuelo privado" aria-pressed="false"><i class="fa-solid fa-jet-fighter-up mr-1" aria-hidden="true"></i> {% bilingual "Privado" "Private" %}</button>
         </div>
-        <p id="quick-private-flight-warning" class="mt-3 hidden rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-slate-700" role="status"><i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600" aria-hidden="true"></i> Los vuelos privados ofrecen mayor flexibilidad y privacidad, pero sus tarifas son considerablemente superiores a las de los vuelos comerciales.</p>
+        <p id="quick-private-flight-warning" class="mt-3 hidden rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-slate-700" role="status"><i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600" aria-hidden="true"></i> {% bilingual "Los vuelos privados ofrecen mayor flexibilidad y privacidad, pero sus tarifas son considerablemente superiores a las de los vuelos comerciales." "Private flights provide greater flexibility and privacy, but their fares are considerably higher than commercial flights." %}</p>
         <div id="quick-trip-options" class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Tipo de trayecto">
-            <button type="button" class="quick-trip-type rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700" data-trip-type="roundtrip" aria-pressed="true">Ida y vuelta</button>
-            <button type="button" class="quick-trip-type rounded-full border border-slate-300 px-4 py-2 text-sm font-bold" data-trip-type="oneway" aria-pressed="false">Solo ida</button>
+            <button type="button" class="quick-trip-type rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700" data-trip-type="roundtrip" aria-pressed="true">{% bilingual "Ida y vuelta" "Round trip" %}</button>
+            <button type="button" class="quick-trip-type rounded-full border border-slate-300 px-4 py-2 text-sm font-bold" data-trip-type="oneway" aria-pressed="false">{% bilingual "Solo ida" "One way" %}</button>
         </div>
         <input id="quick-trip-type" type="hidden" value="roundtrip">
         <div class="mt-5 space-y-4">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div id="quick-origin-field">
-                    <label for="quick-origin" class="mb-1.5 block text-sm font-bold">Origen</label>
-                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-6 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><input id="quick-origin" type="text" autocomplete="off" placeholder="Ciudad o aeropuerto" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="quick-origin-results" aria-expanded="false"><div id="quick-origin-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Aeropuertos de origen"></div></div>
+                    <label for="quick-origin" class="mb-1.5 block text-sm font-bold">{% bilingual "Origen" "Origin" %}</label>
+                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-6 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><input id="quick-origin" type="text" autocomplete="off" placeholder="{% bilingual 'Ciudad o aeropuerto' 'City or airport' %}" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="quick-origin-results" aria-expanded="false"><div id="quick-origin-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="{% bilingual 'Aeropuertos de origen' 'Origin airports' %}"></div></div>
                 </div>
                 <div>
-                    <label for="quick-destination" class="mb-1.5 block text-sm font-bold">Destino</label>
-                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-6 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg><input id="quick-destination" type="text" autocomplete="off" placeholder="Escribe o selecciona de la lista" required class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="quick-destination-results" aria-expanded="false"><div id="quick-destination-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="Lugares de destino"></div></div>
+                    <label for="quick-destination" class="mb-1.5 block text-sm font-bold">{% bilingual "Destino" "Destination" %}</label>
+                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-6 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg><input id="quick-destination" type="text" autocomplete="off" placeholder="{% bilingual 'Escribe o selecciona de la lista' 'Type or select from the list' %}" required class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" aria-autocomplete="list" aria-controls="quick-destination-results" aria-expanded="false"><div id="quick-destination-results" class="absolute left-0 right-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl" role="listbox" aria-label="{% bilingual 'Lugares de destino' 'Destinations' %}"></div></div>
                 </div>
             </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div id="quick-departure-native-field">
-                    <label for="quick-departure" class="mb-1.5 block text-sm font-bold">Ida</label>
+                    <label for="quick-departure" class="mb-1.5 block text-sm font-bold">{% bilingual "Ida" "Departure" %}</label>
                     <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><input id="quick-departure" type="date" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
                 </div>
                 <div id="quick-return-field">
-                    <label for="quick-return" class="mb-1.5 block text-sm font-bold">Regreso</label>
+                    <label for="quick-return" class="mb-1.5 block text-sm font-bold">{% bilingual "Regreso" "Return" %}</label>
                     <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><input id="quick-return" type="date" class="min-h-12 w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"></div>
                 </div>
                 <div id="quick-date-range" class="relative hidden md:col-span-2 lg:col-span-2" data-date-range>
-                    <span class="mb-1.5 block text-sm font-bold">Fechas del viaje</span>
+                    <span class="mb-1.5 block text-sm font-bold">{% bilingual "Fechas del viaje" "Travel dates" %}</span>
                     <div class="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-300 bg-white">
                         <button id="quick-departure-trigger" type="button" class="trip-date-trigger min-h-12 border-r border-slate-200 px-4 py-2 text-left transition hover:bg-slate-50 focus:outline-none" aria-pressed="false">
-                            <span class="block text-xs font-semibold text-slate-500">Ida</span>
-                            <span id="quick-departure-display" class="mt-0.5 block font-bold text-brand-navy">Elegir fecha</span>
+                            <span class="block text-xs font-semibold text-slate-500">{% bilingual "Ida" "Departure" %}</span>
+                            <span id="quick-departure-display" class="mt-0.5 block font-bold text-brand-navy">{% bilingual "Elegir fecha" "Choose date" %}</span>
                         </button>
                         <button id="quick-return-trigger" type="button" class="trip-date-trigger min-h-12 px-4 py-2 text-left transition hover:bg-slate-50 focus:outline-none" aria-pressed="false">
-                            <span class="block text-xs font-semibold text-slate-500">Vuelta</span>
-                            <span id="quick-return-display" class="mt-0.5 block font-bold text-brand-navy">Elegir fecha</span>
+                            <span class="block text-xs font-semibold text-slate-500">{% bilingual "Vuelta" "Return" %}</span>
+                            <span id="quick-return-display" class="mt-0.5 block font-bold text-brand-navy">{% bilingual "Elegir fecha" "Choose date" %}</span>
                         </button>
                     </div>
                     <p id="quick-date-range-status" class="sr-only" aria-live="polite"></p>
                 </div>
                 <div>
-                    <label for="quick-adults" class="mb-1.5 block text-sm font-bold">Adultos</label>
+                    <label for="quick-adults" class="mb-1.5 block text-sm font-bold">{% bilingual "Adultos" "Adults" %}</label>
                     <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><select id="quick-adults" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-9 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10">
-                        <option value="1">1 adulto</option><option value="2">2 adultos</option><option value="3">3 adultos</option><option value="4">4 adultos</option><option value="5">5 adultos</option><option value="6">6 adultos</option><option value="7">7 adultos</option><option value="8">8+ adultos</option>
+                        <option value="1">{% bilingual "1 adulto" "1 adult" %}</option><option value="2">{% bilingual "2 adultos" "2 adults" %}</option><option value="3">{% bilingual "3 adultos" "3 adults" %}</option><option value="4">{% bilingual "4 adultos" "4 adults" %}</option><option value="5">{% bilingual "5 adultos" "5 adults" %}</option><option value="6">{% bilingual "6 adultos" "6 adults" %}</option><option value="7">{% bilingual "7 adultos" "7 adults" %}</option><option value="8">{% bilingual "8+ adultos" "8+ adults" %}</option>
                     </select></div>
                 </div>
                 <div>
-                    <label for="quick-children" class="mb-1.5 block text-sm font-bold">Niños</label>
-                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M6 21a6 6 0 0 1 12 0"/></svg><select id="quick-children" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-9 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"><option value="0">Sin niños</option><option value="1">1 niño</option><option value="2">2 niños</option><option value="3">3 niños</option><option value="4">4 niños</option><option value="5">5 niños</option></select></div>
+                    <label for="quick-children" class="mb-1.5 block text-sm font-bold">{% bilingual "Niños" "Children" %}</label>
+                    <div class="relative"><svg class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M6 21a6 6 0 0 1 12 0"/></svg><select id="quick-children" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-9 text-base focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"><option value="0">{% bilingual "Sin niños" "No children" %}</option><option value="1">{% bilingual "1 niño" "1 child" %}</option><option value="2">{% bilingual "2 niños" "2 children" %}</option><option value="3">{% bilingual "3 niños" "3 children" %}</option><option value="4">{% bilingual "4 niños" "4 children" %}</option><option value="5">{% bilingual "5 niños" "5 children" %}</option></select></div>
                 </div>
             </div>
             <div id="quick-children-ages" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-4" aria-live="polite"></div>
             <div class="flex justify-end">
-                <button id="btn-quick-quote" type="submit" class="min-h-12 w-full rounded-xl bg-brand-red px-6 py-3 font-bold text-white shadow-md transition hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/20 sm:w-auto">Continuar <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></button>
+                <button id="btn-quick-quote" type="submit" class="min-h-12 w-full rounded-xl bg-brand-red px-6 py-3 font-bold text-white shadow-md transition hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/20 sm:w-auto">{% bilingual "Continuar" "Continue" %} <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></button>
             </div>
         </div>
-        <p id="quick-quote-error" class="mt-3 hidden text-sm font-semibold text-brand-red" role="alert">Indica el destino para continuar.</p>
+        <p id="quick-quote-error" class="mt-3 hidden text-sm font-semibold text-brand-red" role="alert">{% bilingual "Indica el destino para continuar." "Enter a destination to continue." %}</p>
     </form>
 </section>
 
 <section class="bg-white py-16 sm:py-20" aria-labelledby="popular-routes-title">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Rutas populares</span><h2 id="popular-routes-title" class="mt-2 text-3xl font-black">Viajes desde El Salvador</h2><p class="mt-3 text-slate-600">Selecciona una ruta frecuente y solicita opciones actualizadas para tus fechas.</p></div><span class="text-sm text-slate-500">Sin precios desactualizados ni cargos ocultos</span></div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Rutas populares" "Popular routes" %}</span><h2 id="popular-routes-title" class="mt-2 text-3xl font-black">{% bilingual "Viajes desde El Salvador" "Travel from El Salvador" %}</h2><p class="mt-3 text-slate-600">{% bilingual "Selecciona una ruta frecuente y solicita opciones actualizadas para tus fechas." "Choose a popular route and request updated options for your dates." %}</p></div><span class="text-sm text-slate-500">{% bilingual "Sin precios desactualizados ni cargos ocultos" "No outdated prices or hidden fees" %}</span></div>
         <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Houston"><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Houston</strong></span><i class="fa-solid fa-arrow-right text-brand-red transition group-hover:translate-x-1"></i></button>
             <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Washington D. C."><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Washington D. C.</strong></span><i class="fa-solid fa-arrow-right text-brand-red transition group-hover:translate-x-1"></i></button>
@@ -265,15 +266,15 @@
 <section class="border-y border-slate-200 bg-slate-50 py-16 sm:py-20" aria-labelledby="seo-local-heading">
     <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.2fr_.8fr] lg:items-center lg:px-8">
         <div>
-            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Viajes desde oriente</span>
-            <h2 id="seo-local-heading" class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">Asesoría de viajes para San Miguel y todo El Salvador</h2>
-            <p class="mt-5 leading-8 text-slate-600">Ayudamos a viajeros de San Miguel y de todo el país a comparar opciones de vuelos, organizar tours y preparar paquetes turísticos de acuerdo con sus fechas, intereses y presupuesto.</p>
-            <p class="mt-4 leading-8 text-slate-600">Nuestra atención es virtual y personalizada: puedes solicitar una cotización desde cualquier departamento y recibir acompañamiento antes, durante y después del viaje.</p>
+            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Viajes desde oriente" "Travel from eastern El Salvador" %}</span>
+            <h2 id="seo-local-heading" class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">{% bilingual "Asesoría de viajes para San Miguel y todo El Salvador" "Travel planning for San Miguel and all of El Salvador" %}</h2>
+            <p class="mt-5 leading-8 text-slate-600">{% bilingual "Ayudamos a viajeros de San Miguel y de todo el país a comparar opciones de vuelos, organizar tours y preparar paquetes turísticos de acuerdo con sus fechas, intereses y presupuesto." "We help travelers from San Miguel and across the country compare flights, arrange tours, and plan vacation packages around their dates, interests, and budget." %}</p>
+            <p class="mt-4 leading-8 text-slate-600">{% bilingual "Nuestra atención es virtual y personalizada: puedes solicitar una cotización desde cualquier departamento y recibir acompañamiento antes, durante y después del viaje." "Our service is virtual and personalized: request a quote from anywhere in the country and receive support before, during, and after your trip." %}</p>
         </div>
         <aside class="rounded-3xl bg-brand-navy p-7 text-white shadow-xl">
-            <h3 class="text-xl font-black">Tu viaje comienza con una buena planificación</h3>
-            <p class="mt-3 leading-7 text-slate-200">Solicita opciones de vuelos, vacaciones y tours con el acompañamiento de una agencia de viajes para San Miguel y todo El Salvador.</p>
-            <a class="mt-6 inline-flex rounded-xl bg-brand-red px-5 py-3 font-bold transition hover:bg-brand-red-dark" href="#cotizar">Solicitar una cotización</a>
+            <h3 class="text-xl font-black">{% bilingual "Tu viaje comienza con una buena planificación" "A great trip starts with good planning" %}</h3>
+            <p class="mt-3 leading-7 text-slate-200">{% bilingual "Solicita opciones de vuelos, vacaciones y tours con el acompañamiento de una agencia de viajes para San Miguel y todo El Salvador." "Request flight, vacation, and tour options with support from a travel agency serving San Miguel and all of El Salvador." %}</p>
+            <a class="mt-6 inline-flex rounded-xl bg-brand-red px-5 py-3 font-bold transition hover:bg-brand-red-dark" href="#cotizar">{% bilingual "Solicitar una cotización" "Request a quote" %}</a>
         </aside>
     </div>
 </section>
@@ -281,26 +282,26 @@
 <section id="servicios" class="relative scroll-mt-20 overflow-hidden bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-2xl text-center">
-            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Nuestros servicios</span>
-            <h2 class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">Planeamos el viaje que tienes en mente</h2>
-            <p class="mt-4 text-slate-600">Soluciones personalizadas para disfrutar cada etapa de tu próxima aventura.</p>
+            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Nuestros servicios" "Our services" %}</span>
+            <h2 class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">{% bilingual "Planeamos el viaje que tienes en mente" "We plan the trip you have in mind" %}</h2>
+            <p class="mt-4 text-slate-600">{% bilingual "Soluciones personalizadas para disfrutar cada etapa de tu próxima aventura." "Personalized solutions for every stage of your next adventure." %}</p>
         </div>
         <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <article class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-2 hover:border-brand-red/30 hover:shadow-2xl hover:shadow-brand-navy/10">
                 <div class="grid size-14 place-items-center rounded-2xl bg-brand-red-soft text-brand-red transition group-hover:bg-brand-red group-hover:text-white"><i class="fa-solid fa-plane text-2xl"></i></div>
-                <h3 class="mt-6 text-xl font-bold">Vuelos</h3><p class="mt-3 leading-7 text-slate-600">Buscamos opciones convenientes según tus fechas, presupuesto y destino.</p>
+                <h3 class="mt-6 text-xl font-bold">{% bilingual "Vuelos" "Flights" %}</h3><p class="mt-3 leading-7 text-slate-600">{% bilingual "Buscamos opciones convenientes según tus fechas, presupuesto y destino." "We find convenient options based on your dates, budget, and destination." %}</p>
             </article>
             <button type="button" class="service-private-flight group rounded-2xl border border-slate-200/80 bg-white p-7 text-left shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-2 hover:border-brand-red/30 hover:shadow-2xl hover:shadow-brand-navy/10">
                 <div class="grid size-14 place-items-center rounded-2xl bg-brand-red-soft text-brand-red transition group-hover:bg-brand-red group-hover:text-white"><i class="fa-solid fa-jet-fighter-up text-2xl"></i></div>
-                <h3 class="mt-6 text-xl font-bold">Vuelos privados</h3><p class="mt-3 leading-7 text-slate-600">Solicita una propuesta según ruta, pasajeros, horario y necesidades especiales.</p>
+                <h3 class="mt-6 text-xl font-bold">{% bilingual "Vuelos privados" "Private flights" %}</h3><p class="mt-3 leading-7 text-slate-600">{% bilingual "Solicita una propuesta según ruta, pasajeros, horario y necesidades especiales." "Request a proposal based on route, passengers, schedule, and special requirements." %}</p>
             </button>
             <article class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-2 hover:border-brand-red/30 hover:shadow-2xl hover:shadow-brand-navy/10" data-tour-id="tours-personalizados" data-tour-name="Tours personalizados">
                 <div class="grid size-14 place-items-center rounded-2xl bg-brand-red-soft text-brand-red transition group-hover:bg-brand-red group-hover:text-white"><i class="fa-solid fa-map-location-dot text-2xl"></i></div>
-                <h3 class="mt-6 text-xl font-bold">Tours</h3><p class="mt-3 leading-7 text-slate-600">Experiencias locales e internacionales para viajar en pareja, familia o grupo.</p>
+                <h3 class="mt-6 text-xl font-bold">Tours</h3><p class="mt-3 leading-7 text-slate-600">{% bilingual "Experiencias locales e internacionales para viajar en pareja, familia o grupo." "Local and international experiences for couples, families, and groups." %}</p>
             </article>
             <article class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-lg shadow-slate-200/50 transition duration-300 hover:-translate-y-2 hover:border-brand-red/30 hover:shadow-2xl hover:shadow-brand-navy/10">
                 <div class="grid size-14 place-items-center rounded-2xl bg-brand-red-soft text-brand-red transition group-hover:bg-brand-red group-hover:text-white"><i class="fa-solid fa-headset text-2xl"></i></div>
-                <h3 class="mt-6 text-xl font-bold">Asesoría</h3><p class="mt-3 leading-7 text-slate-600">Te orientamos en cada paso para viajar con tranquilidad y confianza.</p>
+                <h3 class="mt-6 text-xl font-bold">{% bilingual "Asesoría" "Travel assistance" %}</h3><p class="mt-3 leading-7 text-slate-600">{% bilingual "Te orientamos en cada paso para viajar con tranquilidad y confianza." "We guide you through every step so you can travel with confidence." %}</p>
             </article>
         </div>
     </div>
@@ -308,14 +309,14 @@
 
 <section id="explorar" class="bg-brand-navy py-16 text-white sm:py-20" aria-labelledby="trip-explorer-title">
     <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
-        <div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-rose-300">Inspírate</span><h2 id="trip-explorer-title" class="mt-3 text-3xl font-black sm:text-4xl">¿Aún no sabes a dónde viajar?</h2><p class="mt-5 max-w-xl leading-8 text-slate-200">Cuéntanos qué experiencia buscas y tu presupuesto. Un asesor te ayudará a encontrar destinos que encajen contigo.</p></div>
+        <div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-rose-300">{% bilingual "Inspírate" "Get inspired" %}</span><h2 id="trip-explorer-title" class="mt-3 text-3xl font-black sm:text-4xl">{% bilingual "¿Aún no sabes a dónde viajar?" "Still deciding where to go?" %}</h2><p class="mt-5 max-w-xl leading-8 text-slate-200">{% bilingual "Cuéntanos qué experiencia buscas y tu presupuesto. Un asesor te ayudará a encontrar destinos que encajen contigo." "Tell us what experience you want and your budget. An adviser will help you find destinations that fit you." %}</p></div>
         <form id="trip-explorer" class="rounded-3xl bg-white p-5 text-brand-navy shadow-2xl sm:p-7">
             <div class="grid gap-4 sm:grid-cols-2">
-                <div><label for="explorer-budget" class="mb-2 block text-sm font-bold">Presupuesto por persona (USD)</label><select id="explorer-budget" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="Hasta USD $500">Hasta $500</option><option value="USD $500 a $1,000">$500 a $1,000</option><option value="USD $1,000 a $2,000">$1,000 a $2,000</option><option value="Más de USD $2,000">Más de $2,000</option></select></div>
-                <div><label for="explorer-month" class="mb-2 block text-sm font-bold">Cuándo quieres viajar</label><select id="explorer-month" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="Fechas flexibles">Fechas flexibles</option><option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option></select></div>
-                <div><label for="explorer-style" class="mb-2 block text-sm font-bold">Tipo de experiencia</label><select id="explorer-style" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option>Playa y descanso</option><option>Ciudad y cultura</option><option>Naturaleza y aventura</option><option>Viaje familiar</option><option>Viaje en pareja</option><option>Destino por descubrir</option></select></div>
-                <div><label for="explorer-scope" class="mb-2 block text-sm font-bold">Preferencia</label><select id="explorer-scope" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option>Internacional</option><option>Dentro de El Salvador</option><option>Estoy abierto a opciones</option></select></div>
-                <button type="submit" class="btn-primary sm:col-span-2">Recibir recomendaciones <i class="fa-solid fa-compass ml-1"></i></button>
+                <div><label for="explorer-budget" class="mb-2 block text-sm font-bold">{% bilingual "Presupuesto por persona (USD)" "Budget per person (USD)" %}</label><select id="explorer-budget" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="{% bilingual 'Hasta USD $500' 'Up to USD $500' %}">{% bilingual "Hasta $500" "Up to $500" %}</option><option value="USD $500 a $1,000">$500 – $1,000</option><option value="USD $1,000 a $2,000">$1,000 – $2,000</option><option value="{% bilingual 'Más de USD $2,000' 'More than USD $2,000' %}">{% bilingual "Más de $2,000" "More than $2,000" %}</option></select></div>
+                <div><label for="explorer-month" class="mb-2 block text-sm font-bold">{% bilingual "Cuándo quieres viajar" "When do you want to travel?" %}</label><select id="explorer-month" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="{% bilingual 'Fechas flexibles' 'Flexible dates' %}">{% bilingual "Fechas flexibles" "Flexible dates" %}</option><option>{% bilingual "Enero" "January" %}</option><option>{% bilingual "Febrero" "February" %}</option><option>{% bilingual "Marzo" "March" %}</option><option>{% bilingual "Abril" "April" %}</option><option>{% bilingual "Mayo" "May" %}</option><option>{% bilingual "Junio" "June" %}</option><option>{% bilingual "Julio" "July" %}</option><option>{% bilingual "Agosto" "August" %}</option><option>{% bilingual "Septiembre" "September" %}</option><option>{% bilingual "Octubre" "October" %}</option><option>{% bilingual "Noviembre" "November" %}</option><option>{% bilingual "Diciembre" "December" %}</option></select></div>
+                <div><label for="explorer-style" class="mb-2 block text-sm font-bold">{% bilingual "Tipo de experiencia" "Type of experience" %}</label><select id="explorer-style" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option>{% bilingual "Playa y descanso" "Beach and relaxation" %}</option><option>{% bilingual "Ciudad y cultura" "City and culture" %}</option><option>{% bilingual "Naturaleza y aventura" "Nature and adventure" %}</option><option>{% bilingual "Viaje familiar" "Family trip" %}</option><option>{% bilingual "Viaje en pareja" "Couples trip" %}</option><option>{% bilingual "Destino por descubrir" "A destination to discover" %}</option></select></div>
+                <div><label for="explorer-scope" class="mb-2 block text-sm font-bold">{% bilingual "Preferencia" "Preference" %}</label><select id="explorer-scope" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option>{% bilingual "Internacional" "International" %}</option><option>{% bilingual "Dentro de El Salvador" "Within El Salvador" %}</option><option>{% bilingual "Estoy abierto a opciones" "I am open to options" %}</option></select></div>
+                <button type="submit" class="btn-primary sm:col-span-2">{% bilingual "Recibir recomendaciones" "Get recommendations" %} <i class="fa-solid fa-compass ml-1"></i></button>
             </div>
         </form>
     </div>
@@ -324,9 +325,9 @@
 <section id="cobertura" class="scroll-mt-20 bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-10 max-w-2xl text-center">
-            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Nuestra cobertura</span>
-            <h2 class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">Atención virtual, estés donde estés</h2>
-            <p class="mt-4 text-slate-600">Operamos de manera virtual y brindamos nuestros servicios de viajes desde El Salvador. El mapa representa nuestra zona de atención, no una oficina abierta al público.</p>
+            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Nuestra cobertura" "Where we serve" %}</span>
+            <h2 class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">{% bilingual "Atención virtual, estés donde estés" "Virtual service wherever you are" %}</h2>
+            <p class="mt-4 text-slate-600">{% bilingual "Operamos de manera virtual y brindamos nuestros servicios de viajes desde El Salvador. El mapa representa nuestra zona de atención, no una oficina abierta al público." "We operate virtually and provide travel services from El Salvador. The map shows our service area, not a public storefront." %}</p>
         </div>
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-300/40">
             <iframe
@@ -336,7 +337,7 @@
                 loading="lazy"
                 allowfullscreen
                 referrerpolicy="strict-origin-when-cross-origin"
-                title="Zona de atención virtual de Sami Travels & Tours"
+                title="{% bilingual 'Zona de atención virtual de Sami Travels & Tours' 'Sami Travels & Tours virtual service area' %}"
             ></iframe>
         </div>
     </div>
@@ -345,79 +346,85 @@
 {% if featured_tours or featured_destinations %}
 <section id="destinos" class="bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Inspírate</span><h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Experiencias listas para personalizar</h2><p class="mt-4 max-w-2xl leading-7 text-slate-600">Explora el catálogo y comienza tu solicitud con el destino seleccionado.</p></div><a class="font-bold text-brand-red" href="#cotizar">Crear mi viaje →</a></div>
-        <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">{% if featured_tours %}{% for tour in featured_tours %}<article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">{% if tour.lugar_turistico.imagen %}<img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="{{ tour.lugar_turistico.imagen.url }}" alt="{{ tour.nombre_comercial }} en {{ tour.lugar_turistico.nombre }}">{% endif %}<div class="p-6"><div class="flex flex-wrap gap-2">{% if tour.en_promocion %}<span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">Promoción</span>{% endif %}<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{{ tour.duracion }}</span></div><h3 class="mt-4 text-xl font-black">{{ tour.nombre_comercial }}</h3><p class="mt-2 text-sm text-slate-500">{{ tour.lugar_turistico.nombre }} · {{ tour.lugar_turistico.departamento.pais.nombre }}</p><div class="mt-5 flex items-end justify-between gap-4"><p><span class="block text-xs text-slate-500">Desde</span><strong class="text-xl text-brand-red">USD ${{ tour.precio_base }}</strong></p><a class="btn-secondary" href="{% url 'core:tour-detail' tour.slug %}">Ver experiencia</a></div></div></article>{% endfor %}{% else %}{% for place in featured_destinations %}<article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">{% if place.imagen %}<img class="h-56 w-full object-cover" src="{{ place.imagen.url }}" alt="{{ place.nombre }}">{% endif %}<div class="p-6"><h3 class="text-xl font-black">{{ place.nombre }}</h3><p class="mt-2 text-sm text-slate-500">{{ place.departamento.nombre }} · {{ place.departamento.pais.nombre }}</p><p class="mt-4 text-sm leading-6 text-slate-600">{{ place.resumen_publico|default:place.descripcion_historica|truncatewords:24 }}</p><a class="btn-secondary mt-5" href="{% url 'core:destination-detail' place.slug %}">Conocer destino</a></div></article>{% endfor %}{% endif %}</div>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Inspírate" "Get inspired" %}</span><h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{% bilingual "Experiencias listas para personalizar" "Experiences ready to personalize" %}</h2><p class="mt-4 max-w-2xl leading-7 text-slate-600">{% bilingual "Explora el catálogo y comienza tu solicitud con el destino seleccionado." "Explore the catalog and start your request with a selected destination." %}</p></div><a class="font-bold text-brand-red" href="#cotizar">{% bilingual "Crear mi viaje" "Plan my trip" %} →</a></div>
+        <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">{% if featured_tours %}{% for tour in featured_tours %}<article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">{% if tour.lugar_turistico.imagen %}<img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="{{ tour.lugar_turistico.imagen.url }}" alt="{{ tour.nombre_localizado }} - {{ tour.lugar_turistico.nombre_localizado }}">{% endif %}<div class="p-6"><div class="flex flex-wrap gap-2">{% if tour.en_promocion %}<span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">{% bilingual "Promoción" "Special offer" %}</span>{% endif %}<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{{ tour.duracion_localizada }}</span></div><h3 class="mt-4 text-xl font-black">{{ tour.nombre_localizado }}</h3><p class="mt-2 text-sm text-slate-500">{{ tour.lugar_turistico.nombre_localizado }} · {{ tour.lugar_turistico.departamento.pais.nombre }}</p><div class="mt-5 flex items-end justify-between gap-4"><p><span class="block text-xs text-slate-500">{% bilingual "Desde" "From" %}</span><strong class="text-xl text-brand-red">USD ${{ tour.precio_base }}</strong></p><a class="btn-secondary" href="{% url 'core:tour-detail' tour.slug %}">{% bilingual "Ver experiencia" "View experience" %}</a></div></div></article>{% endfor %}{% else %}{% for place in featured_destinations %}<article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">{% if place.imagen %}<img class="h-56 w-full object-cover" src="{{ place.imagen.url }}" alt="{{ place.nombre_localizado }}">{% endif %}<div class="p-6"><h3 class="text-xl font-black">{{ place.nombre_localizado }}</h3><p class="mt-2 text-sm text-slate-500">{{ place.departamento.nombre }} · {{ place.departamento.pais.nombre }}</p><p class="mt-4 text-sm leading-6 text-slate-600">{{ place.resumen_localizado|truncatewords:24 }}</p><a class="btn-secondary mt-5" href="{% url 'core:destination-detail' place.slug %}">{% bilingual "Conocer destino" "Discover destination" %}</a></div></article>{% endfor %}{% endif %}</div>
     </div>
 </section>
 {% endif %}
 
-<section class="border-y border-slate-200 bg-slate-50 py-10"><div class="mx-auto grid max-w-7xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8"><div class="rounded-2xl bg-white p-5"><strong class="block">Asesoría personalizada</strong><span class="mt-1 block text-sm text-slate-500">Una persona acompaña tu viaje.</span></div><div class="rounded-2xl bg-white p-5"><strong class="block">Cotización sin compromiso</strong><span class="mt-1 block text-sm text-slate-500">Propuestas según tu presupuesto.</span></div><div class="rounded-2xl bg-white p-5"><strong class="block">Soporte antes y durante</strong><span class="mt-1 block text-sm text-slate-500">Estamos contigo en cada etapa.</span></div><a class="rounded-2xl bg-brand-navy p-5 text-white transition hover:bg-brand-navy-light" href="https://www.google.com/maps/search/?api=1&query=AGENCIA%20DE%20VIAJES%20SAMI%20TRAVELS%20%26%20TOURS" target="_blank" rel="noopener noreferrer"><strong class="block">Opiniones en Google Maps</strong><span class="mt-1 block text-sm text-slate-300">Consulta experiencias reales de clientes →</span></a></div></section>
+<section class="border-y border-slate-200 bg-slate-50 py-10"><div class="mx-auto grid max-w-7xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8"><div class="rounded-2xl bg-white p-5"><strong class="block">{% bilingual "Asesoría personalizada" "Personalized assistance" %}</strong><span class="mt-1 block text-sm text-slate-500">{% bilingual "Una persona acompaña tu viaje." "A real person supports your trip." %}</span></div><div class="rounded-2xl bg-white p-5"><strong class="block">{% bilingual "Cotización sin compromiso" "No-obligation quote" %}</strong><span class="mt-1 block text-sm text-slate-500">{% bilingual "Propuestas según tu presupuesto." "Proposals tailored to your budget." %}</span></div><div class="rounded-2xl bg-white p-5"><strong class="block">{% bilingual "Soporte antes y durante" "Support before and during" %}</strong><span class="mt-1 block text-sm text-slate-500">{% bilingual "Estamos contigo en cada etapa." "We are with you at every stage." %}</span></div><a class="rounded-2xl bg-brand-navy p-5 text-white transition hover:bg-brand-navy-light" href="https://www.google.com/maps/search/?api=1&query=AGENCIA%20DE%20VIAJES%20SAMI%20TRAVELS%20%26%20TOURS" target="_blank" rel="noopener noreferrer"><strong class="block">{% bilingual "Opiniones en Google Maps" "Google Maps reviews" %}</strong><span class="mt-1 block text-sm text-slate-300">{% bilingual "Consulta experiencias reales de clientes" "Read real customer experiences" %} →</span></a></div></section>
 
 <section id="cotizar" class="relative scroll-mt-20 overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100 py-20 sm:py-24">
     <div class="pointer-events-none absolute -right-32 -top-32 size-96 rounded-full bg-brand-red/5 blur-3xl"></div>
     <div class="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-5 lg:items-center lg:px-8">
         <div class="lg:col-span-2">
-            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">Cotiza tu viaje</span>
-            <h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Cuéntanos qué aventura estás buscando</h2>
-            <p class="mt-5 leading-7 text-slate-600">Completa tus datos y un asesor se comunicará contigo para preparar una propuesta personalizada.</p>
-            <div class="mt-7 flex items-center gap-4 rounded-2xl border-l-4 border-brand-red bg-brand-navy p-5 text-white"><i class="fa-solid fa-shield-halved shrink-0 text-3xl text-brand-red"></i><span class="font-medium">Atención personalizada y sin compromiso.</span></div>
+            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Cotiza tu viaje" "Request your quote" %}</span>
+            <h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{% bilingual "Cuéntanos qué aventura estás buscando" "Tell us what kind of adventure you are looking for" %}</h2>
+            <p class="mt-5 leading-7 text-slate-600">{% bilingual "Completa tus datos y un asesor se comunicará contigo para preparar una propuesta personalizada." "Complete your information and an adviser will contact you to prepare a personalized proposal." %}</p>
+            <div class="mt-7 flex items-center gap-4 rounded-2xl border-l-4 border-brand-red bg-brand-navy p-5 text-white"><i class="fa-solid fa-shield-halved shrink-0 text-3xl text-brand-red"></i><span class="font-medium">{% bilingual "Atención personalizada y sin compromiso." "Personalized assistance with no obligation." %}</span></div>
         </div>
         <form id="form-public-quote" method="post" class="sami-form relative rounded-3xl border border-white bg-white/95 p-6 shadow-2xl shadow-brand-navy/15 backdrop-blur sm:p-9 lg:col-span-3">
             {% csrf_token %}
             <div class="hidden" aria-hidden="true">
-                <label for="website">No completar este campo</label>
+                <label for="website">{% bilingual "No completar este campo" "Leave this field blank" %}</label>
                 <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
             </div>
-            {% if form.errors %}<div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">Revisa los campos señalados antes de continuar.</div>{% endif %}
-            <div class="mb-5 grid grid-cols-3 rounded-lg bg-slate-100 p-1" role="group" aria-label="Tipo de viaje"><button type="button" class="quote-tab rounded-md px-2 py-3 text-sm font-bold transition" data-service="vuelo">Vuelos</button><button type="button" class="quote-tab rounded-md px-2 py-3 text-sm font-bold transition" data-service="tour">Tours</button><button type="button" class="quote-tab rounded-md px-2 py-3 text-sm font-bold transition" data-service="vuelo y tour">Vuelo + tour</button></div>
+            {% if form.errors %}<div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{% bilingual "Revisa los campos señalados antes de continuar." "Review the highlighted fields before continuing." %}</div>{% endif %}
+            <div class="mb-5 grid grid-cols-3 rounded-lg bg-slate-100 p-1" role="group" aria-label="Tipo de viaje"><button type="button" class="quote-tab rounded-md px-2 py-3 text-sm font-bold transition" data-service="vuelo">{% bilingual "Vuelos" "Flights" %}</button><button type="button" class="quote-tab rounded-md px-2 py-3 text-sm font-bold transition" data-service="tour">Tours</button><button type="button" class="quote-tab rounded-md px-2 py-3 text-sm font-bold transition" data-service="vuelo y tour">{% bilingual "Vuelo + tour" "Flight + tour" %}</button></div>
             <select id="servicio" name="servicio" class="sr-only" aria-label="Tipo de viaje"><option value="vuelo" {% if form.servicio.value == 'vuelo' %}selected{% endif %}>Vuelos</option><option value="vuelo privado" {% if form.servicio.value == 'vuelo privado' %}selected{% endif %}>Vuelo privado</option><option value="tour" {% if form.servicio.value == 'tour' %}selected{% endif %}>Tours</option><option value="vuelo y tour" {% if form.servicio.value == 'vuelo y tour' %}selected{% endif %}>Vuelo y tour</option></select>
             <div id="flight-mode-options" class="mb-7 rounded-2xl border border-slate-200 p-4">
-                <p class="mb-3 text-sm font-bold text-slate-700">Tipo de vuelo</p>
+                <p class="mb-3 text-sm font-bold text-slate-700">{% bilingual "Tipo de vuelo" "Flight type" %}</p>
                 <div class="grid grid-cols-2 gap-2" role="group" aria-label="Modalidad del vuelo">
-                    <button type="button" class="flight-mode rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-flight-mode="vuelo" aria-pressed="false"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> Comercial</button>
-                    <button type="button" class="flight-mode rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-flight-mode="vuelo privado" aria-pressed="false"><i class="fa-solid fa-jet-fighter-up mr-1" aria-hidden="true"></i> Privado</button>
+                    <button type="button" class="flight-mode rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-flight-mode="vuelo" aria-pressed="false"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> {% bilingual "Comercial" "Commercial" %}</button>
+                    <button type="button" class="flight-mode rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-flight-mode="vuelo privado" aria-pressed="false"><i class="fa-solid fa-jet-fighter-up mr-1" aria-hidden="true"></i> {% bilingual "Privado" "Private" %}</button>
                 </div>
             </div>
             <div id="main-trip-options" class="mb-7 rounded-2xl border border-slate-200 p-4" data-flight-field>
-                <p class="mb-3 text-sm font-bold text-slate-700">Tipo de trayecto</p>
+                <p class="mb-3 text-sm font-bold text-slate-700">{% bilingual "Tipo de trayecto" "Trip type" %}</p>
                 <div class="grid grid-cols-2 gap-2" role="group" aria-label="Tipo de trayecto de la solicitud">
-                    <button type="button" class="main-trip-type rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-main-trip-type="roundtrip" aria-pressed="false">Ida y vuelta</button>
-                    <button type="button" class="main-trip-type rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-main-trip-type="oneway" aria-pressed="false">Solo ida</button>
+                    <button type="button" class="main-trip-type rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-main-trip-type="roundtrip" aria-pressed="false">{% bilingual "Ida y vuelta" "Round trip" %}</button>
+                    <button type="button" class="main-trip-type rounded-xl border border-slate-300 px-3 py-3 text-sm font-bold transition" data-main-trip-type="oneway" aria-pressed="false">{% bilingual "Solo ida" "One way" %}</button>
                 </div>
                 <input id="main-trip-type" type="hidden" name="tipo_trayecto" value="{{ form.tipo_trayecto.value|default:'roundtrip' }}">
             </div>
             <div class="grid gap-5 sm:grid-cols-2">
-                <div><label for="nombre" class="mb-2 block text-sm font-bold text-slate-700">Nombre completo</label><input type="text" id="nombre" name="nombre" value="{{ form.nombre.value|default:'' }}" required autocomplete="name" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.nombre.errors }}</div>
-                <div><label for="correo" class="mb-2 block text-sm font-bold text-slate-700">Correo electrónico</label><input type="email" id="correo" name="correo" value="{{ form.correo.value|default:'' }}" required autocomplete="email" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.correo.errors }}</div>
-                <div><label for="telefono" class="mb-2 block text-sm font-bold text-slate-700">Teléfono / WhatsApp</label><input type="tel" id="telefono" name="telefono" value="{{ form.telefono.value|default:'' }}" autocomplete="tel" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-                <div data-flight-field><label for="origen" class="mb-2 block text-sm font-bold text-slate-700">Origen</label><input type="text" id="origen" name="origen" value="{{ form.origen.value|default:'' }}" placeholder="Ej. San Salvador" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-                <div><label for="destino" class="mb-2 block text-sm font-bold text-slate-700">Destino deseado</label><input type="text" id="destino" name="destino" value="{{ form.destino.value|default:'' }}" placeholder="Ej. Cancún" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-                <div id="main-departure-native-field"><label for="fecha_ida" class="mb-2 block text-sm font-bold text-slate-700">Fecha de ida</label><input type="date" id="fecha_ida" name="fecha_ida" value="{{ form.fecha_ida.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.fecha_ida.errors }}</div>
-                <div id="main-return-native-field"><label for="fecha_regreso" class="mb-2 block text-sm font-bold text-slate-700">Fecha de regreso</label><input type="date" id="fecha_regreso" name="fecha_regreso" value="{{ form.fecha_regreso.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.fecha_regreso.errors }}</div>
+                <div><label for="nombre" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Nombre completo" "Full name" %}</label><input type="text" id="nombre" name="nombre" value="{{ form.nombre.value|default:'' }}" required autocomplete="name" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.nombre.errors }}</div>
+                <div><label for="correo" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Correo electrónico" "Email address" %}</label><input type="email" id="correo" name="correo" value="{{ form.correo.value|default:'' }}" required autocomplete="email" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.correo.errors }}</div>
+                <div>
+                    <span class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Teléfono / WhatsApp" "Phone / WhatsApp" %}</span>
+                    <div class="grid grid-cols-[7rem_1fr] gap-2">
+                        <div><label for="codigo_pais" class="sr-only">{% bilingual "Código de país" "Country code" %}</label><input type="tel" id="codigo_pais" name="codigo_pais" value="{{ form.codigo_pais.value|default:'+503' }}" list="public-country-codes" maxlength="5" inputmode="tel" pattern="\+[0-9]{1,4}" placeholder="+503" autocomplete="tel-country-code" aria-label="{% bilingual 'Código de país' 'Country code' %}" class="w-full rounded-xl border border-slate-300 px-3 py-3"><datalist id="public-country-codes">{% for code, label in form.country_codes %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</datalist>{{ form.codigo_pais.errors }}</div>
+                        <div><label for="telefono" class="sr-only">{% bilingual "Número de teléfono" "Phone number" %}</label><input type="tel" id="telefono" name="telefono" value="{{ form.telefono.value|default:'' }}" autocomplete="tel-national" placeholder="7055 1768" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
+                    </div>
+                </div>
+                <div data-flight-field><label for="origen" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Origen" "Origin" %}</label><input type="text" id="origen" name="origen" value="{{ form.origen.value|default:'' }}" placeholder="{% bilingual 'Ej. San Salvador' 'e.g. San Salvador' %}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
+                <div><label for="destino" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Destino deseado" "Desired destination" %}</label><input type="text" id="destino" name="destino" value="{{ form.destino.value|default:'' }}" placeholder="{% bilingual 'Ej. Cancún' 'e.g. Cancun' %}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
+                <div id="main-departure-native-field"><label for="fecha_ida" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Fecha de ida" "Departure date" %}</label><input type="date" id="fecha_ida" name="fecha_ida" value="{{ form.fecha_ida.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.fecha_ida.errors }}</div>
+                <div id="main-return-native-field"><label for="fecha_regreso" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Fecha de regreso" "Return date" %}</label><input type="date" id="fecha_regreso" name="fecha_regreso" value="{{ form.fecha_regreso.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.fecha_regreso.errors }}</div>
                 <div id="main-date-range" class="relative hidden sm:col-span-2" data-date-range>
-                    <span class="mb-2 block text-sm font-bold text-slate-700">Fechas del viaje</span>
+                    <span class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Fechas del viaje" "Travel dates" %}</span>
                     <div class="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-300 bg-white">
                         <button id="main-departure-trigger" type="button" class="trip-date-trigger min-h-14 border-r border-slate-200 px-4 py-2 text-left transition hover:bg-slate-50 focus:outline-none" aria-pressed="false">
-                            <span class="block text-xs font-semibold text-slate-500">Ida</span>
-                            <span id="main-departure-display" class="mt-0.5 block font-bold text-brand-navy">Elegir fecha</span>
+                            <span class="block text-xs font-semibold text-slate-500">{% bilingual "Ida" "Departure" %}</span>
+                            <span id="main-departure-display" class="mt-0.5 block font-bold text-brand-navy">{% bilingual "Elegir fecha" "Choose date" %}</span>
                         </button>
                         <button id="main-return-trigger" type="button" class="trip-date-trigger min-h-14 px-4 py-2 text-left transition hover:bg-slate-50 focus:outline-none" aria-pressed="false">
-                            <span class="block text-xs font-semibold text-slate-500">Vuelta</span>
-                            <span id="main-return-display" class="mt-0.5 block font-bold text-brand-navy">Elegir fecha</span>
+                            <span class="block text-xs font-semibold text-slate-500">{% bilingual "Vuelta" "Return" %}</span>
+                            <span id="main-return-display" class="mt-0.5 block font-bold text-brand-navy">{% bilingual "Elegir fecha" "Choose date" %}</span>
                         </button>
                     </div>
                     <p id="main-date-range-status" class="sr-only" aria-live="polite"></p>
                     <div id="main-date-errors">{{ form.fecha_ida.errors }}{{ form.fecha_regreso.errors }}</div>
                 </div>
-                <div><label for="adultos" class="mb-2 block text-sm font-bold text-slate-700">Adultos</label><input type="number" min="1" id="adultos" name="adultos" value="{{ form.adultos.value|default:1 }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-                <div><label for="ninos" class="mb-2 block text-sm font-bold text-slate-700">Niños</label><input type="number" min="0" id="ninos" name="ninos" value="{{ form.ninos.value|default:0 }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-                <div id="children-ages" class="hidden sm:col-span-2"><label for="edades_ninos" class="mb-2 block text-sm font-bold text-slate-700">Edades de los niños</label><input type="text" id="edades_ninos" name="edades_ninos" value="{{ form.edades_ninos.value|default:'' }}" placeholder="Ej. 5, 11" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
-                <div data-private-flight-field class="hidden sm:col-span-2"><div class="rounded-2xl border border-amber-300 bg-amber-50 p-5"><div class="flex items-start gap-3"><i class="fa-solid fa-triangle-exclamation mt-1 text-xl text-amber-600" aria-hidden="true"></i><div><h3 class="font-black text-brand-navy">Información sobre vuelos privados</h3><p class="mt-1 text-sm leading-6 text-slate-700">Viaja con horarios flexibles, mayor privacidad y atención personalizada. Las tarifas son considerablemente superiores a las de los vuelos comerciales y dependen de la ruta, pasajeros, aeronave y disponibilidad.</p><p class="mt-2 text-xs leading-5 text-slate-600">Solo necesitamos información orientativa; el operador confirmará la aeronave, los permisos y la disponibilidad.</p></div></div><div class="mt-4 grid gap-4 sm:grid-cols-2"><div><label for="motivo_vuelo_privado" class="mb-2 block text-sm font-bold text-slate-700">Motivo del viaje</label><select id="motivo_vuelo_privado" name="motivo_vuelo_privado" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">Seleccionar</option>{% for value, label in form.fields.motivo_vuelo_privado.choices %}{% if value %}<option value="{{ value }}" {% if form.motivo_vuelo_privado.value == value %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}</select></div><div><label for="hora_salida_preferida" class="mb-2 block text-sm font-bold text-slate-700">Hora preferida</label><input type="time" id="hora_salida_preferida" name="hora_salida_preferida" value="{{ form.hora_salida_preferida.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div><div><label for="equipaje_estimado" class="mb-2 block text-sm font-bold text-slate-700">Equipaje estimado</label><input type="text" id="equipaje_estimado" name="equipaje_estimado" value="{{ form.equipaje_estimado.value|default:'' }}" placeholder="Ej. 4 maletas medianas" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div><div><label for="preferencia_aeronave" class="mb-2 block text-sm font-bold text-slate-700">Aeronave <span class="font-normal text-slate-400">(opcional)</span></label><input type="text" id="preferencia_aeronave" name="preferencia_aeronave" value="{{ form.preferencia_aeronave.value|default:'' }}" placeholder="Sin preferencia" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div></div></div></div>
-                <div data-tour-field><label for="lugar_turistico" class="mb-2 block text-sm font-bold text-slate-700">Destino del catálogo</label><select id="lugar_turistico" name="lugar_turistico" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">Seleccionar (opcional)</option>{% for place in form.fields.lugar_turistico.queryset %}<option value="{{ place.id }}" {% if form.lugar_turistico.value|stringformat:'s' == place.id|stringformat:'s' %}selected{% endif %}>{{ place.nombre }} · {{ place.departamento.pais.nombre }}</option>{% endfor %}</select></div>
-                <div data-tour-field><label for="tour" class="mb-2 block text-sm font-bold text-slate-700">Tour</label><select id="tour" name="tour" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">Sin tour predeterminado</option>{% for item in form.fields.tour.queryset %}<option value="{{ item.id }}" data-place="{{ item.lugar_turistico_id }}" {% if form.tour.value|stringformat:'s' == item.id|stringformat:'s' %}selected{% endif %}>{{ item.nombre_comercial }}</option>{% endfor %}</select></div>
-                <div><label for="presupuesto" class="mb-2 block text-sm font-bold text-slate-700">Presupuesto disponible para el viaje (USD)</label><input type="number" min="0" step="0.01" id="presupuesto" name="presupuesto" value="{{ form.presupuesto.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"><p data-private-flight-field class="mt-2 hidden text-xs leading-5 text-slate-500">Si aún no tienes un presupuesto definido, puedes dejarlo vacío.</p></div>
-                <div class="sm:col-span-2"><label for="detalles" class="mb-2 block text-sm font-bold text-slate-700">Preferencias del viaje</label><textarea id="detalles" name="detalles" rows="4" placeholder="Equipaje, horarios, actividades o cualquier detalle importante" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.detalles.value|default:'' }}</textarea></div>
-                <button id="btn-submit-quote" type="submit" class="btn-primary shadow-lg shadow-brand-red/25 sm:col-span-2"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Solicitar propuesta personalizada</button>
+                <div><label for="adultos" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Adultos" "Adults" %}</label><input type="number" min="1" id="adultos" name="adultos" value="{{ form.adultos.value|default:1 }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
+                <div><label for="ninos" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Niños" "Children" %}</label><input type="number" min="0" id="ninos" name="ninos" value="{{ form.ninos.value|default:0 }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
+                <div id="children-ages" class="hidden sm:col-span-2"><label for="edades_ninos" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Edades de los niños" "Children's ages" %}</label><input type="text" id="edades_ninos" name="edades_ninos" value="{{ form.edades_ninos.value|default:'' }}" placeholder="{% bilingual 'Ej. 5, 11' 'e.g. 5, 11' %}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div>
+                <div data-private-flight-field class="hidden sm:col-span-2"><div class="rounded-2xl border border-amber-300 bg-amber-50 p-5"><div class="flex items-start gap-3"><i class="fa-solid fa-triangle-exclamation mt-1 text-xl text-amber-600" aria-hidden="true"></i><div><h3 class="font-black text-brand-navy">{% bilingual "Información sobre vuelos privados" "Private flight information" %}</h3><p class="mt-1 text-sm leading-6 text-slate-700">{% bilingual "Viaja con horarios flexibles, mayor privacidad y atención personalizada. Las tarifas son considerablemente superiores a las de los vuelos comerciales y dependen de la ruta, pasajeros, aeronave y disponibilidad." "Travel with flexible schedules, greater privacy, and personalized service. Fares are considerably higher than commercial flights and depend on the route, passengers, aircraft, and availability." %}</p><p class="mt-2 text-xs leading-5 text-slate-600">{% bilingual "Solo necesitamos información orientativa; el operador confirmará la aeronave, los permisos y la disponibilidad." "We only need preliminary information; the operator will confirm the aircraft, permits, and availability." %}</p></div></div><div class="mt-4 grid gap-4 sm:grid-cols-2"><div><label for="motivo_vuelo_privado" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Motivo del viaje" "Purpose of travel" %}</label><select id="motivo_vuelo_privado" name="motivo_vuelo_privado" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">{% bilingual "Seleccionar" "Select" %}</option>{% for value, label in form.fields.motivo_vuelo_privado.choices %}{% if value %}<option value="{{ value }}" {% if form.motivo_vuelo_privado.value == value %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}</select></div><div><label for="hora_salida_preferida" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Hora preferida" "Preferred time" %}</label><input type="time" id="hora_salida_preferida" name="hora_salida_preferida" value="{{ form.hora_salida_preferida.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div><div><label for="equipaje_estimado" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Equipaje estimado" "Estimated baggage" %}</label><input type="text" id="equipaje_estimado" name="equipaje_estimado" value="{{ form.equipaje_estimado.value|default:'' }}" placeholder="{% bilingual 'Ej. 4 maletas medianas' 'e.g. 4 medium suitcases' %}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div><div><label for="preferencia_aeronave" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Aeronave" "Aircraft" %} <span class="font-normal text-slate-400">{% bilingual "(opcional)" "(optional)" %}</span></label><input type="text" id="preferencia_aeronave" name="preferencia_aeronave" value="{{ form.preferencia_aeronave.value|default:'' }}" placeholder="{% bilingual 'Sin preferencia' 'No preference' %}" class="w-full rounded-xl border border-slate-300 px-4 py-3"></div></div></div></div>
+                <div data-tour-field><label for="lugar_turistico" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Destino del catálogo" "Catalog destination" %}</label><select id="lugar_turistico" name="lugar_turistico" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">{% bilingual "Seleccionar (opcional)" "Select (optional)" %}</option>{% for place in form.fields.lugar_turistico.queryset %}<option value="{{ place.id }}" {% if form.lugar_turistico.value|stringformat:'s' == place.id|stringformat:'s' %}selected{% endif %}>{{ place.nombre_localizado }} · {{ place.departamento.pais.nombre }}</option>{% endfor %}</select></div>
+                <div data-tour-field><label for="tour" class="mb-2 block text-sm font-bold text-slate-700">Tour</label><select id="tour" name="tour" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"><option value="">{% bilingual "Sin tour predeterminado" "No preset tour" %}</option>{% for item in form.fields.tour.queryset %}<option value="{{ item.id }}" data-place="{{ item.lugar_turistico_id }}" {% if form.tour.value|stringformat:'s' == item.id|stringformat:'s' %}selected{% endif %}>{{ item.nombre_localizado }}</option>{% endfor %}</select></div>
+                <div><label for="presupuesto" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Presupuesto disponible para el viaje (USD)" "Available travel budget (USD)" %}</label><input type="number" min="0" step="0.01" id="presupuesto" name="presupuesto" value="{{ form.presupuesto.value|default:'' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3"><p data-private-flight-field class="mt-2 hidden text-xs leading-5 text-slate-500">{% bilingual "Si aún no tienes un presupuesto definido, puedes dejarlo vacío." "You may leave this blank if your budget is not defined yet." %}</p></div>
+                <div class="sm:col-span-2"><label for="detalles" class="mb-2 block text-sm font-bold text-slate-700">{% bilingual "Preferencias del viaje" "Travel preferences" %}</label><textarea id="detalles" name="detalles" rows="4" placeholder="{% bilingual 'Equipaje, horarios, actividades o cualquier detalle importante' 'Baggage, schedules, activities, or any important detail' %}" class="w-full rounded-xl border border-slate-300 px-4 py-3">{{ form.detalles.value|default:'' }}</textarea></div>
+                <button id="btn-submit-quote" type="submit" class="btn-primary shadow-lg shadow-brand-red/25 sm:col-span-2"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> {% bilingual "Solicitar propuesta personalizada" "Request a personalized proposal" %}</button>
             </div>
         </form>
     </div>
@@ -464,19 +471,22 @@
             flightToggle.setAttribute("aria-pressed", String(paused));
             flightToggle.setAttribute(
                 "aria-label",
-                paused ? "Reanudar animación del avión" : "Pausar animación del avión",
+                paused
+                    ? (document.documentElement.lang === "en" ? "Resume airplane animation" : "Reanudar animación del avión")
+                    : (document.documentElement.lang === "en" ? "Pause airplane animation" : "Pausar animación del avión"),
             );
             flightToggle.querySelector("span").textContent = paused
-                ? "Haz clic para reanudar"
-                : "Haz clic para pausar";
+                ? (document.documentElement.lang === "en" ? "Click to resume" : "Haz clic para reanudar")
+                : (document.documentElement.lang === "en" ? "Click to pause" : "Haz clic para pausar");
         });
     } else if (flightToggle) {
-        flightToggle.querySelector("span").textContent = "Ruta de vuelo";
-        flightToggle.setAttribute("aria-label", "Ruta de vuelo de Sami Travels & Tours");
+        flightToggle.querySelector("span").textContent = document.documentElement.lang === "en" ? "Flight route" : "Ruta de vuelo";
+        flightToggle.setAttribute("aria-label", document.documentElement.lang === "en" ? "Sami Travels & Tours flight route" : "Ruta de vuelo de Sami Travels & Tours");
     }
 </script>
 <script>
 (() => {
+    const englishUI = "{{ LANGUAGE_CODE|default:'es' }}" === "en";
     const reduceCampaignMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document.querySelectorAll("video.campaign-motion-media").forEach(video => {
         if (reduceCampaignMotion) {
@@ -580,27 +590,27 @@
             if (departureDisplay) {
                 departureDisplay.textContent = departureField.value
                     ? formatFriendly(window.flatpickr.parseDate(departureField.value, "Y-m-d"))
-                    : "Elegir fecha";
+                    : (englishUI ? "Choose date" : "Elegir fecha");
             }
             if (returnDisplay) {
                 returnDisplay.textContent = !isRoundTrip
-                    ? "No aplica"
+                    ? (englishUI ? "Not applicable" : "No aplica")
                     : returnField.value
                         ? formatFriendly(window.flatpickr.parseDate(returnField.value, "Y-m-d"))
-                        : "Elegir fecha";
+                        : (englishUI ? "Choose date" : "Elegir fecha");
             }
         };
         const updateSelectionState = selectedDates => {
             const complete = Boolean(selectedDates[0] && (!isRoundTrip || selectedDates[1]));
             if (!selectedDates.length) {
-                setStatus("Selecciona la fecha de ida.");
+                setStatus(englishUI ? "Select the departure date." : "Selecciona la fecha de ida.");
             } else if (isRoundTrip && selectedDates.length === 1) {
-                setStatus("Ahora selecciona la fecha de vuelta.");
+                setStatus(englishUI ? "Now select the return date." : "Ahora selecciona la fecha de vuelta.");
             } else if (isRoundTrip) {
                 const nights = Math.round((selectedDates[1] - selectedDates[0]) / 86400000);
-                setStatus(`${nights} ${nights === 1 ? "noche" : "noches"} de viaje.`);
+                setStatus(englishUI ? `${nights} ${nights === 1 ? "night" : "nights"}.` : `${nights} ${nights === 1 ? "noche" : "noches"} de viaje.`);
             } else {
-                setStatus("Fecha de ida seleccionada.");
+                setStatus(englishUI ? "Departure date selected." : "Fecha de ida seleccionada.");
             }
             if (confirmButton) confirmButton.disabled = !complete;
         };
@@ -638,7 +648,7 @@
                 confirmButton = document.createElement("button");
                 confirmButton.type = "button";
                 confirmButton.className = "trip-date-calendar__confirm";
-                confirmButton.textContent = "Elegir";
+                confirmButton.textContent = englishUI ? "Select" : "Elegir";
                 confirmButton.addEventListener("click", () => {
                     if (!confirmButton.disabled) instance.close();
                 });
@@ -675,6 +685,7 @@
 
         const setRoundTrip = enabled => {
             isRoundTrip = enabled;
+            picker.set("mode", enabled ? "range" : "single");
             returnButton.classList.toggle("hidden", !enabled);
             buttonGrid?.classList.toggle("grid-cols-2", enabled);
             buttonGrid?.classList.toggle("grid-cols-1", !enabled);
@@ -756,7 +767,7 @@
         };
         const render = locations => {
             if (!locations.length) {
-                showMessage("No encontramos lugares para esta búsqueda.");
+                showMessage(englishUI ? "No locations matched your search." : "No encontramos lugares para esta búsqueda.");
                 return;
             }
             results.replaceChildren();
@@ -795,7 +806,7 @@
             }
             controller?.abort();
             controller = window.AbortController ? new AbortController() : null;
-            showMessage("Buscando lugares…");
+            showMessage(englishUI ? "Searching locations…" : "Buscando lugares…");
             const params = new URLSearchParams({
                 q: query,
                 service: serviceValue(),
@@ -810,7 +821,7 @@
                 render(data.results || []);
             } catch (error) {
                 if (error.name !== "AbortError") {
-                    showMessage("No fue posible consultar los lugares. Intenta de nuevo.");
+                    showMessage(englishUI ? "Locations could not be loaded. Try again." : "No fue posible consultar los lugares. Intenta de nuevo.");
                 }
             }
         };
@@ -858,7 +869,7 @@
 
         const heading = document.createElement("p");
         heading.className = "mb-3 text-sm font-bold text-slate-700";
-        heading.textContent = "Edades de los niños";
+        heading.textContent = englishUI ? "Children's ages" : "Edades de los niños";
         quickChildrenAges.appendChild(heading);
 
         const fields = document.createElement("div");
@@ -870,12 +881,15 @@
             const fieldId = `quick-child-age-${index + 1}`;
             label.htmlFor = fieldId;
             label.className = "mb-1.5 block text-xs font-semibold text-slate-600";
-            label.textContent = `Edad del niño ${index + 1}`;
+            label.textContent = englishUI ? `Age of child ${index + 1}` : `Edad del niño ${index + 1}`;
             select.id = fieldId;
             select.name = `quick_child_age_${index + 1}`;
             select.className = "min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
             for (let age = 0; age <= 14; age += 1) {
-                select.add(new Option(`${age} ${age === 1 ? "año" : "años"}`, String(age)));
+                select.add(new Option(
+                    englishUI ? `${age} ${age === 1 ? "year" : "years"}` : `${age} ${age === 1 ? "año" : "años"}`,
+                    String(age),
+                ));
             }
             select.value = previousAges[index] || "0";
             wrapper.append(label, select);
@@ -885,7 +899,9 @@
 
         const help = document.createElement("p");
         help.className = "mt-3 text-xs text-slate-500";
-        help.textContent = "Nota: Infantes de 0 a 2 años viajan gratis (en brazos). De 2 a 14 años aplican tarifa de niño.";
+        help.textContent = englishUI
+            ? "Note: Infants ages 0–2 travel free on an adult's lap. Child fares apply from ages 2–14."
+            : "Nota: Infantes de 0 a 2 años viajan gratis (en brazos). De 2 a 14 años aplican tarifa de niño.";
         quickChildrenAges.appendChild(help);
     };
 
@@ -975,10 +991,10 @@
         const hasError = !destination || missingDeparture || missingReturn;
         if (quickError) {
             quickError.textContent = !destination
-                ? "Indica el destino para continuar."
+                ? (englishUI ? "Enter a destination to continue." : "Indica el destino para continuar.")
                 : missingDeparture
-                    ? "Selecciona la fecha de ida."
-                    : "Selecciona la fecha de vuelta.";
+                    ? (englishUI ? "Select the departure date." : "Selecciona la fecha de ida.")
+                    : (englishUI ? "Select the return date." : "Selecciona la fecha de vuelta.");
             quickError.classList.toggle("hidden", !hasError);
         }
         quickDestination.setAttribute("aria-invalid", String(!destination));
@@ -1056,7 +1072,7 @@
         const style = document.getElementById("explorer-style").value;
         const scope = document.getElementById("explorer-scope").value;
         service.value = "vuelo y tour";
-        document.getElementById("destino").value = "Destino por recomendar";
+        document.getElementById("destino").value = englishUI ? "Destination to be recommended" : "Destino por recomendar";
         document.getElementById("presupuesto").value = "";
         document.getElementById("detalles").value = `Deseo recomendaciones. Presupuesto: ${budget}. Mes: ${month}. Experiencia: ${style}. Preferencia: ${scope}.`;
         sync();

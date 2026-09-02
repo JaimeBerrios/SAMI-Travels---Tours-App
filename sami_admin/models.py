@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import get_language
 from django.utils.text import slugify
 
 
@@ -84,27 +85,34 @@ class LugarTuristico(models.Model):
         related_name="lugares_turisticos",
     )
     nombre = models.CharField(max_length=180)
+    nombre_en = models.CharField("Nombre en inglés", max_length=180, blank=True)
     slug = models.SlugField(max_length=220, unique=True)
     imagen = models.ImageField(upload_to="lugares_turisticos/")
     descripcion_historica = models.TextField()
+    descripcion_historica_en = models.TextField("Descripción histórica en inglés", blank=True)
     resumen_publico = models.CharField(max_length=280, blank=True)
+    resumen_publico_en = models.CharField("Resumen público en inglés", max_length=280, blank=True)
     mejor_epoca = models.CharField(
         max_length=180, blank=True,
         help_text="Meses o temporada recomendada para visitar el destino.",
     )
+    mejor_epoca_en = models.CharField("Mejor época en inglés", max_length=180, blank=True)
     duracion_recomendada = models.CharField(
         max_length=120, blank=True,
         help_text="Ejemplo: 4 a 6 días.",
     )
+    duracion_recomendada_en = models.CharField("Duración recomendada en inglés", max_length=120, blank=True)
     aeropuerto_principal = models.CharField(max_length=180, blank=True)
     actividades_destacadas = models.TextField(
         blank=True,
         help_text="Una actividad por línea.",
     )
+    actividades_destacadas_en = models.TextField("Actividades destacadas en inglés", blank=True)
     requisitos_viaje = models.TextField(
         blank=True,
         help_text="Orientación general; evita afirmar requisitos que puedan cambiar.",
     )
+    requisitos_viaje_en = models.TextField("Requisitos de viaje en inglés", blank=True)
     destacado = models.BooleanField(default=False, db_index=True)
     activo = models.BooleanField(default=True, db_index=True)
     creado_en = models.DateTimeField(default=timezone.now, editable=False)
@@ -149,6 +157,43 @@ class LugarTuristico(models.Model):
     def lista_actividades(self):
         return [item.strip() for item in self.actividades_destacadas.splitlines() if item.strip()]
 
+    def translated(self, field_name, language=None):
+        language = (language or get_language() or "es").lower()
+        if language.startswith("en"):
+            translated_value = getattr(self, f"{field_name}_en", "")
+            if translated_value:
+                return translated_value
+        return getattr(self, field_name)
+
+    @property
+    def nombre_localizado(self):
+        return self.translated("nombre")
+
+    @property
+    def resumen_localizado(self):
+        return self.translated("resumen_publico") or self.descripcion_localizada
+
+    @property
+    def descripcion_localizada(self):
+        return self.translated("descripcion_historica")
+
+    @property
+    def lista_actividades_localizada(self):
+        value = self.translated("actividades_destacadas")
+        return [item.strip() for item in value.splitlines() if item.strip()]
+
+    @property
+    def mejor_epoca_localizada(self):
+        return self.translated("mejor_epoca")
+
+    @property
+    def duracion_recomendada_localizada(self):
+        return self.translated("duracion_recomendada")
+
+    @property
+    def requisitos_viaje_localizados(self):
+        return self.translated("requisitos_viaje")
+
 
 class Tour(models.Model):
     lugar_turistico = models.ForeignKey(
@@ -157,16 +202,26 @@ class Tour(models.Model):
         related_name="tours",
     )
     nombre_comercial = models.CharField(max_length=180)
+    nombre_comercial_en = models.CharField("Nombre comercial en inglés", max_length=180, blank=True)
     slug = models.SlugField(max_length=220, unique=True)
     duracion = models.CharField(max_length=120)
+    duracion_en = models.CharField("Duración en inglés", max_length=120, blank=True)
     punto_encuentro = models.CharField(max_length=255, blank=True)
+    punto_encuentro_en = models.CharField("Punto de encuentro en inglés", max_length=255, blank=True)
     incluye = models.TextField()
+    incluye_en = models.TextField("Incluye en inglés", blank=True)
     no_incluye = models.TextField(blank=True)
+    no_incluye_en = models.TextField("No incluye en inglés", blank=True)
     itinerario = models.TextField()
+    itinerario_en = models.TextField("Itinerario en inglés", blank=True)
     recomendaciones = models.TextField(blank=True)
+    recomendaciones_en = models.TextField("Recomendaciones en inglés", blank=True)
     que_llevar = models.TextField(blank=True)
+    que_llevar_en = models.TextField("Qué llevar en inglés", blank=True)
     restricciones = models.TextField(blank=True)
+    restricciones_en = models.TextField("Restricciones en inglés", blank=True)
     politica_cancelacion = models.TextField(blank=True)
+    politica_cancelacion_en = models.TextField("Política de cancelación en inglés", blank=True)
     precio_base = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -210,6 +265,54 @@ class Tour(models.Model):
                 suffix += 1
             self.slug = candidate
         super().save(*args, **kwargs)
+
+    def translated(self, field_name, language=None):
+        language = (language or get_language() or "es").lower()
+        if language.startswith("en"):
+            translated_value = getattr(self, f"{field_name}_en", "")
+            if translated_value:
+                return translated_value
+        return getattr(self, field_name)
+
+    @property
+    def nombre_localizado(self):
+        return self.translated("nombre_comercial")
+
+    @property
+    def duracion_localizada(self):
+        return self.translated("duracion")
+
+    @property
+    def punto_encuentro_localizado(self):
+        return self.translated("punto_encuentro")
+
+    @property
+    def incluye_localizado(self):
+        return self.translated("incluye")
+
+    @property
+    def no_incluye_localizado(self):
+        return self.translated("no_incluye")
+
+    @property
+    def itinerario_localizado(self):
+        return self.translated("itinerario")
+
+    @property
+    def recomendaciones_localizadas(self):
+        return self.translated("recomendaciones")
+
+    @property
+    def que_llevar_localizado(self):
+        return self.translated("que_llevar")
+
+    @property
+    def restricciones_localizadas(self):
+        return self.translated("restricciones")
+
+    @property
+    def politica_cancelacion_localizada(self):
+        return self.translated("politica_cancelacion")
 
 
 class CampanaPromocional(models.Model):
@@ -462,6 +565,10 @@ class CampanaPromocional(models.Model):
 
 
 class Cotizacion(models.Model):
+    class IdiomaDocumento(models.TextChoices):
+        ESPANOL = "es", "Español"
+        INGLES = "en", "English"
+
     class TipoCotizacion(models.TextChoices):
         VUELOS = "vuelos", "Vuelos"
         TOURS = "tours", "Tours"
@@ -479,6 +586,12 @@ class Cotizacion(models.Model):
     )
     cliente_nombre = models.CharField(max_length=180)
     cliente_correo = models.EmailField()
+    cliente_telefono = models.CharField(max_length=40, blank=True)
+    idioma_documento = models.CharField(
+        max_length=2,
+        choices=IdiomaDocumento.choices,
+        default=IdiomaDocumento.ESPANOL,
+    )
     tipo_cotizacion = models.CharField(
         max_length=20,
         choices=TipoCotizacion.choices,

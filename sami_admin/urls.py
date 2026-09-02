@@ -91,6 +91,16 @@ urlpatterns = [
         name="quotation-pdf",
     ),
     path(
+        "cotizaciones/<int:quotation_id>/whatsapp/",
+        views.quotation_whatsapp,
+        name="quotation-whatsapp",
+    ),
+    path(
+        "cotizaciones/<int:quotation_id>/duplicar/",
+        views.quotation_duplicate,
+        name="quotation-duplicate",
+    ),
+    path(
         "cotizaciones/<int:quotation_id>/eliminar/",
         views.quotation_delete,
         name="quotation-delete",
