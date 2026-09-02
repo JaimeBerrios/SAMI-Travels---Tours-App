@@ -775,9 +775,10 @@
                 button.setAttribute("role", "option");
                 const icon = document.createElement("span");
                 icon.className = "mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-slate-100 text-brand-red";
-                icon.innerHTML = location.kind === "airport"
+                icon.innerHTML = '<img src="/assets/core/images/sami-plane.svg" alt="" aria-hidden="true" class="size-5 object-contain">';
+                /*
                     ? '<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2 16 20-9-7 14-3-6-6-3Z"/><path d="m12 15 10-8"/></svg>'
-                    : '<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+                    : '<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>'; */
                 const copy = document.createElement("span");
                 copy.className = "min-w-0";
                 const primary = document.createElement("strong");
