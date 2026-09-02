@@ -498,6 +498,8 @@ class BasicProductionViewsTests(TestCase):
         self.assertIn("https://www.googletagmanager.com", directives["frame-src"])
         for analytics_source in (
             "https://www.googletagmanager.com",
+            # A wildcard subdomain source does not cover analytics.google.com itself.
+            "https://analytics.google.com",
             "https://*.google-analytics.com",
             "https://*.analytics.google.com",
         ):

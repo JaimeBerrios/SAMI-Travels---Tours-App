@@ -21,7 +21,8 @@ class SecurityHeadersMiddleware:
             "img-src 'self' data: https:; "
             "frame-src https://www.google.com https://www.googletagmanager.com; "
             "connect-src 'self' https://esm.sh https://www.googletagmanager.com https://www.google.com "
-            "https://*.google-analytics.com https://*.analytics.google.com; object-src 'none'; "
+            "https://analytics.google.com https://*.google-analytics.com "
+            "https://*.analytics.google.com; object-src 'none'; "
             "base-uri 'self'; frame-ancestors 'self'; form-action 'self'",
         )
         response.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
