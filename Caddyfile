@@ -1,0 +1,5 @@
+samitravelstours.com, www.samitravelstours.com {
+    encode zstd gzip
+
+    reverse_proxy sami_container:8000
+}
