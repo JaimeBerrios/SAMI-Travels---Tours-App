@@ -666,6 +666,8 @@ class BasicProductionViewsTests(TestCase):
             departamento=department,
             nombre="El Tunco",
             imagen="lugares_turisticos/el-tunco.jpg",
+            imagen_foco_x=72,
+            imagen_foco_y=28,
             descripcion_historica="Destino de playa reconocido por sus olas.",
             mejor_epoca="Noviembre a abril",
             duracion_recomendada="3 a 5 días",
@@ -706,10 +708,13 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(destination_response, "Noviembre a abril")
         self.assertContains(destination_response, "Surf")
         self.assertContains(destination_response, '"@type":"TouristDestination"')
+        self.assertContains(destination_response, "object-position: 72% 28%;")
         self.assertContains(tour_response, "Atardecer en El Tunco")
         self.assertContains(tour_response, '"@type":"TouristTrip"')
+        self.assertContains(tour_response, "object-position: 72% 28%;")
         self.assertContains(portal_response, "Atardecer en El Tunco")
         self.assertContains(portal_response, 'value="tour" selected')
+        self.assertContains(portal_response, "object-position: 72% 28%;")
         self.assertEqual(
             destination_campaign.get_target_url(),
             reverse("core:destination-detail", args=[place.slug]),

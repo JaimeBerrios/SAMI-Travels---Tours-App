@@ -102,6 +102,18 @@ class LugarTuristico(models.Model):
     nombre_en = models.CharField("Nombre en inglés", max_length=180, blank=True)
     slug = models.SlugField(max_length=220, unique=True)
     imagen = models.ImageField(upload_to="lugares_turisticos/")
+    imagen_foco_x = models.PositiveSmallIntegerField(
+        "Punto focal horizontal",
+        default=50,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Posición horizontal del punto importante de la imagen, de 0 a 100%.",
+    )
+    imagen_foco_y = models.PositiveSmallIntegerField(
+        "Punto focal vertical",
+        default=50,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Posición vertical del punto importante de la imagen, de 0 a 100%.",
+    )
     descripcion_historica = models.TextField()
     descripcion_historica_en = models.TextField("Descripción histórica en inglés", blank=True)
     resumen_publico = models.CharField(max_length=280, blank=True)
@@ -170,6 +182,10 @@ class LugarTuristico(models.Model):
     @property
     def lista_actividades(self):
         return [item.strip() for item in self.actividades_destacadas.splitlines() if item.strip()]
+
+    @property
+    def posicion_focal_css(self):
+        return f"{self.imagen_foco_x}% {self.imagen_foco_y}%"
 
     def translated(self, field_name, language=None):
         if field_name == "nombre":

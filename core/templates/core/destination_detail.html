@@ -12,7 +12,7 @@
 {% block content %}
 <article>
     <header class="relative isolate overflow-hidden bg-brand-navy text-white">
-        {% if destination.imagen %}<img class="absolute inset-0 -z-20 h-full w-full object-cover opacity-35" src="{{ destination.imagen.url }}" alt="{{ destination.nombre_localizado }}, {{ destination.departamento.pais.nombre }}"><div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-navy via-brand-navy/90 to-brand-navy/40"></div>{% endif %}
+        {% if destination.imagen %}<img class="absolute inset-0 -z-20 h-full w-full object-cover opacity-35" style="object-position: {{ destination.posicion_focal_css }};" src="{{ destination.imagen.url }}" alt="{{ destination.nombre_localizado }}, {{ destination.departamento.pais.nombre }}"><div class="absolute inset-0 -z-10 bg-gradient-to-r from-brand-navy via-brand-navy/90 to-brand-navy/40"></div>{% endif %}
         <div class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 lg:py-32"><p class="text-sm font-bold uppercase tracking-[.2em] text-rose-300">{{ destination.departamento.nombre }} · {{ destination.departamento.pais.nombre }}</p><h1 class="mt-4 max-w-3xl text-4xl font-black sm:text-6xl">{% bilingual "Viajes a" "Travel to" %} {{ destination.nombre_localizado }}</h1><p class="mt-6 max-w-2xl text-lg leading-8 text-slate-200">{{ destination.resumen_localizado|truncatewords:35 }}</p><a class="mt-8 inline-flex rounded-xl bg-brand-red px-6 py-3 font-bold" href="{% url 'core:portal-publico' %}?lugar={{ destination.id }}#cotizar">{% bilingual "Cotizar viaje a" "Plan a trip to" %} {{ destination.nombre_localizado }}</a></div>
     </header>
     <section class="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">

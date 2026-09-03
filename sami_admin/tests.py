@@ -1175,6 +1175,39 @@ class DestinationCatalogTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("imagen", form.errors)
 
+    def test_destination_focal_point_is_saved_and_limited_to_image_bounds(self):
+        data = {
+            "departamento": self.departamento.pk,
+            "nombre": self.lugar.nombre,
+            "descripcion_historica": self.lugar.descripcion_historica,
+            "imagen_foco_x": 78,
+            "imagen_foco_y": 24,
+            "activo": True,
+        }
+        form = LugarTuristicoForm(data=data, instance=self.lugar)
+        self.assertTrue(form.is_valid(), form.errors)
+        lugar = form.save()
+        self.assertEqual(lugar.posicion_focal_css, "78% 24%")
+
+        data["imagen_foco_x"] = 101
+        invalid_form = LugarTuristicoForm(data=data, instance=lugar)
+        self.assertFalse(invalid_form.is_valid())
+        self.assertIn("imagen_foco_x", invalid_form.errors)
+
+    def test_destination_form_renders_visual_focal_point_editor(self):
+        administrator_group, _ = Group.objects.get_or_create(name="Administrador")
+        self.user.groups.add(administrator_group)
+
+        response = self.client.get(
+            reverse("sami_admin:catalog-update", args=["lugares", self.lugar.pk])
+        )
+
+        self.assertContains(response, 'id="image-focal-editor"')
+        self.assertContains(response, 'id="image-focal-canvas"')
+        self.assertContains(response, 'id="image-focal-marker"')
+        self.assertContains(response, 'type="range"', count=2)
+        self.assertContains(response, "Haz clic sobre el rostro o lugar")
+
     def test_quotation_freezes_catalog_and_tour_content(self):
         form = CotizacionForm(data={
             "cliente_nombre": "Cliente SAMI",

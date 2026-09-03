@@ -1061,7 +1061,8 @@ class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
     class Meta:
         model = LugarTuristico
         fields = (
-            "departamento", "nombre", "imagen", "resumen_publico",
+            "departamento", "nombre", "imagen", "imagen_foco_x", "imagen_foco_y",
+            "resumen_publico",
             "resumen_publico_en", "descripcion_historica", "descripcion_historica_en",
             "mejor_epoca", "mejor_epoca_en", "duracion_recomendada",
             "duracion_recomendada_en", "aeropuerto_principal",
@@ -1070,6 +1071,12 @@ class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
             "destacado", "activo",
         )
         widgets = {
+            "imagen_foco_x": forms.NumberInput(
+                attrs={"type": "range", "min": 0, "max": 100, "step": 1}
+            ),
+            "imagen_foco_y": forms.NumberInput(
+                attrs={"type": "range", "min": 0, "max": 100, "step": 1}
+            ),
             "descripcion_historica": forms.Textarea(attrs={"rows": 7}),
             "descripcion_historica_en": forms.Textarea(attrs={"rows": 7}),
             "actividades_destacadas": forms.Textarea(attrs={"rows": 5}),
@@ -1088,6 +1095,18 @@ class LugarTuristicoForm(CatalogFormMixin, forms.ModelForm):
         self.fields["departamento"].queryset = queryset
         self.apply_tailwind_classes()
         self.fields["imagen"].widget.attrs["accept"] = "image/jpeg,image/png,image/webp"
+        for field_name in ("imagen_foco_x", "imagen_foco_y"):
+            self.fields[field_name].required = False
+            self.fields[field_name].widget.attrs["class"] = (
+                "w-full cursor-pointer accent-brand-red"
+            )
+
+    def clean(self):
+        cleaned = super().clean()
+        for field_name in ("imagen_foco_x", "imagen_foco_y"):
+            if cleaned.get(field_name) is None:
+                cleaned[field_name] = getattr(self.instance, field_name, 50)
+        return cleaned
 
     def clean_imagen(self):
         image = self.cleaned_data.get("imagen")

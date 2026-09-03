@@ -9,7 +9,33 @@
         {% if catalog == 'departamentos' %}<div class="mx-6 mt-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 sm:mx-8">La aplicación conserva “departamento” como nombre interno. Registra aquí la división territorial que corresponda al país: estado, provincia, departamento o distrito.</div>{% endif %}
         <form method="post" enctype="multipart/form-data" class="space-y-6 p-6 sm:p-8">{% csrf_token %}
             {% if form.non_field_errors %}<div class="rounded-xl bg-rose-50 p-4 text-rose-700">{{ form.non_field_errors }}</div>{% endif %}
-            {% for field in form %}<div><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %} <span class="text-rose-600">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<p class="mt-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}{% if field.name == 'imagen' %}<p class="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">Medida recomendada: 1600 × 1200 px (proporción 4:3) · JPG, PNG o WebP · máximo 5 MB.</p><p id="image-file-status" class="mt-2 text-xs text-slate-500" aria-live="polite">{% if field.value %}Imagen guardada. Selecciona otra para reemplazarla.{% else %}Selecciona una imagen para comprobar peso y dimensiones.{% endif %}</p>{% if field.value %}<img id="image-preview" src="{{ field.value.url }}" alt="Vista previa" class="mt-3 aspect-[4/3] w-full rounded-xl object-cover sm:w-80">{% else %}<img id="image-preview" alt="Vista previa" class="mt-3 hidden aspect-[4/3] w-full rounded-xl object-cover sm:w-80">{% endif %}{% endif %}</div>{% endfor %}
+            {% for field in form %}
+                {% if field.name != 'imagen_foco_x' and field.name != 'imagen_foco_y' %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold text-brand-navy">{{ field.label }}{% if field.field.required %} <span class="text-rose-600">*</span>{% endif %}</label>
+                        {{ field }}
+                        {% for error in field.errors %}<p class="mt-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
+                        {% if field.name == 'imagen' %}
+                            <p class="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">Medida recomendada: 1600 × 1200 px (proporción 4:3) · JPG, PNG o WebP · máximo 5 MB.</p>
+                            <p id="image-file-status" class="mt-2 text-xs text-slate-500" aria-live="polite">{% if field.value %}Imagen guardada. Selecciona otra para reemplazarla.{% else %}Selecciona una imagen para comprobar peso y dimensiones.{% endif %}</p>
+                            <div id="image-focal-editor" class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4{% if not field.value %} hidden{% endif %}">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div><h3 class="text-sm font-bold text-brand-navy">Punto focal de la imagen</h3><p class="mt-1 max-w-xl text-xs leading-5 text-slate-600">Haz clic sobre el rostro o lugar que debe mantenerse visible cuando la imagen se recorte.</p></div>
+                                    <button id="image-focal-center" type="button" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-brand-navy transition hover:border-brand-red hover:text-brand-red">Centrar punto</button>
+                                </div>
+                                <div id="image-focal-canvas" class="relative mt-4 aspect-[4/3] w-full cursor-crosshair overflow-hidden rounded-xl bg-slate-200 shadow-inner sm:w-96" role="presentation">
+                                    {% if field.value %}<img id="image-preview" src="{{ field.value.url }}" alt="Vista previa del recorte" class="h-full w-full select-none object-cover" draggable="false">{% else %}<img id="image-preview" alt="Vista previa del recorte" class="h-full w-full select-none object-cover" draggable="false">{% endif %}
+                                    <span id="image-focal-marker" class="pointer-events-none absolute size-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white bg-brand-red shadow-lg" aria-hidden="true"></span>
+                                </div>
+                                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                                    <div><div class="mb-1 flex items-center justify-between gap-3"><label for="{{ form.imagen_foco_x.id_for_label }}" class="text-xs font-semibold text-brand-navy">Posición horizontal</label><output id="image-focal-x-output" for="{{ form.imagen_foco_x.id_for_label }}" class="text-xs font-bold text-brand-red">50%</output></div>{{ form.imagen_foco_x }}{% for error in form.imagen_foco_x.errors %}<p class="mt-1 text-sm text-rose-600">{{ error }}</p>{% endfor %}</div>
+                                    <div><div class="mb-1 flex items-center justify-between gap-3"><label for="{{ form.imagen_foco_y.id_for_label }}" class="text-xs font-semibold text-brand-navy">Posición vertical</label><output id="image-focal-y-output" for="{{ form.imagen_foco_y.id_for_label }}" class="text-xs font-bold text-brand-red">50%</output></div>{{ form.imagen_foco_y }}{% for error in form.imagen_foco_y.errors %}<p class="mt-1 text-sm text-rose-600">{{ error }}</p>{% endfor %}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
             <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-6"><div class="flex flex-wrap gap-2 text-xs font-semibold"><a href="{% url 'sami_admin:catalog-create' 'paises' %}" class="rounded-lg bg-brand-red-soft px-3 py-2 text-brand-red-dark transition hover:bg-brand-red hover:text-white">+ País</a><a href="{% url 'sami_admin:catalog-create' 'departamentos' %}" class="rounded-lg bg-brand-red-soft px-3 py-2 text-brand-red-dark transition hover:bg-brand-red hover:text-white">+ Departamento</a><a href="{% url 'sami_admin:catalog-create' 'lugares' %}" class="rounded-lg bg-brand-red-soft px-3 py-2 text-brand-red-dark transition hover:bg-brand-red hover:text-white">+ Lugar</a></div><div class="flex gap-3"><a href="{% url 'sami_admin:catalog-list' catalog_home|default:catalog %}" class="btn-secondary">Cancelar</a><button type="submit" class="btn-primary">Guardar</button></div></div>
         </form>
     </div>
@@ -18,6 +44,39 @@
 (() => {
     const input = document.getElementById('id_imagen'), preview = document.getElementById('image-preview'), status = document.getElementById('image-file-status');
     if (!input || !preview || !status) return;
+    const editor = document.getElementById('image-focal-editor');
+    const canvas = document.getElementById('image-focal-canvas');
+    const marker = document.getElementById('image-focal-marker');
+    const focalX = document.getElementById('id_imagen_foco_x');
+    const focalY = document.getElementById('id_imagen_foco_y');
+    const outputX = document.getElementById('image-focal-x-output');
+    const outputY = document.getElementById('image-focal-y-output');
+    const centerButton = document.getElementById('image-focal-center');
+    const clamp = value => Math.min(100, Math.max(0, Number(value) || 0));
+    const updateFocalPreview = () => {
+        if (!focalX || !focalY || !marker) return;
+        const x = clamp(focalX.value), y = clamp(focalY.value);
+        preview.style.objectPosition = `${x}% ${y}%`;
+        marker.style.left = `${x}%`;
+        marker.style.top = `${y}%`;
+        if (outputX) outputX.value = `${x}%`;
+        if (outputY) outputY.value = `${y}%`;
+    };
+    [focalX, focalY].forEach(control => control?.addEventListener('input', updateFocalPreview));
+    canvas?.addEventListener('pointerdown', event => {
+        if (!focalX || !focalY) return;
+        const bounds = canvas.getBoundingClientRect();
+        focalX.value = Math.round(clamp(((event.clientX - bounds.left) / bounds.width) * 100));
+        focalY.value = Math.round(clamp(((event.clientY - bounds.top) / bounds.height) * 100));
+        updateFocalPreview();
+    });
+    centerButton?.addEventListener('click', () => {
+        if (!focalX || !focalY) return;
+        focalX.value = 50;
+        focalY.value = 50;
+        updateFocalPreview();
+    });
+    updateFocalPreview();
     const size = bytes => bytes < 1048576 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1048576).toFixed(2)} MB`;
     input.addEventListener('change', () => {
         const file = input.files?.[0];
@@ -44,7 +103,8 @@
                 status.textContent = `${ideal ? '✓' : '⚠'} ${probe.width} × ${probe.height} px · ${size(file.size)}${ideal ? ' · proporción adecuada.' : ' · se recortará visualmente a 4:3.'}`;
                 status.className = ideal ? 'mt-2 text-xs font-semibold text-emerald-700' : 'mt-2 text-xs font-semibold text-amber-700';
                 preview.src = reader.result;
-                preview.classList.remove('hidden');
+                editor?.classList.remove('hidden');
+                updateFocalPreview();
             };
             probe.onerror = () => {
                 input.setCustomValidity('');

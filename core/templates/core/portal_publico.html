@@ -380,11 +380,11 @@
         <div class="mt-10 grid items-stretch gap-7 md:grid-cols-2 xl:grid-cols-3">
             {% if featured_tours %}
                 {% for tour in featured_tours %}
-                <article class="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1.5 hover:border-brand-red/30 hover:shadow-[0_22px_50px_rgba(0,39,86,0.16)] focus-within:-translate-y-1.5 focus-within:border-brand-red/40 focus-within:shadow-[0_22px_50px_rgba(0,39,86,0.16)]">
+                <article class="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-500 ease-out hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-[0_18px_42px_rgba(0,39,86,0.12)] focus-within:-translate-y-1 focus-within:border-brand-red/30 focus-within:shadow-[0_18px_42px_rgba(0,39,86,0.12)]">
                     <a class="absolute inset-0 z-20 rounded-[2rem] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-red focus-visible:ring-inset" href="{% url 'core:tour-detail' tour.slug %}" aria-label="{% bilingual 'Ver experiencia' 'View experience' %}: {{ tour.nombre_localizado }}"></a>
                     <div class="relative h-64 overflow-hidden bg-brand-navy sm:h-72">
                         {% if tour.lugar_turistico.imagen %}
-                        <img class="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105" src="{{ tour.lugar_turistico.imagen.url }}" alt="{{ tour.nombre_localizado }} - {{ tour.lugar_turistico.nombre_localizado }}" loading="lazy" decoding="async">
+                        <img class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]" style="object-position: {{ tour.lugar_turistico.posicion_focal_css }};" src="{{ tour.lugar_turistico.imagen.url }}" alt="{{ tour.nombre_localizado }} - {{ tour.lugar_turistico.nombre_localizado }}" loading="lazy" decoding="async">
                         {% else %}
                         <div class="grid h-full place-items-center bg-brand-navy text-white/25" aria-hidden="true"><i class="fa-solid fa-mountain-sun text-6xl"></i></div>
                         {% endif %}
@@ -404,18 +404,18 @@
                         <h3 class="mt-2 text-2xl font-black leading-tight tracking-tight text-brand-navy transition-colors group-hover:text-brand-navy-light">{{ tour.nombre_localizado }}</h3>
                         <div class="mt-auto flex items-center justify-between gap-4 border-t border-slate-100 pt-6">
                             <span class="font-extrabold text-brand-navy">{% bilingual "Ver experiencia" "View experience" %}</span>
-                            <span class="grid size-12 shrink-0 place-items-center rounded-full bg-brand-navy shadow-lg shadow-brand-navy/15 transition duration-300 group-hover:translate-x-1 group-hover:bg-brand-red" aria-hidden="true"><img src="/assets/core/images/sami-plane-right.svg" alt="" class="size-7 object-contain transition duration-300 group-hover:brightness-0 group-hover:invert"></span>
+                            <span class="grid size-12 shrink-0 place-items-center rounded-full bg-brand-navy shadow-lg shadow-brand-navy/15 transition duration-500 ease-out group-hover:translate-x-0.5 group-hover:bg-brand-red" aria-hidden="true"><img src="/assets/core/images/sami-plane-right.svg" alt="" class="size-7 object-contain transition duration-500 ease-out group-hover:brightness-0 group-hover:invert"></span>
                         </div>
                     </div>
                 </article>
                 {% endfor %}
             {% else %}
                 {% for place in featured_destinations %}
-                <article class="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1.5 hover:border-brand-red/30 hover:shadow-[0_22px_50px_rgba(0,39,86,0.16)] focus-within:-translate-y-1.5 focus-within:border-brand-red/40 focus-within:shadow-[0_22px_50px_rgba(0,39,86,0.16)]">
+                <article class="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-500 ease-out hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-[0_18px_42px_rgba(0,39,86,0.12)] focus-within:-translate-y-1 focus-within:border-brand-red/30 focus-within:shadow-[0_18px_42px_rgba(0,39,86,0.12)]">
                     <a class="absolute inset-0 z-20 rounded-[2rem] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-red focus-visible:ring-inset" href="{% url 'core:destination-detail' place.slug %}" aria-label="{% bilingual 'Conocer destino' 'Discover destination' %}: {{ place.nombre_localizado }}"></a>
                     <div class="relative h-64 overflow-hidden bg-brand-navy sm:h-72">
                         {% if place.imagen %}
-                        <img class="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105" src="{{ place.imagen.url }}" alt="{{ place.nombre_localizado }}" loading="lazy" decoding="async">
+                        <img class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]" style="object-position: {{ place.posicion_focal_css }};" src="{{ place.imagen.url }}" alt="{{ place.nombre_localizado }}" loading="lazy" decoding="async">
                         {% else %}
                         <div class="grid h-full place-items-center bg-brand-navy text-white/25" aria-hidden="true"><i class="fa-solid fa-mountain-sun text-6xl"></i></div>
                         {% endif %}
@@ -437,7 +437,7 @@
                         {% endif %}
                         <div class="mt-auto flex items-center justify-between gap-4 border-t border-slate-100 pt-6">
                             <span class="font-extrabold text-brand-navy">{% bilingual "Explorar destino" "Explore destination" %}</span>
-                            <span class="grid size-12 shrink-0 place-items-center rounded-full bg-brand-navy shadow-lg shadow-brand-navy/15 transition duration-300 group-hover:translate-x-1 group-hover:bg-brand-red" aria-hidden="true"><img src="/assets/core/images/sami-plane-right.svg" alt="" class="size-7 object-contain transition duration-300 group-hover:brightness-0 group-hover:invert"></span>
+                            <span class="grid size-12 shrink-0 place-items-center rounded-full bg-brand-navy shadow-lg shadow-brand-navy/15 transition duration-500 ease-out group-hover:translate-x-0.5 group-hover:bg-brand-red" aria-hidden="true"><img src="/assets/core/images/sami-plane-right.svg" alt="" class="size-7 object-contain transition duration-500 ease-out group-hover:brightness-0 group-hover:invert"></span>
                         </div>
                     </div>
                 </article>
