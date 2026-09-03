@@ -139,24 +139,56 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     {% endif %}
 
     <main class="flex-1">{% block content %}{% endblock %}</main>
-    <footer class="border-t-4 border-brand-red bg-brand-navy-dark py-8 text-white">
-        <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-            <p class="font-bold">Sami Travels & Tours</p>
-            <div class="mt-5 flex justify-center gap-3" aria-label="{% bilingual 'Redes sociales' 'Social media' %}">
-                <a id="link-social-facebook" href="https://www.facebook.com/samitravelstours" target="_blank" rel="noopener noreferrer" class="grid size-11 place-items-center rounded-full border border-white/20 text-lg transition hover:border-brand-red hover:bg-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Visitar Sami Travels & Tours en Facebook">
-                    <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
-                </a>
-                <a id="link-social-instagram" href="https://www.instagram.com/sami.travelstours/" target="_blank" rel="noopener noreferrer" class="grid size-11 place-items-center rounded-full border border-white/20 text-lg transition hover:border-brand-red hover:bg-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Visitar Sami Travels & Tours en Instagram">
-                    <i class="fa-brands fa-instagram" aria-hidden="true"></i>
-                </a>
+    <footer class="border-t-4 border-brand-red bg-brand-navy-dark text-white">
+        <div class="border-b border-white/10 bg-brand-navy">
+            <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-9 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+                <div><p class="text-xs font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Tu próxima historia comienza aquí" "Your next story starts here" %}</p><h2 id="footer-cta-title" class="mt-2 text-2xl font-black sm:text-3xl">{% bilingual "¿Listo para comenzar tu próximo viaje?" "Ready to start your next trip?" %}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-white/75">{% bilingual "Cuéntanos tu idea y preparemos una propuesta personalizada para ti." "Tell us your idea and let us prepare a personalized proposal for you." %}</p></div>
+                <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+                    <a href="{% url 'core:portal-publico' %}#cotizar" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-white/25"><i class="fa-regular fa-paper-plane" aria-hidden="true"></i>{% bilingual "Solicitar cotización" "Request a quote" %}</a>
+                    <a href="https://wa.me/50370551768?text={% if LANGUAGE_CODE == 'en' %}Hello%20SAMI%20Travels%20%26%20Tours%2C%20I%20would%20like%20a%20travel%20quote.{% else %}Hola%20SAMI%20Travels%20%26%20Tours%2C%20quiero%20cotizar%20un%20viaje.{% endif %}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/30 px-5 py-3 font-bold text-white transition hover:border-white hover:bg-white hover:text-brand-navy focus:outline-none focus:ring-4 focus:ring-white/25"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>WhatsApp</a>
+                </div>
             </div>
-            <div class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-slate-300">
-                <a class="transition hover:text-white" href="tel:+50370551768">+503 7055 1768</a>
-                <a class="transition hover:text-white" href="mailto:samitravelstours@gmail.com">samitravelstours@gmail.com</a>
-                <a class="transition hover:text-white" href="{% url 'core:privacy-policy' %}">{% bilingual "Política de privacidad" "Privacy policy" %}</a>
-                <button id="btn-cookie-preferences" type="button" class="transition hover:text-white">{% bilingual "Preferencias de cookies" "Cookie preferences" %}</button>
+        </div>
+        <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+            <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.35fr_.75fr_1fr_.85fr]">
+                <div>
+                    <a class="inline-flex" href="{% url 'core:portal-publico' %}" aria-label="SAMI Travels & Tours - {% bilingual 'Inicio' 'Home' %}"><img src="/assets/core/images/sami-logo.svg" alt="SAMI Travels & Tours" class="h-12 w-auto max-w-[230px] object-contain"></a>
+                    <p class="mt-5 max-w-sm text-sm leading-7 text-white/70">{% bilingual "Asesoría personalizada para organizar vuelos, tours y experiencias desde El Salvador hacia el mundo." "Personalized assistance for planning flights, tours, and experiences from El Salvador to the world." %}</p>
+                    <div class="mt-6 flex gap-3" aria-label="{% bilingual 'Redes sociales' 'Social media' %}">
+                        <a id="link-social-facebook" href="https://www.facebook.com/samitravelstours" target="_blank" rel="noopener noreferrer" class="grid size-11 place-items-center rounded-full border border-white/20 text-lg transition hover:border-brand-red hover:bg-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Visitar Sami Travels & Tours en Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+                        <a id="link-social-instagram" href="https://www.instagram.com/sami.travelstours/" target="_blank" rel="noopener noreferrer" class="grid size-11 place-items-center rounded-full border border-white/20 text-lg transition hover:border-brand-red hover:bg-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red" aria-label="Visitar Sami Travels & Tours en Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+                    </div>
+                </div>
+                <nav aria-label="{% bilingual 'Navegación del pie de página' 'Footer navigation' %}">
+                    <h2 class="text-sm font-extrabold uppercase tracking-[.16em] text-white">{% bilingual "Explorar" "Explore" %}</h2>
+                    <ul class="mt-5 space-y-3 text-sm text-white/70">
+                        <li><a class="transition hover:text-brand-red" href="{% url 'core:portal-publico' %}">{% bilingual "Inicio" "Home" %}</a></li>
+                        <li><a class="transition hover:text-brand-red" href="{% url 'core:portal-publico' %}#servicios">{% bilingual "Servicios" "Services" %}</a></li>
+                        <li><a class="transition hover:text-brand-red" href="{% url 'core:portal-publico' %}#como-funciona">{% bilingual "Cómo funciona" "How it works" %}</a></li>
+                        <li><a class="transition hover:text-brand-red" href="{% url 'core:portal-publico' %}#destinos">{% bilingual "Destinos" "Destinations" %}</a></li>
+                        <li><a class="transition hover:text-brand-red" href="{% url 'core:portal-publico' %}#cotizar">{% bilingual "Cotizar" "Get a quote" %}</a></li>
+                    </ul>
+                </nav>
+                <div>
+                    <h2 class="text-sm font-extrabold uppercase tracking-[.16em] text-white">{% bilingual "Contacto" "Contact" %}</h2>
+                    <ul class="mt-5 space-y-4 text-sm text-white/70">
+                        <li><a class="flex items-start gap-3 transition hover:text-white" href="tel:+50370551768"><i class="fa-solid fa-phone mt-0.5 w-4 text-brand-red" aria-hidden="true"></i><span>+503 7055 1768</span></a></li>
+                        <li><a class="flex items-start gap-3 break-all transition hover:text-white" href="mailto:samitravelstours@gmail.com"><i class="fa-regular fa-envelope mt-0.5 w-4 text-brand-red" aria-hidden="true"></i><span>samitravelstours@gmail.com</span></a></li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-location-dot mt-0.5 w-4 text-brand-red" aria-hidden="true"></i><span>{% bilingual "Atención virtual desde El Salvador" "Virtual service from El Salvador" %}</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h2 class="text-sm font-extrabold uppercase tracking-[.16em] text-white">{% bilingual "Información" "Information" %}</h2>
+                    <ul class="mt-5 space-y-3 text-sm text-white/70">
+                        <li><a class="transition hover:text-brand-red" href="{% url 'core:privacy-policy' %}">{% bilingual "Política de privacidad" "Privacy policy" %}</a></li>
+                        <li><button id="btn-cookie-preferences" type="button" class="text-left transition hover:text-brand-red">{% bilingual "Preferencias de cookies" "Cookie preferences" %}</button></li>
+                    </ul>
+                </div>
             </div>
-            <p class="mt-1 text-sm text-slate-400">{% bilingual "Tu próxima aventura comienza con nosotros." "Your next adventure starts with us." %}</p>
+            <div class="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
+                <p>© {% now "Y" %} SAMI Travels & Tours. {% bilingual "Todos los derechos reservados." "All rights reserved." %}</p>
+                <p>{% bilingual "Tu próxima aventura comienza con nosotros." "Your next adventure starts with us." %}</p>
+            </div>
         </div>
     </footer>
     <a id="btn-cta-whatsapp" data-track-action="whatsapp_click" href="https://wa.me/50370551768?text={% if LANGUAGE_CODE == 'en' %}Hello%20SAMI%20Travels%20%26%20Tours%2C%20I%20would%20like%20a%20travel%20quote.{% else %}Hola%20SAMI%20Travels%20%26%20Tours%2C%20quiero%20cotizar%20un%20viaje.{% endif %}" target="_blank" rel="noopener noreferrer" class="fixed bottom-5 right-5 z-50 grid size-14 place-items-center rounded-full bg-emerald-500 text-2xl text-white shadow-xl transition hover:-translate-y-1 hover:bg-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-300" aria-label="{% bilingual 'Contactar a SAMI Travels & Tours por WhatsApp' 'Contact SAMI Travels & Tours on WhatsApp' %}">

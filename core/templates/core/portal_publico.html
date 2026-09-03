@@ -324,6 +324,39 @@
     </div>
 </section>
 
+<section id="como-funciona" class="relative overflow-hidden bg-brand-red-soft py-20 sm:py-24" aria-labelledby="planning-steps-title">
+    <div class="pointer-events-none absolute -left-24 top-10 size-64 rounded-full bg-brand-red/10 blur-3xl" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute -right-20 bottom-0 size-72 rounded-full bg-brand-navy/10 blur-3xl" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl text-center">
+            <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Así funciona" "How it works" %}</span>
+            <h2 id="planning-steps-title" class="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">{% bilingual "Tu próximo viaje comienza en tres pasos" "Your next trip starts in three steps" %}</h2>
+            <p class="mt-4 leading-7 text-slate-600">{% bilingual "Tú compartes la idea; nosotros te acompañamos para convertirla en una experiencia hecha a tu medida." "You share the idea; we help turn it into an experience tailored to you." %}</p>
+        </div>
+        <div class="relative mt-12">
+            <div class="pointer-events-none absolute left-[16.66%] right-[16.66%] top-10 hidden border-t-2 border-dashed border-brand-red/25 lg:block" aria-hidden="true"></div>
+            <ol class="relative grid gap-6 lg:grid-cols-3">
+            <li class="relative rounded-3xl border border-white bg-white p-7 shadow-xl shadow-brand-navy/10 sm:p-8">
+                <div class="relative z-10 flex items-center justify-between"><span class="grid size-16 place-items-center rounded-2xl bg-brand-navy text-2xl text-white"><i class="fa-regular fa-comments" aria-hidden="true"></i></span><span class="text-5xl font-black text-brand-red/15">01</span></div>
+                <h3 class="mt-6 text-xl font-black text-brand-navy">{% bilingual "Cuéntanos qué buscas" "Tell us what you need" %}</h3>
+                <p class="mt-3 leading-7 text-slate-600">{% bilingual "Comparte tu destino, fechas, número de viajeros y el tipo de experiencia que imaginas." "Share your destination, dates, number of travelers, and the experience you have in mind." %}</p>
+            </li>
+            <li class="relative rounded-3xl border border-white bg-white p-7 shadow-xl shadow-brand-navy/10 sm:p-8">
+                <div class="relative z-10 flex items-center justify-between"><span class="grid size-16 place-items-center rounded-2xl bg-brand-red text-2xl text-white"><i class="fa-solid fa-route" aria-hidden="true"></i></span><span class="text-5xl font-black text-brand-red/15">02</span></div>
+                <h3 class="mt-6 text-xl font-black text-brand-navy">{% bilingual "Diseñamos tu propuesta" "We design your proposal" %}</h3>
+                <p class="mt-3 leading-7 text-slate-600">{% bilingual "Un asesor organiza opciones personalizadas y ajusta cada detalle contigo." "An adviser organizes personalized options and fine-tunes every detail with you." %}</p>
+            </li>
+            <li class="relative rounded-3xl border border-white bg-white p-7 shadow-xl shadow-brand-navy/10 sm:p-8">
+                <div class="relative z-10 flex items-center justify-between"><span class="grid size-16 place-items-center rounded-2xl bg-brand-navy text-2xl text-white"><i class="fa-solid fa-plane-departure" aria-hidden="true"></i></span><span class="text-5xl font-black text-brand-red/15">03</span></div>
+                <h3 class="mt-6 text-xl font-black text-brand-navy">{% bilingual "Confirmamos y te acompañamos" "We confirm and support you" %}</h3>
+                <p class="mt-3 leading-7 text-slate-600">{% bilingual "Cuando todo esté listo, seguimos contigo antes, durante y después del viaje." "Once everything is ready, we stay with you before, during, and after your trip." %}</p>
+            </li>
+            </ol>
+        </div>
+        <div class="mt-10 text-center"><a href="#cotizar" class="inline-flex items-center gap-2 rounded-xl bg-brand-red px-6 py-3.5 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-red-dark focus:outline-none focus:ring-4 focus:ring-brand-red/20">{% bilingual "Comenzar mi solicitud" "Start my request" %}<i class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i></a></div>
+    </div>
+</section>
+
 <section id="explorar" class="bg-brand-navy py-16 text-white sm:py-20" aria-labelledby="trip-explorer-title">
     <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
         <div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-rose-300">{% bilingual "Inspírate" "Get inspired" %}</span><h2 id="trip-explorer-title" class="mt-3 text-3xl font-black sm:text-4xl">{% bilingual "¿Aún no sabes a dónde viajar?" "Still deciding where to go?" %}</h2><p class="mt-5 max-w-xl leading-8 text-slate-200">{% bilingual "Cuéntanos qué experiencia buscas y tu presupuesto. Un asesor te ayudará a encontrar destinos que encajen contigo." "Tell us what experience you want and your budget. An adviser will help you find destinations that fit you." %}</p></div>
@@ -365,22 +398,36 @@
     <div class="pointer-events-none absolute -left-32 top-16 size-80 rounded-full bg-brand-red/5 blur-3xl" aria-hidden="true"></div>
     <div class="pointer-events-none absolute -right-32 bottom-0 size-96 rounded-full bg-brand-navy/5 blur-3xl" aria-hidden="true"></div>
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-                <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Inspírate" "Get inspired" %}</span>
-                <h2 class="mt-3 max-w-3xl text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">{% bilingual "Experiencias listas para personalizar" "Experiences ready to personalize" %}</h2>
-                <p class="mt-4 max-w-2xl leading-7 text-slate-600">{% bilingual "Explora el catálogo y comienza tu solicitud con el destino seleccionado." "Explore the catalog and start your request with a selected destination." %}</p>
+        <div class="relative overflow-hidden rounded-[2rem] bg-brand-navy px-6 py-9 text-white shadow-2xl shadow-brand-navy/20 sm:px-10 sm:py-12 lg:px-12">
+            <div class="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full border-[40px] border-brand-red/15" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute bottom-7 right-12 hidden items-center gap-3 text-white/15 lg:flex" aria-hidden="true"><span class="w-24 border-t-2 border-dashed border-current"></span><img src="/assets/core/images/sami-plane-right.svg" alt="" class="size-14 opacity-30 brightness-0 invert"></div>
+            <div class="relative flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <span class="text-sm font-extrabold uppercase tracking-[.2em] text-rose-300">{% bilingual "Elige tu próxima historia" "Choose your next story" %}</span>
+                    <h2 class="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">{% bilingual "Experiencias listas para hacerlas tuyas" "Experiences ready to make your own" %}</h2>
+                    <p class="mt-4 max-w-2xl leading-7 text-slate-200">{% bilingual "Explora nuestros destinos destacados. Cada propuesta puede adaptarse a tus fechas, intereses y forma de viajar." "Explore our featured destinations. Every proposal can be tailored to your dates, interests, and travel style." %}</p>
+                </div>
+                <a class="group/link inline-flex w-fit shrink-0 items-center gap-2 rounded-xl border border-white/30 px-5 py-3 font-bold text-white transition hover:border-white hover:bg-white hover:text-brand-navy" href="#cotizar">
+                    {% bilingual "Crear mi viaje" "Plan my trip" %}
+                    <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover/link:translate-x-1" aria-hidden="true"></i>
+                </a>
             </div>
-            <a class="group/link inline-flex w-fit items-center gap-2 font-bold text-brand-red transition hover:text-brand-red-dark" href="#cotizar">
-                {% bilingual "Crear mi viaje" "Plan my trip" %}
-                <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover/link:translate-x-1" aria-hidden="true"></i>
-            </a>
         </div>
 
-        <div class="mt-10 grid items-stretch gap-7 md:grid-cols-2 xl:grid-cols-3">
+        {% if featured_countries|length > 1 %}
+        <div class="mt-8 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div><p class="text-sm font-extrabold text-brand-navy">{% bilingual "Explora por país" "Explore by country" %}</p><p id="destination-filter-status" class="mt-1 text-xs text-slate-500" aria-live="polite">{% bilingual "Mostrando todas las experiencias destacadas." "Showing all featured experiences." %}</p></div>
+            <div id="destination-filters" class="flex max-w-full gap-2 overflow-x-auto pb-1 sm:justify-end" role="group" aria-label="{% bilingual 'Filtrar experiencias por país' 'Filter experiences by country' %}" data-all-results="{% bilingual 'experiencias disponibles' 'experiences available' %}" data-country-results="{% bilingual 'experiencias en' 'experiences in' %}">
+                <button type="button" class="destination-filter shrink-0 rounded-full border border-brand-navy bg-brand-navy px-4 py-2 text-sm font-bold text-white transition" data-destination-filter="all" data-country-label="" aria-controls="featured-destination-grid" aria-pressed="true">{% bilingual "Todos" "All" %}</button>
+                {% for country in featured_countries %}<button type="button" class="destination-filter shrink-0 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition hover:border-brand-red hover:text-brand-red" data-destination-filter="{{ country.pk }}" data-country-label="{{ country.nombre }}" aria-controls="featured-destination-grid" aria-pressed="false">{{ country.nombre }}</button>{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="featured-destination-grid" class="mt-10 grid items-stretch gap-7 md:grid-cols-2 xl:grid-cols-3">
             {% if featured_tours %}
                 {% for tour in featured_tours %}
-                <article class="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-500 ease-out hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-[0_18px_42px_rgba(0,39,86,0.12)] focus-within:-translate-y-1 focus-within:border-brand-red/30 focus-within:shadow-[0_18px_42px_rgba(0,39,86,0.12)]">
+                <article class="destination-card group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-500 ease-out hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-[0_18px_42px_rgba(0,39,86,0.12)] focus-within:-translate-y-1 focus-within:border-brand-red/30 focus-within:shadow-[0_18px_42px_rgba(0,39,86,0.12)]" data-destination-country="{{ tour.lugar_turistico.departamento.pais_id }}">
                     <a class="absolute inset-0 z-20 rounded-[2rem] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-red focus-visible:ring-inset" href="{% url 'core:tour-detail' tour.slug %}" aria-label="{% bilingual 'Ver experiencia' 'View experience' %}: {{ tour.nombre_localizado }}"></a>
                     <div class="relative h-64 overflow-hidden bg-brand-navy sm:h-72">
                         {% if tour.lugar_turistico.imagen %}
@@ -411,7 +458,7 @@
                 {% endfor %}
             {% else %}
                 {% for place in featured_destinations %}
-                <article class="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-500 ease-out hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-[0_18px_42px_rgba(0,39,86,0.12)] focus-within:-translate-y-1 focus-within:border-brand-red/30 focus-within:shadow-[0_18px_42px_rgba(0,39,86,0.12)]">
+                <article class="destination-card group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-500 ease-out hover:-translate-y-1 hover:border-brand-red/25 hover:shadow-[0_18px_42px_rgba(0,39,86,0.12)] focus-within:-translate-y-1 focus-within:border-brand-red/30 focus-within:shadow-[0_18px_42px_rgba(0,39,86,0.12)]" data-destination-country="{{ place.departamento.pais_id }}">
                     <a class="absolute inset-0 z-20 rounded-[2rem] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-red focus-visible:ring-inset" href="{% url 'core:destination-detail' place.slug %}" aria-label="{% bilingual 'Conocer destino' 'Discover destination' %}: {{ place.nombre_localizado }}"></a>
                     <div class="relative h-64 overflow-hidden bg-brand-navy sm:h-72">
                         {% if place.imagen %}
@@ -1184,6 +1231,48 @@
         window.setTimeout(() => document.getElementById("nombre").focus({preventScroll: true}), 500);
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({event: "trip_explorer_continue", travel_style: style});
+    });
+    const destinationFilters = document.getElementById("destination-filters");
+    const destinationFilterStatus = document.getElementById("destination-filter-status");
+    const destinationCards = [...document.querySelectorAll(".destination-card")];
+    destinationFilters?.querySelectorAll(".destination-filter").forEach(button => {
+        button.addEventListener("click", () => {
+            const selectedCountry = button.dataset.destinationFilter;
+            let visibleCards = 0;
+            destinationFilters.querySelectorAll(".destination-filter").forEach(filter => {
+                const active = filter === button;
+                filter.setAttribute("aria-pressed", String(active));
+                filter.classList.toggle("border-brand-navy", active);
+                filter.classList.toggle("bg-brand-navy", active);
+                filter.classList.toggle("text-white", active);
+                filter.classList.toggle("border-slate-300", !active);
+                filter.classList.toggle("bg-white", !active);
+                filter.classList.toggle("text-slate-600", !active);
+                filter.classList.toggle("hover:border-brand-red", !active);
+                filter.classList.toggle("hover:text-brand-red", !active);
+            });
+            destinationCards.forEach(card => {
+                const visible = selectedCountry === "all" || card.dataset.destinationCountry === selectedCountry;
+                card.hidden = !visible;
+                if (!visible) return;
+                visibleCards += 1;
+                if (!reduceCampaignMotion) {
+                    card.animate?.(
+                        [
+                            {opacity: 0, transform: "translateY(6px)"},
+                            {opacity: 1, transform: "translateY(0)"},
+                        ],
+                        {duration: 280, easing: "ease-out"},
+                    );
+                }
+            });
+            if (destinationFilterStatus) {
+                const resultLabel = selectedCountry === "all"
+                    ? destinationFilters.dataset.allResults
+                    : `${destinationFilters.dataset.countryResults} ${button.dataset.countryLabel}`;
+                destinationFilterStatus.textContent = `${visibleCards} ${resultLabel}.`;
+            }
+        });
     });
     const sync = () => {
         const value = service.value;

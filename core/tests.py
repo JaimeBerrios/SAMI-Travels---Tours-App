@@ -39,6 +39,51 @@ class BasicProductionViewsTests(TestCase):
         self.assertNotContains(response, reverse("sami_admin:dashboard"))
         self.assertNotContains(response, "SAMI Admin")
 
+    def test_homepage_explains_the_process_and_filters_destinations_by_country(self):
+        el_salvador = Pais.objects.create(nombre="El Salvador")
+        mexico = Pais.objects.create(nombre="México")
+        la_libertad = Departamento.objects.create(
+            pais=el_salvador,
+            nombre="La Libertad",
+        )
+        quintana_roo = Departamento.objects.create(
+            pais=mexico,
+            nombre="Quintana Roo",
+        )
+        el_tunco = LugarTuristico.objects.create(
+            departamento=la_libertad,
+            nombre="El Tunco",
+            imagen="lugares_turisticos/el-tunco.jpg",
+            descripcion_historica="Destino de playa.",
+            destacado=True,
+        )
+        cancun = LugarTuristico.objects.create(
+            departamento=quintana_roo,
+            nombre="Cancún",
+            imagen="lugares_turisticos/cancun.jpg",
+            descripcion_historica="Destino del Caribe.",
+            destacado=True,
+        )
+
+        response = self.client.get(reverse("core:portal-publico"))
+
+        self.assertContains(response, 'id="como-funciona"')
+        self.assertContains(response, "Tu próximo viaje comienza en tres pasos")
+        self.assertContains(response, 'id="destination-filters"')
+        self.assertContains(
+            response,
+            f'data-destination-filter="{el_salvador.pk}"',
+        )
+        self.assertContains(response, f'data-destination-filter="{mexico.pk}"')
+        self.assertContains(
+            response,
+            f'data-destination-country="{el_salvador.pk}"',
+        )
+        self.assertContains(response, f'data-destination-country="{mexico.pk}"')
+        self.assertEqual(response.context["featured_countries"], [el_salvador, mexico])
+        self.assertContains(response, el_tunco.nombre)
+        self.assertContains(response, cancun.nombre)
+
     def test_public_quote_loads_guided_locations_and_trip_date_ranges(self):
         response = self.client.get(reverse("core:portal-publico"))
 
@@ -450,6 +495,15 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(response, 'id="btn-submit-quote"')
         self.assertContains(response, 'id="link-social-facebook"')
         self.assertContains(response, 'id="link-social-instagram"')
+        self.assertContains(response, 'id="footer-cta-title"')
+        self.assertContains(response, "¿Listo para comenzar tu próximo viaje?")
+        self.assertContains(response, 'href="/#como-funciona"')
+        self.assertContains(response, "Atención virtual desde El Salvador")
+        self.assertContains(
+            response,
+            f"© {timezone.localdate().year} SAMI Travels & Tours. "
+            "Todos los derechos reservados.",
+        )
         self.assertContains(response, 'data-tour-id="tours-personalizados"')
         self.assertContains(response, 'data-tour-name="Tours personalizados"')
         self.assertContains(response, 'id="cookie-consent"')

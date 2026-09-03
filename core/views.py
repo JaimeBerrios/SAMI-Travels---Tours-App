@@ -172,18 +172,26 @@ def portal_publico(request):
         departamento__activo=True,
         departamento__pais__activo=True,
     ).select_related("departamento__pais")
-    featured_destinations = destinations.filter(destacado=True)[:6]
+    featured_destinations = list(destinations.filter(destacado=True)[:6])
     if not featured_destinations:
-        featured_destinations = destinations[:6]
+        featured_destinations = list(destinations[:6])
     tours = Tour.objects.filter(
         activo=True,
         lugar_turistico__activo=True,
         lugar_turistico__departamento__activo=True,
         lugar_turistico__departamento__pais__activo=True,
     ).select_related("lugar_turistico__departamento__pais")
-    featured_tours = tours.filter(destacado=True)[:6]
+    featured_tours = list(tours.filter(destacado=True)[:6])
     if not featured_tours:
-        featured_tours = tours[:6]
+        featured_tours = list(tours[:6])
+    featured_countries = []
+    seen_country_ids = set()
+    for item in featured_tours or featured_destinations:
+        destination = getattr(item, "lugar_turistico", item)
+        country = destination.departamento.pais
+        if country.pk not in seen_country_ids:
+            seen_country_ids.add(country.pk)
+            featured_countries.append(country)
     now = timezone.now()
     campaign = CampanaPromocional.objects.filter(
         archivada_en__isnull=True,
@@ -202,6 +210,7 @@ def portal_publico(request):
             "form": form,
             "featured_destinations": featured_destinations,
             "featured_tours": featured_tours,
+            "featured_countries": featured_countries,
             "campaign": campaign,
             "campaign_url": campaign_url,
         },
