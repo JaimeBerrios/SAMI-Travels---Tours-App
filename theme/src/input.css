@@ -25,6 +25,13 @@
 }
 
 @layer components {
+  /* Las previsualizaciones de campañas usan una capa sólida corporativa; el
+     único degradado permitido queda reservado al Hero público. */
+  [data-campaign-preview-overlay] + div {
+    background-image: none !important;
+    background-color: rgb(0 39 86 / 40%);
+  }
+
   .app-container {
     @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8;
   }
