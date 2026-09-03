@@ -9,24 +9,43 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 <style>
-    .flatpickr-calendar { border: 0; border-radius: 1rem; box-shadow: 0 20px 45px rgb(15 23 42 / 18%); overflow: hidden; }
-    .flatpickr-months { background: #0b1f3a; color: #fff; padding: .35rem 0; }
+    .flatpickr-calendar {
+        --sami-calendar-navy: #002756;
+        --sami-calendar-red: #FF131C;
+        --sami-calendar-red-dark: #D90008;
+        --sami-calendar-range: rgb(255 19 28 / 10%);
+        --sami-calendar-range-hover: rgb(255 19 28 / 16%);
+        --sami-calendar-range-border: rgb(255 19 28 / 18%);
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 20px 45px rgb(0 39 86 / 18%);
+        overflow: hidden;
+    }
+    .flatpickr-months { background: var(--sami-calendar-navy); color: #fff; padding: .35rem 0; }
     .flatpickr-months .flatpickr-month,
     .flatpickr-current-month .flatpickr-monthDropdown-months,
     .flatpickr-current-month input.cur-year { color: #fff; fill: #fff; }
     .flatpickr-months .flatpickr-prev-month,
     .flatpickr-months .flatpickr-next-month { color: #fff; fill: #fff; }
+    .flatpickr-months .flatpickr-prev-month:hover svg,
+    .flatpickr-months .flatpickr-next-month:hover svg { fill: var(--sami-calendar-red); }
     .flatpickr-day.selected,
     .flatpickr-day.startRange,
-    .flatpickr-day.endRange,
+    .flatpickr-day.endRange { background: var(--sami-calendar-red); border-color: var(--sami-calendar-red); }
+    .flatpickr-day.selected:hover,
     .flatpickr-day.startRange:hover,
-    .flatpickr-day.endRange:hover { background: #e11d48; border-color: #e11d48; }
+    .flatpickr-day.endRange:hover { background: var(--sami-calendar-red-dark); border-color: var(--sami-calendar-red-dark); }
     .flatpickr-day.inRange {
-        background: #fff1f2;
-        border-color: #ffe4e6;
-        box-shadow: -5px 0 0 #fff1f2, 5px 0 0 #fff1f2;
+        background: var(--sami-calendar-range);
+        border-color: var(--sami-calendar-range-border);
+        box-shadow: -5px 0 0 var(--sami-calendar-range), 5px 0 0 var(--sami-calendar-range);
     }
-    .flatpickr-day.today { border-color: #e11d48; color: #e11d48; font-weight: 700; }
+    .flatpickr-day.inRange:hover { background: var(--sami-calendar-range-hover); border-color: var(--sami-calendar-range-border); }
+    .flatpickr-day.today { border-color: var(--sami-calendar-red); color: var(--sami-calendar-red); font-weight: 700; }
+    .flatpickr-day.today:hover { background: var(--sami-calendar-red); border-color: var(--sami-calendar-red); color: #fff; }
+    .flatpickr-day.today.selected,
+    .flatpickr-day.today.startRange,
+    .flatpickr-day.today.endRange { color: #fff; }
     .flatpickr-calendar.trip-date-calendar { max-width: calc(100vw - 2rem); }
     .trip-date-calendar .flatpickr-innerContainer { overflow-x: auto; }
     .trip-date-calendar__footer {
@@ -40,7 +59,7 @@
     }
     .trip-date-calendar__status { color: #475569; font-size: .75rem; line-height: 1.25rem; }
     .trip-date-calendar__confirm {
-        background: #e11d48;
+        background: var(--sami-calendar-red);
         border-radius: .65rem;
         color: #fff;
         flex: none;
@@ -48,8 +67,9 @@
         font-weight: 800;
         padding: .6rem 1rem;
     }
+    .trip-date-calendar__confirm:hover { background: var(--sami-calendar-red-dark); }
     .trip-date-calendar__confirm:disabled { cursor: not-allowed; opacity: .45; }
-    .trip-date-trigger[aria-pressed="true"] { border-color: #e11d48; box-shadow: 0 0 0 3px rgb(225 29 72 / 10%); }
+    .trip-date-trigger[aria-pressed="true"] { border-color: #FF131C; box-shadow: 0 0 0 3px rgb(255 19 28 / 12%); }
     .flight-animation {
         aspect-ratio: 3 / 2;
         position: relative;
@@ -183,12 +203,12 @@
         <input id="quick-service" type="hidden" value="vuelo">
         <div id="quick-flight-mode-options" class="mt-4 flex flex-wrap items-center gap-2" role="group" aria-label="Tipo de vuelo">
             <span class="mr-1 text-sm font-bold text-slate-600">{% bilingual "Tipo de vuelo:" "Flight type:" %}</span>
-            <button type="button" class="quick-flight-mode rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700" data-quick-flight-mode="vuelo" aria-pressed="true"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> {% bilingual "Comercial" "Commercial" %}</button>
+            <button type="button" class="quick-flight-mode rounded-full border border-brand-red/20 bg-brand-red-soft px-4 py-2 text-sm font-bold text-brand-red-dark" data-quick-flight-mode="vuelo" aria-pressed="true"><i class="fa-solid fa-plane mr-1" aria-hidden="true"></i> {% bilingual "Comercial" "Commercial" %}</button>
             <button type="button" class="quick-flight-mode rounded-full border border-slate-300 px-4 py-2 text-sm font-bold" data-quick-flight-mode="vuelo privado" aria-pressed="false"><i class="fa-solid fa-jet-fighter-up mr-1" aria-hidden="true"></i> {% bilingual "Privado" "Private" %}</button>
         </div>
         <p id="quick-private-flight-warning" class="mt-3 hidden rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-slate-700" role="status"><i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600" aria-hidden="true"></i> {% bilingual "Los vuelos privados ofrecen mayor flexibilidad y privacidad, pero sus tarifas son considerablemente superiores a las de los vuelos comerciales." "Private flights provide greater flexibility and privacy, but their fares are considerably higher than commercial flights." %}</p>
         <div id="quick-trip-options" class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Tipo de trayecto">
-            <button type="button" class="quick-trip-type rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700" data-trip-type="roundtrip" aria-pressed="true">{% bilingual "Ida y vuelta" "Round trip" %}</button>
+            <button type="button" class="quick-trip-type rounded-full border border-brand-red/20 bg-brand-red-soft px-4 py-2 text-sm font-bold text-brand-red-dark" data-trip-type="roundtrip" aria-pressed="true">{% bilingual "Ida y vuelta" "Round trip" %}</button>
             <button type="button" class="quick-trip-type rounded-full border border-slate-300 px-4 py-2 text-sm font-bold" data-trip-type="oneway" aria-pressed="false">{% bilingual "Solo ida" "One way" %}</button>
         </div>
         <input id="quick-trip-type" type="hidden" value="roundtrip">
@@ -248,7 +268,7 @@
 
 <section class="bg-white py-16 sm:py-20" aria-labelledby="popular-routes-title">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Rutas populares" "Popular routes" %}</span><h2 id="popular-routes-title" class="mt-2 text-3xl font-black">{% bilingual "Viajes desde El Salvador" "Travel from El Salvador" %}</h2><p class="mt-3 text-slate-600">{% bilingual "Selecciona una ruta frecuente y solicita opciones actualizadas para tus fechas." "Choose a popular route and request updated options for your dates." %}</p></div><span class="text-sm text-slate-500">{% bilingual "Sin precios desactualizados ni cargos ocultos" "No outdated prices or hidden fees" %}</span></div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Rutas populares" "Popular routes" %}</span><h2 id="popular-routes-title" class="mt-2 text-3xl font-black">{% bilingual "Viajes desde El Salvador" "Travel from El Salvador" %}</h2><p class="mt-3 text-slate-600">{% bilingual "Selecciona una ruta frecuente y solicita opciones actualizadas para tus fechas." "Choose a popular route and request updated options for your dates." %}</p></div><span class="text-sm text-slate-500">{% bilingual "Opciones actualizadas para cada solicitud" "Current options for every request" %}</span></div>
         <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Houston"><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Houston</strong></span><img src="/assets/core/images/sami-plane-right.svg" alt="" aria-hidden="true" class="size-8 object-contain text-brand-red transition group-hover:translate-x-1"></button>
             <button type="button" class="popular-route group flex items-center justify-between rounded-2xl border border-slate-200 p-5 text-left transition hover:border-brand-red hover:shadow-lg" data-origin="San Salvador" data-destination="Washington D. C."><span><small class="font-bold text-slate-500">Desde San Salvador</small><strong class="mt-1 block text-lg">Washington D. C.</strong></span><img src="/assets/core/images/sami-plane-right.svg" alt="" aria-hidden="true" class="size-8 object-contain transition group-hover:translate-x-1"></button>
@@ -341,10 +361,89 @@
 </section>
 
 {% if featured_tours or featured_destinations %}
-<section id="destinos" class="bg-white py-20 sm:py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Inspírate" "Get inspired" %}</span><h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{% bilingual "Experiencias listas para personalizar" "Experiences ready to personalize" %}</h2><p class="mt-4 max-w-2xl leading-7 text-slate-600">{% bilingual "Explora el catálogo y comienza tu solicitud con el destino seleccionado." "Explore the catalog and start your request with a selected destination." %}</p></div><a class="font-bold text-brand-red" href="#cotizar">{% bilingual "Crear mi viaje" "Plan my trip" %} →</a></div>
-        <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">{% if featured_tours %}{% for tour in featured_tours %}<article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">{% if tour.lugar_turistico.imagen %}<img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="{{ tour.lugar_turistico.imagen.url }}" alt="{{ tour.nombre_localizado }} - {{ tour.lugar_turistico.nombre_localizado }}">{% endif %}<div class="p-6"><div class="flex flex-wrap gap-2">{% if tour.en_promocion %}<span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">{% bilingual "Promoción" "Special offer" %}</span>{% endif %}<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{{ tour.duracion_localizada }}</span></div><h3 class="mt-4 text-xl font-black">{{ tour.nombre_localizado }}</h3><p class="mt-2 text-sm text-slate-500">{{ tour.lugar_turistico.nombre_localizado }} · {{ tour.lugar_turistico.departamento.pais.nombre }}</p><div class="mt-5 flex items-end justify-between gap-4"><p><span class="block text-xs text-slate-500">{% bilingual "Desde" "From" %}</span><strong class="text-xl text-brand-red">USD ${{ tour.precio_base }}</strong></p><a class="btn-secondary" href="{% url 'core:tour-detail' tour.slug %}">{% bilingual "Ver experiencia" "View experience" %}</a></div></div></article>{% endfor %}{% else %}{% for place in featured_destinations %}<article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">{% if place.imagen %}<img class="h-56 w-full object-cover" src="{{ place.imagen.url }}" alt="{{ place.nombre_localizado }}">{% endif %}<div class="p-6"><h3 class="text-xl font-black">{{ place.nombre_localizado }}</h3><p class="mt-2 text-sm text-slate-500">{{ place.departamento.nombre }} · {{ place.departamento.pais.nombre }}</p><p class="mt-4 text-sm leading-6 text-slate-600">{{ place.resumen_localizado|truncatewords:24 }}</p><a class="btn-secondary mt-5" href="{% url 'core:destination-detail' place.slug %}">{% bilingual "Conocer destino" "Discover destination" %}</a></div></article>{% endfor %}{% endif %}</div>
+<section id="destinos" class="relative overflow-hidden bg-slate-50 py-20 sm:py-24">
+    <div class="pointer-events-none absolute -left-32 top-16 size-80 rounded-full bg-brand-red/5 blur-3xl" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute -right-32 bottom-0 size-96 rounded-full bg-brand-navy/5 blur-3xl" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <span class="text-sm font-extrabold uppercase tracking-[.2em] text-brand-red">{% bilingual "Inspírate" "Get inspired" %}</span>
+                <h2 class="mt-3 max-w-3xl text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">{% bilingual "Experiencias listas para personalizar" "Experiences ready to personalize" %}</h2>
+                <p class="mt-4 max-w-2xl leading-7 text-slate-600">{% bilingual "Explora el catálogo y comienza tu solicitud con el destino seleccionado." "Explore the catalog and start your request with a selected destination." %}</p>
+            </div>
+            <a class="group/link inline-flex w-fit items-center gap-2 font-bold text-brand-red transition hover:text-brand-red-dark" href="#cotizar">
+                {% bilingual "Crear mi viaje" "Plan my trip" %}
+                <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover/link:translate-x-1" aria-hidden="true"></i>
+            </a>
+        </div>
+
+        <div class="mt-10 grid items-stretch gap-7 md:grid-cols-2 xl:grid-cols-3">
+            {% if featured_tours %}
+                {% for tour in featured_tours %}
+                <article class="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1.5 hover:border-brand-red/30 hover:shadow-[0_22px_50px_rgba(0,39,86,0.16)] focus-within:-translate-y-1.5 focus-within:border-brand-red/40 focus-within:shadow-[0_22px_50px_rgba(0,39,86,0.16)]">
+                    <a class="absolute inset-0 z-20 rounded-[2rem] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-red focus-visible:ring-inset" href="{% url 'core:tour-detail' tour.slug %}" aria-label="{% bilingual 'Ver experiencia' 'View experience' %}: {{ tour.nombre_localizado }}"></a>
+                    <div class="relative h-64 overflow-hidden bg-brand-navy sm:h-72">
+                        {% if tour.lugar_turistico.imagen %}
+                        <img class="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105" src="{{ tour.lugar_turistico.imagen.url }}" alt="{{ tour.nombre_localizado }} - {{ tour.lugar_turistico.nombre_localizado }}" loading="lazy" decoding="async">
+                        {% else %}
+                        <div class="grid h-full place-items-center bg-brand-navy text-white/25" aria-hidden="true"><i class="fa-solid fa-mountain-sun text-6xl"></i></div>
+                        {% endif %}
+                        <div class="absolute left-5 right-5 top-5 flex items-start justify-between gap-3">
+                            <div class="flex flex-wrap gap-2">
+                                {% if tour.en_promocion %}<span class="inline-flex items-center gap-1.5 rounded-full bg-brand-red px-3 py-1.5 text-xs font-extrabold text-white shadow-lg"><i class="fa-solid fa-bolt" aria-hidden="true"></i>{% bilingual "Promoción" "Special offer" %}</span>{% endif %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-brand-navy/60 px-3 py-1.5 text-xs font-bold text-white shadow-sm backdrop-blur-md"><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ tour.duracion_localizada }}</span>
+                            </div>
+                        </div>
+                        <p class="absolute bottom-5 left-5 flex w-fit max-w-[85%] items-center gap-2 rounded-full border border-white/25 bg-brand-navy/80 px-3.5 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-md">
+                            <i class="fa-solid fa-location-dot text-white" aria-hidden="true"></i>
+                            <span>{{ tour.lugar_turistico.nombre_localizado }} · {{ tour.lugar_turistico.departamento.pais.nombre }}</span>
+                        </p>
+                    </div>
+                    <div class="flex flex-1 flex-col p-6 sm:p-7">
+                        <p class="text-xs font-extrabold uppercase tracking-[.16em] text-brand-red">{% bilingual "Experiencia guiada" "Guided experience" %}</p>
+                        <h3 class="mt-2 text-2xl font-black leading-tight tracking-tight text-brand-navy transition-colors group-hover:text-brand-navy-light">{{ tour.nombre_localizado }}</h3>
+                        <div class="mt-auto flex items-center justify-between gap-4 border-t border-slate-100 pt-6">
+                            <span class="font-extrabold text-brand-navy">{% bilingual "Ver experiencia" "View experience" %}</span>
+                            <span class="grid size-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white shadow-lg shadow-brand-navy/15 transition duration-300 group-hover:bg-brand-red group-hover:rotate-[-8deg]" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                {% for place in featured_destinations %}
+                <article class="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1.5 hover:border-brand-red/30 hover:shadow-[0_22px_50px_rgba(0,39,86,0.16)] focus-within:-translate-y-1.5 focus-within:border-brand-red/40 focus-within:shadow-[0_22px_50px_rgba(0,39,86,0.16)]">
+                    <a class="absolute inset-0 z-20 rounded-[2rem] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-red focus-visible:ring-inset" href="{% url 'core:destination-detail' place.slug %}" aria-label="{% bilingual 'Conocer destino' 'Discover destination' %}: {{ place.nombre_localizado }}"></a>
+                    <div class="relative h-64 overflow-hidden bg-brand-navy sm:h-72">
+                        {% if place.imagen %}
+                        <img class="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105" src="{{ place.imagen.url }}" alt="{{ place.nombre_localizado }}" loading="lazy" decoding="async">
+                        {% else %}
+                        <div class="grid h-full place-items-center bg-brand-navy text-white/25" aria-hidden="true"><i class="fa-solid fa-mountain-sun text-6xl"></i></div>
+                        {% endif %}
+                        <span class="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-brand-navy/80 px-3 py-1.5 text-xs font-bold text-white shadow-sm backdrop-blur-md"><i class="fa-solid fa-star text-brand-red" aria-hidden="true"></i>{% bilingual "Destino destacado" "Featured destination" %}</span>
+                        <p class="absolute bottom-5 left-5 flex w-fit max-w-[85%] items-center gap-2 rounded-full border border-white/25 bg-brand-navy/80 px-3.5 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-md">
+                            <i class="fa-solid fa-location-dot text-white" aria-hidden="true"></i>
+                            <span>{{ place.departamento.nombre }} · {{ place.departamento.pais.nombre }}</span>
+                        </p>
+                    </div>
+                    <div class="flex flex-1 flex-col p-6 sm:p-7">
+                        <p class="text-xs font-extrabold uppercase tracking-[.16em] text-brand-red">{% bilingual "Tu próximo destino" "Your next destination" %}</p>
+                        <h3 class="mt-2 text-2xl font-black leading-tight tracking-tight text-brand-navy transition-colors group-hover:text-brand-navy-light">{{ place.nombre_localizado }}</h3>
+                        <p class="mt-3 text-sm leading-6 text-slate-600">{{ place.resumen_localizado|truncatewords:22 }}</p>
+                        {% if place.mejor_epoca_localizada or place.duracion_recomendada_localizada %}
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            {% if place.mejor_epoca_localizada %}<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600"><i class="fa-regular fa-calendar text-brand-red" aria-hidden="true"></i>{{ place.mejor_epoca_localizada }}</span>{% endif %}
+                            {% if place.duracion_recomendada_localizada %}<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600"><i class="fa-regular fa-clock text-brand-red" aria-hidden="true"></i>{{ place.duracion_recomendada_localizada }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="mt-auto flex items-center justify-between gap-4 border-t border-slate-100 pt-6">
+                            <span class="font-extrabold text-brand-navy">{% bilingual "Explorar destino" "Explore destination" %}</span>
+                            <span class="grid size-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white shadow-lg shadow-brand-navy/15 transition duration-300 group-hover:bg-brand-red group-hover:rotate-[-8deg]" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            {% endif %}
+        </div>
     </div>
 </section>
 {% endif %}
@@ -913,9 +1012,9 @@
     const syncTripTypeButtons = (buttons, selectedValue, dataKey) => {
         buttons.forEach(button => {
             const active = button.dataset[dataKey] === selectedValue;
-            button.classList.toggle("border-rose-200", active);
-            button.classList.toggle("bg-rose-50", active);
-            button.classList.toggle("text-rose-700", active);
+            button.classList.toggle("border-brand-red/20", active);
+            button.classList.toggle("bg-brand-red-soft", active);
+            button.classList.toggle("text-brand-red-dark", active);
             button.classList.toggle("border-slate-300", !active);
             button.classList.toggle("text-slate-600", !active);
             button.setAttribute("aria-pressed", String(active));
@@ -936,9 +1035,9 @@
         quickPrivateFlightWarning?.classList.toggle("hidden", value !== "vuelo privado");
         quickFlightModeButtons.forEach(button => {
             const active = button.dataset.quickFlightMode === value;
-            button.classList.toggle("border-rose-200", active);
-            button.classList.toggle("bg-rose-50", active);
-            button.classList.toggle("text-rose-700", active);
+            button.classList.toggle("border-brand-red/20", active);
+            button.classList.toggle("bg-brand-red-soft", active);
+            button.classList.toggle("text-brand-red-dark", active);
             button.classList.toggle("border-slate-300", !active);
             button.classList.toggle("text-slate-600", !active);
             button.setAttribute("aria-pressed", String(active));
@@ -1095,9 +1194,9 @@
         flightModeOptions?.classList.toggle("hidden", !["vuelo", "vuelo privado"].includes(value));
         flightModeButtons.forEach(button => {
             const active = button.dataset.flightMode === value;
-            button.classList.toggle("border-rose-200", active);
-            button.classList.toggle("bg-rose-50", active);
-            button.classList.toggle("text-rose-700", active);
+            button.classList.toggle("border-brand-red/20", active);
+            button.classList.toggle("bg-brand-red-soft", active);
+            button.classList.toggle("text-brand-red-dark", active);
             button.classList.toggle("border-slate-300", !active);
             button.classList.toggle("text-slate-600", !active);
             button.setAttribute("aria-pressed", String(active));

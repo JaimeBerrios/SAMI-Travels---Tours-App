@@ -112,7 +112,7 @@ class CampanaPromocionalForm(forms.ModelForm):
         for field in self.fields.values():
             field.widget.attrs["class"] = input_class
         for name in ("activo", "mostrar_avion"):
-            self.fields[name].widget.attrs["class"] = "size-5 accent-rose-600"
+            self.fields[name].widget.attrs["class"] = "size-5 accent-brand-red"
         for name in ("imagen_escritorio", "imagen_movil"):
             self.fields[name].widget.attrs["accept"] = "image/jpeg,image/png,image/webp"
         for name in ("multimedia_escritorio", "multimedia_movil"):
@@ -340,8 +340,8 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
                 "class": (
                     "block w-full rounded-xl border border-slate-300 bg-white "
                     "py-3 pl-11 pr-4 text-brand-navy shadow-sm outline-none transition "
-                    "placeholder:text-slate-400 focus:border-rose-500 "
-                    "focus:ring-2 focus:ring-rose-500"
+                    "placeholder:text-slate-400 focus:border-brand-red "
+                    "focus:ring-2 focus:ring-brand-red"
                 ),
             }
         ),
@@ -356,8 +356,8 @@ class SamiAdminAuthenticationForm(AuthenticationForm):
                 "class": (
                     "block w-full rounded-xl border border-slate-300 bg-white "
                     "py-3 pl-11 pr-12 text-brand-navy shadow-sm outline-none transition "
-                    "placeholder:text-slate-400 focus:border-rose-500 "
-                    "focus:ring-2 focus:ring-rose-500"
+                    "placeholder:text-slate-400 focus:border-brand-red "
+                    "focus:ring-2 focus:ring-brand-red"
                 ),
             }
         ),
