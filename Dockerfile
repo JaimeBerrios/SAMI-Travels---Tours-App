@@ -47,4 +47,4 @@ RUN DJANGO_SECRET_KEY=dummy-key-for-build MYSQL_DATABASE=dummy MYSQL_USER=dummy 
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "sami_project.wsgi:application"]
+CMD ["sh", "-c", "while ! python manage.py check --database default > /dev/null 2>&1; do sleep 2; done; exec gunicorn --bind 0.0.0.0:8000 sami_project.wsgi:application"]
