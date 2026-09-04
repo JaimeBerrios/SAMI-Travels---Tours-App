@@ -8,6 +8,9 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+PUBLIC_SITE_URL = os.environ.get(
+    "PUBLIC_SITE_URL", "https://samitravelstours.com"
+).rstrip("/")
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in {
     "1", "true", "yes", "on"

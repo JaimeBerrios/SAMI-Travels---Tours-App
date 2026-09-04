@@ -762,6 +762,27 @@ class BasicProductionViewsTests(TestCase):
         self.assertContains(destination_response, "Noviembre a abril")
         self.assertContains(destination_response, "Surf")
         self.assertContains(destination_response, '"@type":"TouristDestination"')
+        self.assertContains(destination_response, '"@type":"BreadcrumbList"')
+        self.assertContains(
+            destination_response,
+            "<title>El Tunco | SAMI Travels &amp; Tours</title>",
+            html=True,
+        )
+        self.assertContains(
+            destination_response,
+            '<meta property="og:type" content="article">',
+            html=True,
+        )
+        self.assertContains(
+            destination_response,
+            '<meta property="og:image" content="https://samitravelstours.com/media/lugares_turisticos/el-tunco.jpg">',
+            html=True,
+        )
+        self.assertContains(
+            destination_response,
+            '<meta name="twitter:image" content="https://samitravelstours.com/media/lugares_turisticos/el-tunco.jpg">',
+            html=True,
+        )
         self.assertContains(destination_response, "object-position: 72% 28%;")
         self.assertContains(tour_response, "Atardecer en El Tunco")
         self.assertContains(tour_response, '"@type":"TouristTrip"')
@@ -776,4 +797,25 @@ class BasicProductionViewsTests(TestCase):
         self.assertEqual(
             tour_campaign.get_target_url(),
             reverse("core:tour-detail", args=[tour.slug]),
+        )
+
+        self.client.post(
+            reverse("set_language"),
+            {
+                "language": "en",
+                "next": reverse("core:destination-detail", args=[place.slug]),
+            },
+        )
+        english_response = self.client.get(
+            reverse("core:destination-detail", args=[place.slug])
+        )
+        self.assertContains(
+            english_response,
+            "<title>El Tunco | SAMI Travels &amp; Tours</title>",
+            html=True,
+        )
+        self.assertContains(
+            english_response,
+            '<meta property="og:locale" content="en_US">',
+            html=True,
         )

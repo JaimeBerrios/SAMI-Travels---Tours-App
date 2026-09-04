@@ -40,6 +40,12 @@ class PublicSitemap(Sitemap):
             return "weekly"
         return "weekly" if kind in {"destination", "tour"} else "yearly"
 
+    def lastmod(self, item):
+        kind, value = item
+        if kind in {"destination", "tour"}:
+            return value.actualizado_en or value.creado_en
+        return None
+
     def location(self, item):
         kind, value = item
         if kind == "destination":

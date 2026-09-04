@@ -12,6 +12,7 @@ from sami_admin.models import CampanaPromocional, LugarTuristico, Tour
 
 from .forms import SolicitudContactoForm
 from .models import SolicitudContacto
+from .seo import destination_seo
 
 
 def _normalize_location_search(value):
@@ -229,7 +230,11 @@ def destination_detail(request, slug):
     return render(
         request,
         "core/destination_detail.html",
-        {"destination": destination, "tours": tours},
+        {
+            "destination": destination,
+            "tours": tours,
+            "seo": destination_seo(destination),
+        },
     )
 
 

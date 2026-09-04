@@ -1,14 +1,21 @@
 {% extends "core/base.html" %}
 {% load sami_i18n %}
-{% block title %}{{ destination.nombre_localizado }} | SAMI Travels & Tours{% endblock %}
-{% block meta_description %}{% bilingual "Descubre" "Discover" %} {{ destination.nombre_localizado }}, {{ destination.departamento.pais.nombre }}, {% bilingual "y solicita una propuesta personalizada." "and request a personalized proposal." %}{% endblock %}
-{% block canonical_url %}https://samitravelstours.com{% url 'core:destination-detail' destination.slug %}{% endblock %}
-{% block social_title %}{{ destination.nombre_localizado }} | SAMI Travels & Tours{% endblock %}
-{% block social_description %}{{ destination.resumen_localizado|truncatewords:35 }}{% endblock %}
-{% block social_url %}https://samitravelstours.com{% url 'core:destination-detail' destination.slug %}{% endblock %}
-{% block twitter_title %}{{ destination.nombre_localizado }} | SAMI Travels & Tours{% endblock %}
-{% block twitter_description %}{{ destination.resumen_localizado|truncatewords:35 }}{% endblock %}
-{% block structured_data %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"TouristDestination","name":"{{ destination.nombre_localizado|escapejs }}","description":"{{ destination.resumen_localizado|truncatewords:35|escapejs }}","url":"https://samitravelstours.com{% url 'core:destination-detail' destination.slug %}","containedInPlace":{"@type":"Country","name":"{{ destination.departamento.pais.nombre|escapejs }}"}{% if destination.imagen %},"image":"https://samitravelstours.com{{ destination.imagen.url }}"{% endif %}}</script>{% endblock %}
+{% block title %}{{ seo.title }}{% endblock %}
+{% block meta_description %}{{ seo.description }}{% endblock %}
+{% block canonical_url %}{{ seo.canonical_url }}{% endblock %}
+{% block social_type %}article{% endblock %}
+{% block social_title %}{{ seo.title }}{% endblock %}
+{% block social_description %}{{ seo.description }}{% endblock %}
+{% block social_url %}{{ seo.canonical_url }}{% endblock %}
+{% block social_image %}{% if seo.image_url %}{{ seo.image_url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block social_image_alt %}{{ seo.image_alt }}{% endblock %}
+{% block social_locale %}{{ seo.locale }}{% endblock %}
+{% block social_alternate_locale %}{{ seo.alternate_locale }}{% endblock %}
+{% block twitter_title %}{{ seo.title }}{% endblock %}
+{% block twitter_description %}{{ seo.description }}{% endblock %}
+{% block twitter_image %}{% if seo.image_url %}{{ seo.image_url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_image_alt %}{{ seo.image_alt }}{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{{ seo.structured_data }}</script>{% endblock %}
 {% block content %}
 <article>
     <header class="relative isolate overflow-hidden bg-brand-navy text-white">

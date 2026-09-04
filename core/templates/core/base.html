@@ -40,17 +40,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     <meta property="og:title" content="{% block social_title %}SAMI Travels & Tours | Vuelos, tours y experiencias{% endblock %}">
     <meta property="og:description" content="{% block social_description %}Planea tu próximo viaje con asesoría personalizada, vuelos, tours y experiencias desde El Salvador.{% endblock %}">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{% block social_type %}website{% endblock %}">
     <meta property="og:url" content="{% block social_url %}https://samitravelstours.com/{% endblock %}">
-    <meta property="og:image" content="https://samitravelstours.com/assets/core/images/sami-social-card.svg">
-    <meta property="og:image:alt" content="SAMI Travels &amp; Tours">
+    <meta property="og:image" content="{% block social_image %}https://samitravelstours.com/assets/core/images/sami-social-card.svg{% endblock %}">
+    <meta property="og:image:alt" content="{% block social_image_alt %}SAMI Travels &amp; Tours{% endblock %}">
     <meta property="og:site_name" content="SAMI Travels & Tours">
+    <meta property="og:locale" content="{% block social_locale %}{% bilingual 'es_SV' 'en_US' %}{% endblock %}">
+    <meta property="og:locale:alternate" content="{% block social_alternate_locale %}{% bilingual 'en_US' 'es_SV' %}{% endblock %}">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}SAMI Travels & Tours | Vuelos, tours y experiencias{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}Planea tu próximo viaje con asesoría personalizada, vuelos, tours y experiencias desde El Salvador.{% endblock %}">
-    <meta name="twitter:image" content="https://samitravelstours.com/assets/core/images/sami-social-card.svg">
-    <meta name="twitter:image:alt" content="SAMI Travels &amp; Tours">
+    <meta name="twitter:image" content="{% block twitter_image %}https://samitravelstours.com/assets/core/images/sami-social-card.svg{% endblock %}">
+    <meta name="twitter:image:alt" content="{% block twitter_image_alt %}SAMI Travels &amp; Tours{% endblock %}">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
